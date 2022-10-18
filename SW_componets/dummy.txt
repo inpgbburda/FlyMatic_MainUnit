@@ -1,3 +1,0 @@
-Delete me, after adding sw file!
-
-Dummy file to enable pushing emty directory.
