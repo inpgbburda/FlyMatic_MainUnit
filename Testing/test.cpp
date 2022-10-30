@@ -2,8 +2,10 @@
 
 #include "catch.hpp"
 
-TEST_CASE( "Factorials are computed", "[factorial]" ) {
-    REQUIRE( 1 == 1 );
-    REQUIRE( 2 == 2 );
-    REQUIRE( 3 == 6 );
+#include "pwm.hpp"
+
+TEST_CASE( "Ticks are computed", "[factorial]" ) {
+    REQUIRE( Thrust_To_Tics(100) == 2000 );
+    REQUIRE( Thrust_To_Tics(0) == 1000 );
+    REQUIRE( Thrust_To_Tics(50) == 1500 );
 }
