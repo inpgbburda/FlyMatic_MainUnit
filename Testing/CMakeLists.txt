@@ -3,6 +3,11 @@ find_package(Catch2 3 REQUIRED)
 # These tests can use the Catch2-provided main
 
 include_directories(../SW_components/flight_control)
+
+add_compile_options(
+    #    -j 
+)
+
 add_executable(tests 
     test.cpp
     ../SW_components/flight_control/pwm.cpp

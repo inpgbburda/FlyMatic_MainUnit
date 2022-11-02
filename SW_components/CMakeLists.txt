@@ -11,6 +11,9 @@ set(HEADERS
 
 include_directories(${HEADERS})
 
+# set(MY_VARIABLE "option_value" CACHE BOOL)
+
+
 add_compile_options(
        -Wall -Werror
 )
