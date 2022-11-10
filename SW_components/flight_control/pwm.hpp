@@ -14,12 +14,24 @@ typedef struct
 {
     Gpio_Fun_Ptr_T set_high;
     Gpio_Fun_Ptr_T set_low;
-}GPIO_Interface_T; 
+}
+GPIO_Interface_T; 
+
+typedef enum
+{
+    CHAN_1,
+    CHAN_2,
+    CHAN_3,
+    CHAN_4
+} 
+Gpio_Channel_T;
 
 extern GPIO_Interface_T Gpio_Interface;
 
 
-uint32_t Thrust_To_Tics(int percentage);
 void Run_PWM(void);
+void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage);
+int32_t Get_PWM(Gpio_Channel_T channel);
+uint32_t Thrust_To_Tics(int32_t percentage);
 
 #endif // PMM_HPP

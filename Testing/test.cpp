@@ -40,30 +40,48 @@ void clear_pin_fake(int pin){
     }
 }
 
- extern GPIO_Interface_T Gpio_Interface;
+extern GPIO_Interface_T Gpio_Interface;
 
-
-TEST_CASE( "Test computing raw ticks", "[PWM" ) {
+TEST_CASE( "Test computing raw ticks", "[PWM]" ) {
     REQUIRE( Thrust_To_Tics(100) == 2000 );
     REQUIRE( Thrust_To_Tics(0) == 1000 );
     REQUIRE( Thrust_To_Tics(50) == 1500 );
 }
 
-TEST_CASE( "Test PWM main task", "[PWM]" ) {
-    Gpio_Interface.set_high = &set_pin_fake;
-    Gpio_Interface.set_low = &clear_pin_fake;
-    Run_PWM();
-    REQUIRE( pin1_state == true);
-    REQUIRE( pin2_state == true);
-    REQUIRE( pin3_state == true);
-    REQUIRE( pin4_state == true);
+extern uint32_t Perc1;
+extern uint32_t Perc2;
+extern uint32_t Perc3;
+extern uint32_t Perc4;
 
-    for(int a=0; a<1000; a++){
-        Run_PWM();
-    }
-    REQUIRE( pin1_state == false);
-    REQUIRE( pin2_state == false);
-    REQUIRE( pin3_state == false);
-    REQUIRE( pin4_state == false);
+TEST_CASE( "Set PWM level", "[PWM]" ) {
+    Set_PWM(CHAN_1, 100);
+    Set_PWM(CHAN_2, 90);
+    Set_PWM(CHAN_3, 70);
+    Set_PWM(CHAN_4, 60);
 
+    REQUIRE(Perc1 == 100);
+    REQUIRE(Perc2 == 90);
+    REQUIRE(Perc3 == 70);
+    REQUIRE(Perc4 == 60);
 }
+
+// TEST_CASE( "Test PWM main task", "[PWM]" ) {
+//     Gpio_Interface.set_high = &set_pin_fake;
+//     Gpio_Interface.set_low = &clear_pin_fake;
+
+
+
+//     Run_PWM();
+//     REQUIRE( pin1_state == true);
+//     REQUIRE( pin2_state == true);
+//     REQUIRE( pin3_state == true);
+//     REQUIRE( pin4_state == true);
+
+//     for(int a=0; a<1000; a++){
+//         Run_PWM();
+//     }
+//     REQUIRE( pin1_state == false);
+//     REQUIRE( pin2_state == false);
+//     REQUIRE( pin3_state == false);
+//     REQUIRE( pin4_state == false);
+// }
