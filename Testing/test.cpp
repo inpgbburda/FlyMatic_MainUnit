@@ -71,14 +71,14 @@ TEST_CASE( "Set PWM level", "[PWM]" ) {
 
 
 
-//     Run_PWM();
+//     Run_PWM_Blocking();
 //     REQUIRE( pin1_state == true);
 //     REQUIRE( pin2_state == true);
 //     REQUIRE( pin3_state == true);
 //     REQUIRE( pin4_state == true);
 
 //     for(int a=0; a<1000; a++){
-//         Run_PWM();
+//         Run_PWM_Blocking();
 //     }
 //     REQUIRE( pin1_state == false);
 //     REQUIRE( pin2_state == false);

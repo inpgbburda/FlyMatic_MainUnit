@@ -29,7 +29,7 @@ Gpio_Channel_T;
 extern GPIO_Interface_T Gpio_Interface;
 
 
-void Run_PWM(void);
+void Run_PWM_Blocking(void);
 void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage);
 int32_t Get_PWM(Gpio_Channel_T channel);
 uint32_t Thrust_To_Tics(int32_t percentage);

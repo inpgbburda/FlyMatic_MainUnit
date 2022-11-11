@@ -32,14 +32,12 @@ uint32_t Thrust_To_Tics(int32_t percentage){
     return tics;
 }
 
-void Run_PWM(void){
-    //TODO: Delete this, only for compilation purposes.
-    Width3=0;
-    Width4=0;
-    static uint32_t counter_us = 0;
+void Run_PWM_Blocking(void){
+
+    static uint32_t counter_us = 0U;
     if(PWM_PERIOD > counter_us)
     {
-        if(0 == counter_us)
+        if(0U == counter_us)
         {
             (Gpio_Interface.set_high)(1);
             (Gpio_Interface.set_high)(2);
@@ -58,12 +56,12 @@ void Run_PWM(void){
                 (Gpio_Interface.set_low)(2);
             }
 
-            if(Width2 == counter_us)
+            if(Width3 == counter_us)
             {
                 (Gpio_Interface.set_low)(3);
             }
 
-            if(Width2 == counter_us)
+            if(Width4 == counter_us)
             {
                 (Gpio_Interface.set_low)(4);
             }
@@ -72,7 +70,7 @@ void Run_PWM(void){
     }
     else
     {
-        counter_us = 0;
+        counter_us = 0U;
     }
     //TODO: Wait 1 us 
 }
