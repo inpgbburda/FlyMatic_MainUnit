@@ -15,5 +15,7 @@ add_compile_options(
 add_executable(tests 
     test.cpp
     ../SW_components/flight_control/pwm.cpp
+    EventAddress_UT.cpp
 )
+
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
