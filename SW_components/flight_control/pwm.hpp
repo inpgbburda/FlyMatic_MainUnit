@@ -3,10 +3,12 @@
 
 #include <stdint.h>
 
-#define MAX_TICS 2000
-#define MIN_TICS 1000
+#define BUSY_TICKS_TO_US 240U /* Experimentaily adjusted value */
 
-#define PWM_PERIOD 20000U
+#define MAX_TICS 200U
+#define MIN_TICS 100U
+
+#define PWM_PERIOD 2000U    /* Period set to 20ms */
 
 typedef void(*Gpio_Fun_Ptr_T)(int pin);
 
@@ -19,7 +21,7 @@ GPIO_Interface_T;
 
 typedef enum
 {
-    CHAN_1,
+    CHAN_1 = 1,
     CHAN_2,
     CHAN_3,
     CHAN_4
