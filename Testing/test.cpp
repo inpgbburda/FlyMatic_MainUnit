@@ -112,3 +112,21 @@ TEST_CASE( "Test PWM main task", "[PWM]" ) {
     REQUIRE( pin3_state == false);
     REQUIRE( pin4_state == false);
 }
+
+TEST_CASE( "Test PWM main task - data changed in fly", "[PWM]" ) {
+    Gpio_Interface.set_high = &set_pin_fake;
+    Gpio_Interface.set_low = &clear_pin_fake;
+
+    Set_PWM(CHAN_1, 0);
+
+    Run_PWM_Blocking();
+    for(int a=0; a<100; a++){
+        Run_PWM_Blocking();
+    }
+    REQUIRE( pin1_state == false);
+
+    Set_PWM(CHAN_1, 50);
+    Run_PWM_Blocking();
+ 
+    REQUIRE( pin1_state == false);
+}

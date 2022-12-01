@@ -9,9 +9,12 @@ set(HEADERS
     flight_control
 )
 
-include_directories(${HEADERS})
+option(_RASP "Enter debug mode" OFF)
+if (_RASP)
+  add_definitions(-D_RASP)
+endif()
 
-# set(MY_VARIABLE "option_value" CACHE BOOL)
+include_directories(${HEADERS})
 
 
 add_compile_options(

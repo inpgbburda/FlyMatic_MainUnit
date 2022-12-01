@@ -1,4 +1,8 @@
 #include"pwm.hpp"
+#ifdef _RASP
+#include <wiringPi.h>
+#endif
+
 
 #ifdef _UNIT_TEST
 uint32_t Width1 = 0;
@@ -23,6 +27,37 @@ static uint32_t Perc3 = 0;
 static uint32_t Perc4 = 0;
 #endif
 
+#ifdef _RASP
+void Set_Pin(int pin){
+    if(1 == pin){
+        pin1_state = true;
+    }
+    if(2 == pin){
+        pin2_state = true;
+    }
+    if(3 == pin){
+        pin3_state = true;
+    }
+    if(4 == pin){
+        pin4_state = true;
+    }
+}
+
+void Clear_Pin(int pin){
+    if(1 == pin){
+        pin1_state = false;
+    }
+    if(2 == pin){
+        pin2_state = false;
+    }
+    if(3 == pin){
+        pin3_state = false;
+    }
+    if(4 == pin){
+        pin4_state = false;
+    }
+}
+#endif
 
 GPIO_Interface_T Gpio_Interface;
 
@@ -33,13 +68,14 @@ uint32_t Thrust_To_Tics(int32_t percentage){
 }
 
 
+
 /*
    Function must be called with minimum 10us.
    Below this value, generated time will not be accurate.
 */
-static void Delay_us(int micro_seconds){
-   volatile int us_cnt = 0;
-   volatile int cnt = 0;
+static void Delay_us(uint32_t micro_seconds){
+   volatile uint32_t us_cnt = 0;
+   volatile uint32_t cnt = 0;
    for(us_cnt=0; us_cnt<micro_seconds; us_cnt++){
       for(cnt=0; cnt<BUSY_TICKS_TO_US; cnt++);   
    }
@@ -49,15 +85,16 @@ void Run_PWM_Blocking(void){
 
     static uint32_t timer = 0U; /*Every incremented value means 10us passed*/
 
-    Width1 = Thrust_To_Tics(Perc1);
-    Width2 = Thrust_To_Tics(Perc2);
-    Width3 = Thrust_To_Tics(Perc3);
-    Width4 = Thrust_To_Tics(Perc4);
 
     if(PWM_PERIOD > timer)
     {
         if(0U == timer)
         {
+            Width1 = Thrust_To_Tics(Perc1);
+            Width2 = Thrust_To_Tics(Perc2);
+            Width3 = Thrust_To_Tics(Perc3);
+            Width4 = Thrust_To_Tics(Perc4);
+
             (Gpio_Interface.set_high)(CHAN_1);
             (Gpio_Interface.set_high)(CHAN_2);
             (Gpio_Interface.set_high)(CHAN_3);
