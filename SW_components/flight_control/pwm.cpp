@@ -27,46 +27,32 @@ static uint32_t Perc3 = 0;
 static uint32_t Perc4 = 0;
 #endif
 
-#ifdef _RASP
-void Set_Pin(int pin){
-    if(1 == pin){
-        pin1_state = true;
-    }
-    if(2 == pin){
-        pin2_state = true;
-    }
-    if(3 == pin){
-        pin3_state = true;
-    }
-    if(4 == pin){
-        pin4_state = true;
-    }
-}
-
-void Clear_Pin(int pin){
-    if(1 == pin){
-        pin1_state = false;
-    }
-    if(2 == pin){
-        pin2_state = false;
-    }
-    if(3 == pin){
-        pin3_state = false;
-    }
-    if(4 == pin){
-        pin4_state = false;
-    }
-}
-#endif
 
 GPIO_Interface_T Gpio_Interface;
+
+static void Set_Pin(int pin);
+static void Clear_Pin(int pin);
+
+
+void Init_PWM(void){
+    #ifdef _RASP
+	wiringPiSetup();
+	pinMode (PIN_MOTOR_1, OUTPUT);
+	pinMode (PIN_MOTOR_2, OUTPUT);
+	pinMode (PIN_MOTOR_3, OUTPUT);
+	pinMode (PIN_MOTOR_4, OUTPUT);
+    pinMode (PIN_DEBUG, OUTPUT);
+	#endif
+    Gpio_Interface.set_high = &Set_Pin;
+    Gpio_Interface.set_low = &Clear_Pin;
+}
+
 
 uint32_t Thrust_To_Tics(int32_t percentage){
     uint32_t tics = 0;
     tics = uint32_t( ((percentage * (MAX_TICS-MIN_TICS)) / 100U) + MIN_TICS );
     return tics;
 }
-
 
 
 /*
@@ -81,7 +67,10 @@ static void Delay_us(uint32_t micro_seconds){
    }
 }
 
+
 void Run_PWM_Blocking(void){
+
+    digitalWrite (PIN_DEBUG, HIGH);
 
     static uint32_t timer = 0U; /*Every incremented value means 10us passed*/
 
@@ -95,6 +84,11 @@ void Run_PWM_Blocking(void){
             Width3 = Thrust_To_Tics(Perc3);
             Width4 = Thrust_To_Tics(Perc4);
 
+            // digitalWrite (PIN_MOTOR_1, HIGH);
+            // digitalWrite (PIN_MOTOR_2, HIGH);
+            // digitalWrite (PIN_MOTOR_3, HIGH);
+            // digitalWrite (PIN_MOTOR_4, HIGH);
+
             (Gpio_Interface.set_high)(CHAN_1);
             (Gpio_Interface.set_high)(CHAN_2);
             (Gpio_Interface.set_high)(CHAN_3);
@@ -105,21 +99,26 @@ void Run_PWM_Blocking(void){
             if(Width1 == timer)
             {
                 (Gpio_Interface.set_low)(CHAN_1);
+                // digitalWrite (PIN_MOTOR_1, LOW);
             }
 
             if(Width2 == timer)
             {
                 (Gpio_Interface.set_low)(CHAN_2);
+                // digitalWrite (PIN_MOTOR_2, LOW);
+
             }
 
             if(Width3 == timer)
             {
                 (Gpio_Interface.set_low)(CHAN_3);
+                // digitalWrite (PIN_MOTOR_3, LOW);
             }
 
             if(Width4 == timer)
             {
                 (Gpio_Interface.set_low)(CHAN_4);
+                // digitalWrite (PIN_MOTOR_4, LOW);
             }
         }
         timer ++;
@@ -129,6 +128,9 @@ void Run_PWM_Blocking(void){
         timer = 0U;
     }
     Delay_us(10U);
+    digitalWrite (PIN_DEBUG, LOW);
+    // Delay_us(10U);
+
 }
 
 
@@ -154,6 +156,7 @@ void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage){
     }
 }
 
+
 int32_t Get_PWM(Gpio_Channel_T channel){
     
     int32_t result = 0;
@@ -178,4 +181,39 @@ int32_t Get_PWM(Gpio_Channel_T channel){
 
     }
     return result;
+}
+
+
+static void Set_Pin(int pin){
+    #ifdef _RASP
+    if(1 == pin){
+        digitalWrite (PIN_MOTOR_1, HIGH);
+    }
+    if(2 == pin){
+        digitalWrite (PIN_MOTOR_2, HIGH);
+    }
+    if(3 == pin){
+        digitalWrite (PIN_MOTOR_3, HIGH);
+    }
+    if(4 == pin){
+        digitalWrite (PIN_MOTOR_4, HIGH);
+    }
+    #endif
+}
+
+static void Clear_Pin(int pin){
+    #ifdef _RASP
+    if(1 == pin){
+        digitalWrite (PIN_MOTOR_1, LOW);
+    }
+    if(2 == pin){
+        digitalWrite (PIN_MOTOR_2, LOW);
+    }
+    if(3 == pin){
+        digitalWrite (PIN_MOTOR_3, LOW);
+    }
+    if(4 == pin){
+        digitalWrite (PIN_MOTOR_4, LOW);
+    }
+    #endif
 }

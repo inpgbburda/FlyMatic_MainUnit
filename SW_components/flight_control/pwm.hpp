@@ -3,21 +3,19 @@
 
 #include <stdint.h>
 
-#define BUSY_TICKS_TO_US 240U /* Experimentaily adjusted value */
+#define BUSY_TICKS_TO_US 228U /* Experimentaily adjusted value */
 
 #define MAX_TICS 200U
 #define MIN_TICS 100U
 
-#define PWM_PERIOD 2000U    /* Period set to 20ms */
+#define PWM_PERIOD 2000U /* Period set to 20ms */
 
-typedef void(*Gpio_Fun_Ptr_T)(int pin);
+#define PIN_MOTOR_1 7 /*Hardware pins configuration*/
+#define PIN_MOTOR_2 0
+#define PIN_MOTOR_3 2
+#define PIN_MOTOR_4 3 
 
-typedef struct
-{
-    Gpio_Fun_Ptr_T set_high;
-    Gpio_Fun_Ptr_T set_low;
-}
-GPIO_Interface_T; 
+#define PIN_DEBUG 1
 
 typedef enum
 {
@@ -28,9 +26,19 @@ typedef enum
 } 
 Gpio_Channel_T;
 
+typedef void(*Gpio_Fun_Ptr_T)(int pin);
+
+typedef struct
+{
+    Gpio_Fun_Ptr_T set_high;
+    Gpio_Fun_Ptr_T set_low;
+}
+GPIO_Interface_T; 
+
+
 extern GPIO_Interface_T Gpio_Interface;
 
-
+void Init_PWM(void);
 void Run_PWM_Blocking(void);
 void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage);
 int32_t Get_PWM(Gpio_Channel_T channel);

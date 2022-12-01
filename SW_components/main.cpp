@@ -1,19 +1,18 @@
 #include <iostream>
 #include "pwm.hpp"
 
-#ifdef _RASP
-#include <wiringPi.h>
-#endif
-
 using namespace std;
 
 int main()
 {
-	cout << "Witam serdecznie"<< endl;
+	cout << "Witam serdecznie w projekcie drona"<< endl;
 
-	wiringPiSetup();
-	Set_PWM(CHAN_1, 100);
-	
+	Init_PWM();
+	Set_PWM(CHAN_1, 0U);
+	Set_PWM(CHAN_2, 75U);
+	Set_PWM(CHAN_3, 50U);
+	Set_PWM(CHAN_4, 25U);
+		
 	while(1){
 		Run_PWM_Blocking();
 	}

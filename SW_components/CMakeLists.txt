@@ -9,7 +9,7 @@ set(HEADERS
     flight_control
 )
 
-option(_RASP "Enter debug mode" OFF)
+option(_RASP "Compile for Raspbberry" OFF)
 if (_RASP)
   add_definitions(-D_RASP)
 endif()
@@ -22,3 +22,6 @@ add_compile_options(
 )
 
 add_executable (executable ${SOURCES} main.cpp)
+
+find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
+target_link_libraries(executable ${WIRINGPI_LIBRARIES})
