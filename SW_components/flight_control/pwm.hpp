@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define BUSY_TICKS_TO_US 228U /* Experimentaily adjusted value */
+#define TIME_OFFSET 6
 
 #define MAX_TICS 200U
 #define MIN_TICS 100U
@@ -37,6 +38,8 @@ GPIO_Interface_T;
 
 
 extern GPIO_Interface_T Gpio_Interface;
+extern uint32_t Time_Calibration_G;
+
 
 void Init_PWM(void);
 void Run_PWM_Blocking(void);

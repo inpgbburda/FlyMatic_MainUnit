@@ -2,7 +2,7 @@
 #ifdef _RASP
 #include <wiringPi.h>
 #endif
-
+#include "time.h"
 
 #ifdef _UNIT_TEST
 uint32_t Width1 = 0;
@@ -29,12 +29,34 @@ static uint32_t Perc4 = 0;
 
 
 GPIO_Interface_T Gpio_Interface;
+uint32_t Time_Calibration_G;
+
 
 static void Set_Pin(int pin);
 static void Clear_Pin(int pin);
+uint32_t Busy_Wait_Calibrate(void);
+
+
+uint32_t Busy_Wait_Calibrate(void) {
+    struct timespec btime, etime;
+    volatile int loop_cnt;
+    clock_gettime(CLOCK_REALTIME, &btime);
+    for (loop_cnt = 0; loop_cnt < 1000000000; loop_cnt++) 
+    {
+        /*Do Nothing*/
+    };
+    clock_gettime(CLOCK_REALTIME, &etime);
+    double diff_seconds = (double) (etime.tv_sec - btime.tv_sec);
+    double diff_nseconds = (double) (etime.tv_nsec - btime.tv_nsec);
+    double nseconds = (double) (diff_seconds* 1000000000L)+ diff_nseconds;
+
+    int loops_per_us = (int) (1000000000 / nseconds * 1000) + TIME_OFFSET;
+    return loops_per_us;
+} 
 
 
 void Init_PWM(void){
+    Time_Calibration_G = 0;
     #ifdef _RASP
 	wiringPiSetup();
 	pinMode (PIN_MOTOR_1, OUTPUT);
@@ -45,6 +67,7 @@ void Init_PWM(void){
 	#endif
     Gpio_Interface.set_high = &Set_Pin;
     Gpio_Interface.set_low = &Clear_Pin;
+    Time_Calibration_G = Busy_Wait_Calibrate();
 }
 
 
@@ -63,17 +86,14 @@ static void Delay_us(uint32_t micro_seconds){
    volatile uint32_t us_cnt = 0;
    volatile uint32_t cnt = 0;
    for(us_cnt=0; us_cnt<micro_seconds; us_cnt++){
-      for(cnt=0; cnt<BUSY_TICKS_TO_US; cnt++);   
+      for(cnt=0; cnt<Time_Calibration_G; cnt++);   
    }
 }
 
 
 void Run_PWM_Blocking(void){
 
-    digitalWrite (PIN_DEBUG, HIGH);
-
     static uint32_t timer = 0U; /*Every incremented value means 10us passed*/
-
 
     if(PWM_PERIOD > timer)
     {
@@ -83,11 +103,6 @@ void Run_PWM_Blocking(void){
             Width2 = Thrust_To_Tics(Perc2);
             Width3 = Thrust_To_Tics(Perc3);
             Width4 = Thrust_To_Tics(Perc4);
-
-            // digitalWrite (PIN_MOTOR_1, HIGH);
-            // digitalWrite (PIN_MOTOR_2, HIGH);
-            // digitalWrite (PIN_MOTOR_3, HIGH);
-            // digitalWrite (PIN_MOTOR_4, HIGH);
 
             (Gpio_Interface.set_high)(CHAN_1);
             (Gpio_Interface.set_high)(CHAN_2);
@@ -99,26 +114,21 @@ void Run_PWM_Blocking(void){
             if(Width1 == timer)
             {
                 (Gpio_Interface.set_low)(CHAN_1);
-                // digitalWrite (PIN_MOTOR_1, LOW);
             }
 
             if(Width2 == timer)
             {
                 (Gpio_Interface.set_low)(CHAN_2);
-                // digitalWrite (PIN_MOTOR_2, LOW);
-
             }
 
             if(Width3 == timer)
             {
                 (Gpio_Interface.set_low)(CHAN_3);
-                // digitalWrite (PIN_MOTOR_3, LOW);
             }
 
             if(Width4 == timer)
             {
                 (Gpio_Interface.set_low)(CHAN_4);
-                // digitalWrite (PIN_MOTOR_4, LOW);
             }
         }
         timer ++;
@@ -128,9 +138,7 @@ void Run_PWM_Blocking(void){
         timer = 0U;
     }
     Delay_us(10U);
-    digitalWrite (PIN_DEBUG, LOW);
-    // Delay_us(10U);
-
+ 
 }
 
 
