@@ -9,31 +9,33 @@ uint32_t Width1 = 0;
 uint32_t Width2 = 0;
 uint32_t Width3 = 0;
 uint32_t Width4 = 0;
-
-uint32_t Perc1 = 0;
-uint32_t Perc2 = 0;
-uint32_t Perc3 = 0;
-uint32_t Perc4 = 0;
+uint32_t Perc_Arr[CHAN_END];
 
 #else
 static uint32_t Width1 = 0;
 static uint32_t Width2 = 0;
 static uint32_t Width3 = 0;
 static uint32_t Width4 = 0;
-
-static uint32_t Perc1 = 0;
-static uint32_t Perc2 = 0;
-static uint32_t Perc3 = 0;
-static uint32_t Perc4 = 0;
+static uint32_t Perc_Arr[CHAN_END];
 #endif
+
+
+Gpio_Channel_T& operator ++ (Gpio_Channel_T& chan)
+{
+    if (chan == Gpio_Channel_T::CHAN_END) {
+        throw std::out_of_range("for Gpio_Channel_T& operator ++ (Gpio_Channel_T&)");
+    }
+    chan = Gpio_Channel_T(static_cast<std::underlying_type<Gpio_Channel_T>::type>(chan) + 1);
+    return chan;
+}
 
 
 GPIO_Interface_T Gpio_Interface;
 uint32_t Time_Calibration_G;
 
 
-static void Set_Pin(int pin);
-static void Clear_Pin(int pin);
+static void Set_Pin(Gpio_Channel_T pin);
+static void Clear_Pin(Gpio_Channel_T pin);
 uint32_t Busy_Wait_Calibrate(void);
 
 
@@ -99,10 +101,10 @@ void Run_PWM_Blocking(void){
     {
         if(0U == timer)
         {
-            Width1 = Thrust_To_Tics(Perc1);
-            Width2 = Thrust_To_Tics(Perc2);
-            Width3 = Thrust_To_Tics(Perc3);
-            Width4 = Thrust_To_Tics(Perc4);
+            Width1 = Thrust_To_Tics(Perc_Arr[CHAN_1]);
+            Width2 = Thrust_To_Tics(Perc_Arr[CHAN_2]);
+            Width3 = Thrust_To_Tics(Perc_Arr[CHAN_3]);
+            Width4 = Thrust_To_Tics(Perc_Arr[CHAN_4]);
 
             (Gpio_Interface.set_high)(CHAN_1);
             (Gpio_Interface.set_high)(CHAN_2);
@@ -143,56 +145,35 @@ void Run_PWM_Blocking(void){
 
 
 void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage){
-    if(CHAN_1 == channel)
+     
+    for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt) 
     {
-        Perc1 = pwm_percentage;
-    }
-    else if(CHAN_2 == channel)
-    {
-        Perc2 = pwm_percentage;
-    }
-    else if(CHAN_3 == channel)
-    {
-        Perc3 = pwm_percentage;
-    }
-    else if(CHAN_4 == channel)
-    {
-        Perc4 = pwm_percentage;
-    }
-    else{
-
+        if (channel == chann_cnt)
+        {
+            Perc_Arr[chann_cnt] = pwm_percentage;
+            break;
+        }
     }
 }
 
 
 int32_t Get_PWM(Gpio_Channel_T channel){
     
-    int32_t result = 0;
+    int32_t read_percentage = 0;
 
-    if(CHAN_1 == channel)
+    for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt) 
     {
-        result = Perc1;
+        if (channel == chann_cnt)
+        {
+            read_percentage = Perc_Arr[chann_cnt];
+            break;
+        }
     }
-    else if(CHAN_2 == channel)
-    {
-        result = Perc2;
-    }
-    else if(CHAN_3 == channel)
-    {
-        result = Perc3;
-    }
-    else if(CHAN_4 == channel)
-    {
-        result = Perc4;
-    }
-    else{
-
-    }
-    return result;
+    return read_percentage;
 }
 
 
-static void Set_Pin(int pin){
+static void Set_Pin(Gpio_Channel_T pin){
     #ifdef _RASP
     if(1 == pin){
         digitalWrite (PIN_MOTOR_1, HIGH);
@@ -209,7 +190,7 @@ static void Set_Pin(int pin){
     #endif
 }
 
-static void Clear_Pin(int pin){
+static void Clear_Pin(Gpio_Channel_T pin){
     #ifdef _RASP
     if(1 == pin){
         digitalWrite (PIN_MOTOR_1, LOW);

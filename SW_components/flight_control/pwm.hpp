@@ -2,6 +2,7 @@
 #define PWM_HPP
 
 #include <stdint.h>
+#include <stdexcept>
 
 #define BUSY_TICKS_TO_US 228U /* Experimentaily adjusted value */
 #define TIME_OFFSET 6
@@ -20,14 +21,18 @@
 
 typedef enum
 {
-    CHAN_1 = 1,
+    CHAN_BEGIN,
+    CHAN_1 = CHAN_BEGIN,
     CHAN_2,
     CHAN_3,
-    CHAN_4
+    CHAN_4,
+    CHAN_END
 } 
 Gpio_Channel_T;
 
-typedef void(*Gpio_Fun_Ptr_T)(int pin);
+
+
+typedef void(*Gpio_Fun_Ptr_T)(Gpio_Channel_T pin);
 
 typedef struct
 {

@@ -10,32 +10,32 @@ static bool pin2_state = false;
 static bool pin3_state = false;
 static bool pin4_state = false;
 
-void set_pin_fake(int pin){
-    if(1 == pin){
+void set_pin_fake(Gpio_Channel_T pin){
+    if(CHAN_1 == pin){
         pin1_state = true;
     }
-    if(2 == pin){
+    if(CHAN_2 == pin){
         pin2_state = true;
     }
-    if(3 == pin){
+    if(CHAN_3 == pin){
         pin3_state = true;
     }
-    if(4 == pin){
+    if(CHAN_4 == pin){
         pin4_state = true;
     }
 }
 
-void clear_pin_fake(int pin){
-    if(1 == pin){
+void clear_pin_fake(Gpio_Channel_T pin){
+    if(CHAN_1 == pin){
         pin1_state = false;
     }
-    if(2 == pin){
+    if(CHAN_2 == pin){
         pin2_state = false;
     }
-    if(3 == pin){
+    if(CHAN_3 == pin){
         pin3_state = false;
     }
-    if(4 == pin){
+    if(CHAN_4 == pin){
         pin4_state = false;
     }
 }
@@ -53,16 +53,30 @@ extern uint32_t Perc2;
 extern uint32_t Perc3;
 extern uint32_t Perc4;
 
+extern uint32_t Perc_Arr[CHAN_END];
+
 TEST_CASE( "Set PWM level", "[PWM]" ) {
     Set_PWM(CHAN_1, 100);
     Set_PWM(CHAN_2, 90);
     Set_PWM(CHAN_3, 70);
     Set_PWM(CHAN_4, 60);
 
-    REQUIRE(Perc1 == 100);
-    REQUIRE(Perc2 == 90);
-    REQUIRE(Perc3 == 70);
-    REQUIRE(Perc4 == 60);
+    REQUIRE(Perc_Arr[0] == 100);
+    REQUIRE(Perc_Arr[1] == 90);
+    REQUIRE(Perc_Arr[2] == 70);
+    REQUIRE(Perc_Arr[3] == 60);
+}
+
+TEST_CASE( "Get PWM level", "[PWM]" ) {
+    Perc_Arr[0] = 20;
+    Perc_Arr[1] = 30;
+    Perc_Arr[2] = 40;
+    Perc_Arr[3] = 50;
+
+    REQUIRE(Get_PWM(CHAN_1) == 20);
+    REQUIRE(Get_PWM(CHAN_2) == 30);
+    REQUIRE(Get_PWM(CHAN_3) == 40);
+    REQUIRE(Get_PWM(CHAN_4) == 50);
 }
 
 TEST_CASE( "Test PWM main task", "[PWM]" ) {

@@ -23,5 +23,9 @@ add_compile_options(
 
 add_executable (executable ${SOURCES} main.cpp)
 
-find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
-target_link_libraries(executable ${WIRINGPI_LIBRARIES})
+if (_RASP)
+
+  find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
+  target_link_libraries(executable ${WIRINGPI_LIBRARIES})
+
+endif()
