@@ -4,42 +4,32 @@
 #endif
 #include "time.h"
 
-#ifdef _UNIT_TEST
-uint32_t Width1 = 0;
-uint32_t Width2 = 0;
-uint32_t Width3 = 0;
-uint32_t Width4 = 0;
-uint32_t Perc_Arr[CHAN_END];
 
-#else
-static uint32_t Width1 = 0;
-static uint32_t Width2 = 0;
-static uint32_t Width3 = 0;
-static uint32_t Width4 = 0;
-static uint32_t Perc_Arr[CHAN_END];
-#endif
+static uint32_t Width_Array[CHAN_END];
+static uint32_t Perc_Array[CHAN_END];
 
 
-Gpio_Channel_T& operator ++ (Gpio_Channel_T& chan)
-{
-    if (chan == Gpio_Channel_T::CHAN_END) {
-        throw std::out_of_range("for Gpio_Channel_T& operator ++ (Gpio_Channel_T&)");
-    }
-    chan = Gpio_Channel_T(static_cast<std::underlying_type<Gpio_Channel_T>::type>(chan) + 1);
-    return chan;
-}
+Gpio_Channel_T& operator ++ (Gpio_Channel_T& chan);
 
 
 GPIO_Interface_T Gpio_Interface;
 uint32_t Time_Calibration_G;
 
 
+void Init_PWM(void);
+void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage);
+int32_t Get_PWM(Gpio_Channel_T channel);
+void Run_PWM_Blocking(void);
+
+
+static uint32_t Thrust_To_Tics(int32_t percentage);
 static void Set_Pin(Gpio_Channel_T pin);
 static void Clear_Pin(Gpio_Channel_T pin);
-uint32_t Busy_Wait_Calibrate(void);
+static uint32_t Busy_Wait_Calibrate(void);
+static void Delay_us(uint32_t micro_seconds);
 
 
-uint32_t Busy_Wait_Calibrate(void) {
+static uint32_t Busy_Wait_Calibrate(void) {
     struct timespec btime, etime;
     volatile int loop_cnt;
     clock_gettime(CLOCK_REALTIME, &btime);
@@ -73,26 +63,6 @@ void Init_PWM(void){
 }
 
 
-uint32_t Thrust_To_Tics(int32_t percentage){
-    uint32_t tics = 0;
-    tics = uint32_t( ((percentage * (MAX_TICS-MIN_TICS)) / 100U) + MIN_TICS );
-    return tics;
-}
-
-
-/*
-   Function must be called with minimum 10us.
-   Below this value, generated time will not be accurate.
-*/
-static void Delay_us(uint32_t micro_seconds){
-   volatile uint32_t us_cnt = 0;
-   volatile uint32_t cnt = 0;
-   for(us_cnt=0; us_cnt<micro_seconds; us_cnt++){
-      for(cnt=0; cnt<Time_Calibration_G; cnt++);   
-   }
-}
-
-
 void Run_PWM_Blocking(void){
 
     static uint32_t timer = 0U; /*Every incremented value means 10us passed*/
@@ -101,10 +71,11 @@ void Run_PWM_Blocking(void){
     {
         if(0U == timer)
         {
-            Width1 = Thrust_To_Tics(Perc_Arr[CHAN_1]);
-            Width2 = Thrust_To_Tics(Perc_Arr[CHAN_2]);
-            Width3 = Thrust_To_Tics(Perc_Arr[CHAN_3]);
-            Width4 = Thrust_To_Tics(Perc_Arr[CHAN_4]);
+            /*Start of the period - All channels begin duty cycle*/
+            Width_Array[CHAN_1] = Thrust_To_Tics(Perc_Array[CHAN_1]);
+            Width_Array[CHAN_2] = Thrust_To_Tics(Perc_Array[CHAN_2]);
+            Width_Array[CHAN_3] = Thrust_To_Tics(Perc_Array[CHAN_3]);
+            Width_Array[CHAN_4] = Thrust_To_Tics(Perc_Array[CHAN_4]);
 
             (Gpio_Interface.set_high)(CHAN_1);
             (Gpio_Interface.set_high)(CHAN_2);
@@ -113,24 +84,12 @@ void Run_PWM_Blocking(void){
         }
         else
         {
-            if(Width1 == timer)
+            for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt)
             {
-                (Gpio_Interface.set_low)(CHAN_1);
-            }
-
-            if(Width2 == timer)
-            {
-                (Gpio_Interface.set_low)(CHAN_2);
-            }
-
-            if(Width3 == timer)
-            {
-                (Gpio_Interface.set_low)(CHAN_3);
-            }
-
-            if(Width4 == timer)
-            {
-                (Gpio_Interface.set_low)(CHAN_4);
+                if(Width_Array[chann_cnt] == timer)
+                    {
+                        (Gpio_Interface.set_low)(chann_cnt);
+                    }
             }
         }
         timer ++;
@@ -144,13 +103,33 @@ void Run_PWM_Blocking(void){
 }
 
 
+static uint32_t Thrust_To_Tics(int32_t percentage){
+    uint32_t tics = 0;
+    tics = uint32_t( ((percentage * (MAX_TICS-MIN_TICS)) / 100U) + MIN_TICS );
+    return tics;
+}
+
+
+/*
+   Delay_us function must be called with minimum 10us.
+   Below this value, generated time will not be accurate.
+*/
+static void Delay_us(uint32_t micro_seconds){
+   volatile uint32_t us_cnt = 0;
+   volatile uint32_t cnt = 0;
+   for(us_cnt=0; us_cnt<micro_seconds; us_cnt++){
+      for(cnt=0; cnt<Time_Calibration_G; cnt++);   
+   }
+}
+
+
 void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage){
      
     for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt) 
     {
         if (channel == chann_cnt)
         {
-            Perc_Arr[chann_cnt] = pwm_percentage;
+            Perc_Array[chann_cnt] = pwm_percentage;
             break;
         }
     }
@@ -165,7 +144,7 @@ int32_t Get_PWM(Gpio_Channel_T channel){
     {
         if (channel == chann_cnt)
         {
-            read_percentage = Perc_Arr[chann_cnt];
+            read_percentage = Perc_Array[chann_cnt];
             break;
         }
     }
@@ -205,4 +184,14 @@ static void Clear_Pin(Gpio_Channel_T pin){
         digitalWrite (PIN_MOTOR_4, LOW);
     }
     #endif
+}
+
+
+Gpio_Channel_T& operator ++ (Gpio_Channel_T& chan)
+{
+    if (chan == Gpio_Channel_T::CHAN_END) {
+        throw std::out_of_range("for Gpio_Channel_T& operator ++ (Gpio_Channel_T&)");
+    }
+    chan = Gpio_Channel_T(static_cast<std::underlying_type<Gpio_Channel_T>::type>(chan) + 1);
+    return chan;
 }

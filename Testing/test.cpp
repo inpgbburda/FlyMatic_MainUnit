@@ -2,6 +2,7 @@
 
 #include "catch.hpp"
 
+#include "pwm.cpp"
 #include "pwm.hpp"
 
 
@@ -40,7 +41,6 @@ void clear_pin_fake(Gpio_Channel_T pin){
     }
 }
 
-extern GPIO_Interface_T Gpio_Interface;
 
 TEST_CASE( "Test computing raw ticks", "[PWM]" ) {
     REQUIRE( Thrust_To_Tics(100) == 200 );
@@ -48,12 +48,6 @@ TEST_CASE( "Test computing raw ticks", "[PWM]" ) {
     REQUIRE( Thrust_To_Tics(50) == 150 );
 }
 
-extern uint32_t Perc1;
-extern uint32_t Perc2;
-extern uint32_t Perc3;
-extern uint32_t Perc4;
-
-extern uint32_t Perc_Arr[CHAN_END];
 
 TEST_CASE( "Set PWM level", "[PWM]" ) {
     Set_PWM(CHAN_1, 100);
@@ -61,17 +55,17 @@ TEST_CASE( "Set PWM level", "[PWM]" ) {
     Set_PWM(CHAN_3, 70);
     Set_PWM(CHAN_4, 60);
 
-    REQUIRE(Perc_Arr[0] == 100);
-    REQUIRE(Perc_Arr[1] == 90);
-    REQUIRE(Perc_Arr[2] == 70);
-    REQUIRE(Perc_Arr[3] == 60);
+    REQUIRE(Perc_Array[0] == 100);
+    REQUIRE(Perc_Array[1] == 90);
+    REQUIRE(Perc_Array[2] == 70);
+    REQUIRE(Perc_Array[3] == 60);
 }
 
 TEST_CASE( "Get PWM level", "[PWM]" ) {
-    Perc_Arr[0] = 20;
-    Perc_Arr[1] = 30;
-    Perc_Arr[2] = 40;
-    Perc_Arr[3] = 50;
+    Perc_Array[0] = 20;
+    Perc_Array[1] = 30;
+    Perc_Array[2] = 40;
+    Perc_Array[3] = 50;
 
     REQUIRE(Get_PWM(CHAN_1) == 20);
     REQUIRE(Get_PWM(CHAN_2) == 30);
