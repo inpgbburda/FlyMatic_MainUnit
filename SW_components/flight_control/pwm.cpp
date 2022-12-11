@@ -16,13 +16,13 @@ GPIO_Interface_T Gpio_Interface;
 uint32_t Time_Calibration_G;
 
 
-void Init_PWM(void);
-void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage);
-int32_t Get_PWM(Gpio_Channel_T channel);
-void Run_PWM_Blocking(void);
+void Init_Pwm(void);
+void Set_Pwm(Gpio_Channel_T channel, int32_t pwm_percentage);
+int32_t Get_Pwm(Gpio_Channel_T channel);
+void Run_Pwm_Blocking(void);
 
 
-static uint32_t Thrust_To_Tics(int32_t percentage);
+static uint32_t Convert_Thrust_To_Tics(int32_t percentage);
 static void Set_Pin(Gpio_Channel_T pin);
 static void Clear_Pin(Gpio_Channel_T pin);
 static uint32_t Busy_Wait_Calibrate(void);
@@ -31,23 +31,23 @@ static void Delay_us(uint32_t micro_seconds);
 
 static uint32_t Busy_Wait_Calibrate(void) {
     struct timespec btime, etime;
-    volatile int loop_cnt;
+    volatile uint32_t loop_cnt;
     clock_gettime(CLOCK_REALTIME, &btime);
-    for (loop_cnt = 0; loop_cnt < 1000000000; loop_cnt++) 
+    for (loop_cnt = 0; loop_cnt < CALIB_TICKS; loop_cnt++) 
     {
         /*Do Nothing*/
     };
     clock_gettime(CLOCK_REALTIME, &etime);
     double diff_seconds = (double) (etime.tv_sec - btime.tv_sec);
     double diff_nseconds = (double) (etime.tv_nsec - btime.tv_nsec);
-    double nseconds = (double) (diff_seconds* 1000000000L)+ diff_nseconds;
+    double nseconds = (double) (diff_seconds* NS_IN_SECOND)+ diff_nseconds;
 
-    int loops_per_us = (int) (1000000000 / nseconds * 1000) + TIME_OFFSET;
+    int loops_per_us = (int) (CALIB_TICKS / nseconds * NS_IN_MICROSECOND) + TIME_OFFSET;
     return loops_per_us;
 } 
 
 
-void Init_PWM(void){
+void Init_Pwm(void){
     Time_Calibration_G = 0;
     #ifdef _RASP
 	wiringPiSetup();
@@ -63,7 +63,7 @@ void Init_PWM(void){
 }
 
 
-void Run_PWM_Blocking(void){
+void Run_Pwm_Blocking(void){
 
     static uint32_t timer = 0U; /*Every incremented value means 10us passed*/
 
@@ -72,10 +72,10 @@ void Run_PWM_Blocking(void){
         if(0U == timer)
         {
             /*Start of the period - All channels begin duty cycle*/
-            Width_Array[CHAN_1] = Thrust_To_Tics(Perc_Array[CHAN_1]);
-            Width_Array[CHAN_2] = Thrust_To_Tics(Perc_Array[CHAN_2]);
-            Width_Array[CHAN_3] = Thrust_To_Tics(Perc_Array[CHAN_3]);
-            Width_Array[CHAN_4] = Thrust_To_Tics(Perc_Array[CHAN_4]);
+            Width_Array[CHAN_1] = Convert_Thrust_To_Tics(Perc_Array[CHAN_1]);
+            Width_Array[CHAN_2] = Convert_Thrust_To_Tics(Perc_Array[CHAN_2]);
+            Width_Array[CHAN_3] = Convert_Thrust_To_Tics(Perc_Array[CHAN_3]);
+            Width_Array[CHAN_4] = Convert_Thrust_To_Tics(Perc_Array[CHAN_4]);
 
             (Gpio_Interface.set_high)(CHAN_1);
             (Gpio_Interface.set_high)(CHAN_2);
@@ -84,6 +84,7 @@ void Run_PWM_Blocking(void){
         }
         else
         {
+            /*Period continues - Check required states for all channels*/
             for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt)
             {
                 if(Width_Array[chann_cnt] == timer)
@@ -103,7 +104,7 @@ void Run_PWM_Blocking(void){
 }
 
 
-static uint32_t Thrust_To_Tics(int32_t percentage){
+static uint32_t Convert_Thrust_To_Tics(int32_t percentage){
     uint32_t tics = 0;
     tics = uint32_t( ((percentage * (MAX_TICS-MIN_TICS)) / 100U) + MIN_TICS );
     return tics;
@@ -123,7 +124,7 @@ static void Delay_us(uint32_t micro_seconds){
 }
 
 
-void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage){
+void Set_Pwm(Gpio_Channel_T channel, int32_t pwm_percentage){
      
     for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt) 
     {
@@ -136,7 +137,7 @@ void Set_PWM(Gpio_Channel_T channel, int32_t pwm_percentage){
 }
 
 
-int32_t Get_PWM(Gpio_Channel_T channel){
+int32_t Get_Pwm(Gpio_Channel_T channel){
     
     int32_t read_percentage = 0;
 

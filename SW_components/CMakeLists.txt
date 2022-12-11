@@ -16,10 +16,7 @@ endif()
 
 include_directories(${HEADERS})
 
-
-add_compile_options(
-       -Wall -Werror
-)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
 
 add_executable (executable ${SOURCES} main.cpp)
 

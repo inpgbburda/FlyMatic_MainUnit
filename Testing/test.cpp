@@ -43,17 +43,17 @@ void clear_pin_fake(Gpio_Channel_T pin){
 
 
 TEST_CASE( "Test computing raw ticks", "[PWM]" ) {
-    REQUIRE( Thrust_To_Tics(100) == 200 );
-    REQUIRE( Thrust_To_Tics(0) == 100 );
-    REQUIRE( Thrust_To_Tics(50) == 150 );
+    REQUIRE( Convert_Thrust_To_Tics(100) == 200 );
+    REQUIRE( Convert_Thrust_To_Tics(0) == 100 );
+    REQUIRE( Convert_Thrust_To_Tics(50) == 150 );
 }
 
 
 TEST_CASE( "Set PWM level", "[PWM]" ) {
-    Set_PWM(CHAN_1, 100);
-    Set_PWM(CHAN_2, 90);
-    Set_PWM(CHAN_3, 70);
-    Set_PWM(CHAN_4, 60);
+    Set_Pwm(CHAN_1, 100);
+    Set_Pwm(CHAN_2, 90);
+    Set_Pwm(CHAN_3, 70);
+    Set_Pwm(CHAN_4, 60);
 
     REQUIRE(Perc_Array[0] == 100);
     REQUIRE(Perc_Array[1] == 90);
@@ -67,29 +67,29 @@ TEST_CASE( "Get PWM level", "[PWM]" ) {
     Perc_Array[2] = 40;
     Perc_Array[3] = 50;
 
-    REQUIRE(Get_PWM(CHAN_1) == 20);
-    REQUIRE(Get_PWM(CHAN_2) == 30);
-    REQUIRE(Get_PWM(CHAN_3) == 40);
-    REQUIRE(Get_PWM(CHAN_4) == 50);
+    REQUIRE(Get_Pwm(CHAN_1) == 20);
+    REQUIRE(Get_Pwm(CHAN_2) == 30);
+    REQUIRE(Get_Pwm(CHAN_3) == 40);
+    REQUIRE(Get_Pwm(CHAN_4) == 50);
 }
 
 TEST_CASE( "Test PWM main task", "[PWM]" ) {
     Gpio_Interface.set_high = &set_pin_fake;
     Gpio_Interface.set_low = &clear_pin_fake;
 
-    Set_PWM(CHAN_1, 0);
-    Set_PWM(CHAN_2, 50);
-    Set_PWM(CHAN_3, 70);
-    Set_PWM(CHAN_4, 100);
+    Set_Pwm(CHAN_1, 0);
+    Set_Pwm(CHAN_2, 50);
+    Set_Pwm(CHAN_3, 70);
+    Set_Pwm(CHAN_4, 100);
 
-    Run_PWM_Blocking();
+    Run_Pwm_Blocking();
     REQUIRE( pin1_state == true);
     REQUIRE( pin2_state == true);
     REQUIRE( pin3_state == true);
     REQUIRE( pin4_state == true);
 
     for(int a=0; a<100; a++){
-        Run_PWM_Blocking();
+        Run_Pwm_Blocking();
     }
     REQUIRE( pin1_state == false);
     REQUIRE( pin2_state == true);
@@ -97,7 +97,7 @@ TEST_CASE( "Test PWM main task", "[PWM]" ) {
     REQUIRE( pin4_state == true);
 
     for(int a=0; a<50; a++){
-        Run_PWM_Blocking();
+        Run_Pwm_Blocking();
     }
     REQUIRE( pin1_state == false);
     REQUIRE( pin2_state == false);
@@ -105,7 +105,7 @@ TEST_CASE( "Test PWM main task", "[PWM]" ) {
     REQUIRE( pin4_state == true);
 
     for(int a=0; a<20; a++){
-        Run_PWM_Blocking();
+        Run_Pwm_Blocking();
     }
     REQUIRE( pin1_state == false);
     REQUIRE( pin2_state == false);
@@ -113,7 +113,7 @@ TEST_CASE( "Test PWM main task", "[PWM]" ) {
     REQUIRE( pin4_state == true);
 
     for(int a=0; a<30; a++){
-        Run_PWM_Blocking();
+        Run_Pwm_Blocking();
     }
     REQUIRE( pin1_state == false);
     REQUIRE( pin2_state == false);
@@ -125,16 +125,16 @@ TEST_CASE( "Test PWM main task - data changed in fly", "[PWM]" ) {
     Gpio_Interface.set_high = &set_pin_fake;
     Gpio_Interface.set_low = &clear_pin_fake;
 
-    Set_PWM(CHAN_1, 0);
+    Set_Pwm(CHAN_1, 0);
 
-    Run_PWM_Blocking();
+    Run_Pwm_Blocking();
     for(int a=0; a<100; a++){
-        Run_PWM_Blocking();
+        Run_Pwm_Blocking();
     }
     REQUIRE( pin1_state == false);
 
-    Set_PWM(CHAN_1, 50);
-    Run_PWM_Blocking();
+    Set_Pwm(CHAN_1, 50);
+    Run_Pwm_Blocking();
  
     REQUIRE( pin1_state == false);
 }
