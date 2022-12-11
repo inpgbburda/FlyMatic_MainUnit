@@ -23,8 +23,7 @@ void Run_Pwm_Blocking(void);
 
 
 static uint32_t Convert_Thrust_To_Tics(int32_t percentage);
-static void Set_Pin(Gpio_Channel_T pin);
-static void Clear_Pin(Gpio_Channel_T pin);
+static void Set_Pin_State(int wpi_pin, bool state);
 static uint32_t Busy_Wait_Calibrate(void);
 static void Delay_us(uint32_t micro_seconds);
 
@@ -57,8 +56,7 @@ void Init_Pwm(void){
 	pinMode (PIN_MOTOR_4, OUTPUT);
     pinMode (PIN_DEBUG, OUTPUT);
 	#endif
-    Gpio_Interface.set_high = &Set_Pin;
-    Gpio_Interface.set_low = &Clear_Pin;
+    Gpio_Interface.set_pin_state_fptr = &Set_Pin_State;
     Time_Calibration_G = Busy_Wait_Calibrate();
 }
 
@@ -77,10 +75,10 @@ void Run_Pwm_Blocking(void){
             Width_Array[CHAN_3] = Convert_Thrust_To_Tics(Perc_Array[CHAN_3]);
             Width_Array[CHAN_4] = Convert_Thrust_To_Tics(Perc_Array[CHAN_4]);
 
-            (Gpio_Interface.set_high)(CHAN_1);
-            (Gpio_Interface.set_high)(CHAN_2);
-            (Gpio_Interface.set_high)(CHAN_3);
-            (Gpio_Interface.set_high)(CHAN_4);
+            (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_1], true); //TODO: fix passing here channels
+            (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_2], true);
+            (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_3], true);
+            (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_4], true);
         }
         else
         {
@@ -89,7 +87,8 @@ void Run_Pwm_Blocking(void){
             {
                 if(Width_Array[chann_cnt] == timer)
                     {
-                        (Gpio_Interface.set_low)(chann_cnt);
+                        int hw_pin = Pwm_Chann_To_Pin_Map[chann_cnt];
+                        (Gpio_Interface.set_pin_state_fptr)(hw_pin, false); //TODO: fix passing here chann_cnt
                     }
             }
         }
@@ -99,7 +98,7 @@ void Run_Pwm_Blocking(void){
     {
         timer = 0U;
     }
-    Delay_us(10U);
+    Delay_us(PWM_TICK_DURATION);
  
 }
 
@@ -153,36 +152,19 @@ int32_t Get_Pwm(Gpio_Channel_T channel){
 }
 
 
-static void Set_Pin(Gpio_Channel_T pin){
+static void Set_Pin_State(int wpi_pin, bool state){
     #ifdef _RASP
-    if(1 == pin){
+    if(1 == wpi_pin){
         digitalWrite (PIN_MOTOR_1, HIGH);
     }
-    if(2 == pin){
+    if(2 == wpi_pin){
         digitalWrite (PIN_MOTOR_2, HIGH);
     }
-    if(3 == pin){
+    if(3 == wpi_pin){
         digitalWrite (PIN_MOTOR_3, HIGH);
     }
-    if(4 == pin){
+    if(4 == wpi_pin){
         digitalWrite (PIN_MOTOR_4, HIGH);
-    }
-    #endif
-}
-
-static void Clear_Pin(Gpio_Channel_T pin){
-    #ifdef _RASP
-    if(1 == pin){
-        digitalWrite (PIN_MOTOR_1, LOW);
-    }
-    if(2 == pin){
-        digitalWrite (PIN_MOTOR_2, LOW);
-    }
-    if(3 == pin){
-        digitalWrite (PIN_MOTOR_3, LOW);
-    }
-    if(4 == pin){
-        digitalWrite (PIN_MOTOR_4, LOW);
     }
     #endif
 }

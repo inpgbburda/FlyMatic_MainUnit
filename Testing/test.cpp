@@ -11,33 +11,18 @@ static bool pin2_state = false;
 static bool pin3_state = false;
 static bool pin4_state = false;
 
-void set_pin_fake(Gpio_Channel_T pin){
-    if(CHAN_1 == pin){
-        pin1_state = true;
+void Set_Pin_State_Fake(int pin, bool state){
+    if(PIN_MOTOR_1 == pin){
+        pin1_state = state;
     }
-    if(CHAN_2 == pin){
-        pin2_state = true;
+    if(PIN_MOTOR_2 == pin){
+        pin2_state = state;
     }
-    if(CHAN_3 == pin){
-        pin3_state = true;
+    if(PIN_MOTOR_3 == pin){
+        pin3_state = state;
     }
-    if(CHAN_4 == pin){
-        pin4_state = true;
-    }
-}
-
-void clear_pin_fake(Gpio_Channel_T pin){
-    if(CHAN_1 == pin){
-        pin1_state = false;
-    }
-    if(CHAN_2 == pin){
-        pin2_state = false;
-    }
-    if(CHAN_3 == pin){
-        pin3_state = false;
-    }
-    if(CHAN_4 == pin){
-        pin4_state = false;
+    if(PIN_MOTOR_4 == pin){
+        pin4_state = state;
     }
 }
 
@@ -74,8 +59,7 @@ TEST_CASE( "Get PWM level", "[PWM]" ) {
 }
 
 TEST_CASE( "Test PWM main task", "[PWM]" ) {
-    Gpio_Interface.set_high = &set_pin_fake;
-    Gpio_Interface.set_low = &clear_pin_fake;
+    Gpio_Interface.set_pin_state_fptr = &Set_Pin_State_Fake;
 
     Set_Pwm(CHAN_1, 0);
     Set_Pwm(CHAN_2, 50);
@@ -122,8 +106,7 @@ TEST_CASE( "Test PWM main task", "[PWM]" ) {
 }
 
 TEST_CASE( "Test PWM main task - data changed in fly", "[PWM]" ) {
-    Gpio_Interface.set_high = &set_pin_fake;
-    Gpio_Interface.set_low = &clear_pin_fake;
+    Gpio_Interface.set_pin_state_fptr = &Set_Pin_State_Fake;
 
     Set_Pwm(CHAN_1, 0);
 

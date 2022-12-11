@@ -3,19 +3,7 @@
 
 #include <stdint.h>
 #include <stdexcept>
-
-
-#define MAX_TICS 200U
-#define MIN_TICS 100U
-
-#define PWM_PERIOD 2000U /* Period set to 20ms */
-
-/*Hardware pins configuration*/
-#define PIN_MOTOR_1 7   /*Physical  7*/
-#define PIN_MOTOR_2 0   /*Physical 11*/
-#define PIN_MOTOR_3 2   /*Physical 13*/
-#define PIN_MOTOR_4 3   /*Physical 15*/
-#define PIN_DEBUG 1
+#include "pwm_cfg.hpp"
 
 #define TIME_OFFSET  6
 #define CALIB_TICKS  1000000000U
@@ -35,13 +23,11 @@ typedef enum
 Gpio_Channel_T;
 
 
-
-typedef void(*Gpio_Fun_Ptr_T)(Gpio_Channel_T pin);
+typedef void(*Gpio_Fun_Ptr_T)(int pin, bool state);
 
 typedef struct
 {
-    Gpio_Fun_Ptr_T set_high;
-    Gpio_Fun_Ptr_T set_low;
+    Gpio_Fun_Ptr_T set_pin_state_fptr;
 }
 GPIO_Interface_T; 
 
