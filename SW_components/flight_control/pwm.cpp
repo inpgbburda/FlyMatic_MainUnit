@@ -5,47 +5,44 @@
 #include "time.h"
 
 
+uint32_t Time_Calibration_G;
+
+
 static uint32_t Width_Array[CHAN_END];
 static uint32_t Perc_Array[CHAN_END];
+static GPIO_Interface_T Gpio_Interface;
 
 
 Gpio_Channel_T& operator ++ (Gpio_Channel_T& chan);
 
 
-GPIO_Interface_T Gpio_Interface;
-uint32_t Time_Calibration_G;
-
-
+/*
+|===================================================================================================================================|
+    Exported function prototypes
+|===================================================================================================================================|
+*/
 void Init_Pwm(void);
 void Set_Pwm(Gpio_Channel_T channel, int32_t pwm_percentage);
 int32_t Get_Pwm(Gpio_Channel_T channel);
 void Run_Pwm_Blocking(void);
 
 
+/*
+|===================================================================================================================================|
+    Local function prototypes
+|===================================================================================================================================|
+*/
 static uint32_t Convert_Thrust_To_Tics(int32_t percentage);
 static void Set_Pin_State(int wpi_pin, bool state);
 static uint32_t Busy_Wait_Calibrate(void);
 static void Delay_us(uint32_t micro_seconds);
 
 
-static uint32_t Busy_Wait_Calibrate(void) {
-    struct timespec btime, etime;
-    volatile uint32_t loop_cnt;
-    clock_gettime(CLOCK_REALTIME, &btime);
-    for (loop_cnt = 0; loop_cnt < CALIB_TICKS; loop_cnt++) 
-    {
-        /*Do Nothing*/
-    };
-    clock_gettime(CLOCK_REALTIME, &etime);
-    double diff_seconds = (double) (etime.tv_sec - btime.tv_sec);
-    double diff_nseconds = (double) (etime.tv_nsec - btime.tv_nsec);
-    double nseconds = (double) (diff_seconds* NS_IN_SECOND)+ diff_nseconds;
-
-    int loops_per_us = (int) (CALIB_TICKS / nseconds * NS_IN_MICROSECOND) + TIME_OFFSET;
-    return loops_per_us;
-} 
-
-
+/*
+|===================================================================================================================================|
+    Function definitions
+|===================================================================================================================================|
+*/
 void Init_Pwm(void){
     Time_Calibration_G = 0;
     #ifdef _RASP
@@ -58,6 +55,35 @@ void Init_Pwm(void){
 	#endif
     Gpio_Interface.set_pin_state_fptr = &Set_Pin_State;
     Time_Calibration_G = Busy_Wait_Calibrate();
+}
+
+
+void Set_Pwm(Gpio_Channel_T channel, int32_t pwm_percentage){
+     
+    for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt) 
+    {
+        if (channel == chann_cnt)
+        {
+            Perc_Array[chann_cnt] = pwm_percentage;
+            break;
+        }
+    }
+}
+
+
+int32_t Get_Pwm(Gpio_Channel_T channel){
+    
+    int32_t read_percentage = 0;
+
+    for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt) 
+    {
+        if (channel == chann_cnt)
+        {
+            read_percentage = Perc_Array[chann_cnt];
+            break;
+        }
+    }
+    return read_percentage;
 }
 
 
@@ -75,7 +101,7 @@ void Run_Pwm_Blocking(void){
             Width_Array[CHAN_3] = Convert_Thrust_To_Tics(Perc_Array[CHAN_3]);
             Width_Array[CHAN_4] = Convert_Thrust_To_Tics(Perc_Array[CHAN_4]);
 
-            (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_1], true); //TODO: fix passing here channels
+            (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_1], true); // TODO: fix passing here channels
             (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_2], true);
             (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_3], true);
             (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_4], true);
@@ -110,48 +136,6 @@ static uint32_t Convert_Thrust_To_Tics(int32_t percentage){
 }
 
 
-/*
-   Delay_us function must be called with minimum 10us.
-   Below this value, generated time will not be accurate.
-*/
-static void Delay_us(uint32_t micro_seconds){
-   volatile uint32_t us_cnt = 0;
-   volatile uint32_t cnt = 0;
-   for(us_cnt=0; us_cnt<micro_seconds; us_cnt++){
-      for(cnt=0; cnt<Time_Calibration_G; cnt++);   
-   }
-}
-
-
-void Set_Pwm(Gpio_Channel_T channel, int32_t pwm_percentage){
-     
-    for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt) 
-    {
-        if (channel == chann_cnt)
-        {
-            Perc_Array[chann_cnt] = pwm_percentage;
-            break;
-        }
-    }
-}
-
-
-int32_t Get_Pwm(Gpio_Channel_T channel){
-    
-    int32_t read_percentage = 0;
-
-    for (Gpio_Channel_T chann_cnt = Gpio_Channel_T::CHAN_BEGIN; chann_cnt!=Gpio_Channel_T::CHAN_END; ++chann_cnt) 
-    {
-        if (channel == chann_cnt)
-        {
-            read_percentage = Perc_Array[chann_cnt];
-            break;
-        }
-    }
-    return read_percentage;
-}
-
-
 static void Set_Pin_State(int wpi_pin, bool state){
     #ifdef _RASP
     if(1 == wpi_pin){
@@ -167,6 +151,37 @@ static void Set_Pin_State(int wpi_pin, bool state){
         digitalWrite (PIN_MOTOR_4, HIGH);
     }
     #endif
+}
+
+
+static uint32_t Busy_Wait_Calibrate(void) {
+    struct timespec btime, etime;
+    volatile uint32_t loop_cnt;
+    clock_gettime(CLOCK_REALTIME, &btime);
+    for (loop_cnt = 0; loop_cnt < CALIB_TICKS; loop_cnt++) 
+    {
+        /*Do Nothing*/
+    };
+    clock_gettime(CLOCK_REALTIME, &etime);
+    double diff_seconds = (double) (etime.tv_sec - btime.tv_sec);
+    double diff_nseconds = (double) (etime.tv_nsec - btime.tv_nsec);
+    double nseconds = (double) (diff_seconds* NS_IN_SECOND)+ diff_nseconds;
+
+    int loops_per_us = (int) (CALIB_TICKS / nseconds * NS_IN_MICROSECOND) + TIME_OFFSET;
+    return loops_per_us;
+}
+
+
+/*
+   Delay_us function must be called with minimum 10us.
+   Below this value, generated time will not be accurate.
+*/
+static void Delay_us(uint32_t micro_seconds){
+   volatile uint32_t us_cnt = 0;
+   volatile uint32_t cnt = 0;
+   for(us_cnt=0; us_cnt<micro_seconds; us_cnt++){
+      for(cnt=0; cnt<Time_Calibration_G; cnt++);   
+   }
 }
 
 

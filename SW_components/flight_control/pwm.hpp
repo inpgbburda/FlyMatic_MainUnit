@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include "pwm_cfg.hpp"
 
+
+/*Delay function settings*/
 #define TIME_OFFSET  6
 #define CALIB_TICKS  1000000000U
 #define NS_IN_SECOND 1000000000L
@@ -32,13 +34,17 @@ typedef struct
 GPIO_Interface_T; 
 
 
-extern GPIO_Interface_T Gpio_Interface;
 extern uint32_t Time_Calibration_G;
 
 
+/*
+|===================================================================================================================================|
+    Exported function prototypes
+|===================================================================================================================================|
+*/
 void Init_Pwm(void);
-void Run_Pwm_Blocking(void);
 void Set_Pwm(Gpio_Channel_T channel, int32_t pwm_percentage);
 int32_t Get_Pwm(Gpio_Channel_T channel);
+void Run_Pwm_Blocking(void);
 
 #endif // PMM_HPP
