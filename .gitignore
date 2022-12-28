@@ -2,4 +2,6 @@ Builds/
 .vscode/
 
 Testing/Builds/
+
+build/
 Testing/build/
