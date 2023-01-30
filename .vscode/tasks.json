@@ -1,0 +1,105 @@
+{
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "type": "shell",
+         "label": "Generate CMake for RASP TYPE=Release",
+         "command": "cmake -B ../Builds/ -D_RASP=ON -DCMAKE_BUILD_TYPE=Release",
+         "args": [],
+         "options": {
+            "cwd": "${workspaceFolder}/SW_components"
+         },
+         "group": {
+            "kind": "build",
+            "isDefault": true
+         }
+      },
+      {
+         "type": "shell",
+         "label": "Generate CMake for RASP TYPE=Debug",
+         "command": "cmake -B ../Builds/ -D_RASP=ON -DCMAKE_BUILD_TYPE=Debug",
+         "args": [],
+         "options": {
+            "cwd": "${workspaceFolder}/SW_components"
+         },
+         "group": {
+            "kind": "build",
+            "isDefault": true
+         }
+      },
+      {
+         "type": "shell",
+         "label": "Generate CMake for PC",
+         "command": "cmake -B ../Builds/ -D_RASP=OFF",
+         "args": [],
+         "options": {
+            "cwd": "${workspaceFolder}/SW_components"
+         },
+         "group": {
+            "kind": "test",
+            "isDefault": true
+         }
+      },
+      {
+         "type": "shell",
+         "label": "Build",
+         "command": "make",
+         "args": [],
+         "options": {
+            "cwd": "${workspaceFolder}/Builds"
+         },
+         "problemMatcher": {
+            "base": "$gcc",
+            "fileLocation": [
+               "${workspaceFolder}/Builds"
+            ]
+         },
+         "group": "build"
+      },
+      {
+         "type": "shell",
+         "label": "Generate CMake tests",
+         "command": "cmake -B Builds/",
+         "args": [],
+         "options": {
+            "cwd": "Testing"
+         },
+         "group": {
+            "kind": "test",
+            "isDefault": true
+         }
+      },
+      {
+         "type": "shell",
+         "label": "Build tests",
+         "command": "make",
+         "args": [],
+         "options": {
+            "cwd": "${workspaceFolder}/Testing/Builds"
+         },
+         "group": {
+            "kind": "test",
+            "isDefault": true
+         },
+         "problemMatcher": {
+            "base": "$gcc",
+            "fileLocation": [
+               "${workspaceFolder}/Testing/Builds"
+            ]
+         },
+      },
+      {
+         "type": "shell",
+         "label": "Run tests",
+         "command": "./tests",
+         "args": [],
+         "options": {
+            "cwd": "${workspaceFolder}/Testing/Builds"
+         },
+         "group": {
+            "kind": "test",
+            "isDefault": true
+         }
+      },
+   ]
+}
