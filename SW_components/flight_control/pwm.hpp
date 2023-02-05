@@ -7,7 +7,7 @@
 
 
 /*Delay function settings*/
-#define TIME_OFFSET  6
+#define TIME_OFFSET  0
 #define CALIB_TICKS  1000000000U
 #define NS_IN_SECOND 1000000000L
 #define NS_IN_MICROSECOND 1000

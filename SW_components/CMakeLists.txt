@@ -16,8 +16,9 @@ endif()
 
 include_directories(${HEADERS})
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -pthread")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 add_executable (executable ${SOURCES} main.cpp)
 

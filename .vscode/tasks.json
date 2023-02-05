@@ -101,5 +101,19 @@
             "isDefault": true
          }
       },
+
+      {
+         "type": "shell",
+         "label": "Run App",
+         "command": "sudo ./executable",
+         "args": [],
+         "options": {
+            "cwd": "${workspaceFolder}/Builds"
+         },
+         "group": {
+            "kind": "test",
+            "isDefault": true
+         }
+      },
    ]
 }
