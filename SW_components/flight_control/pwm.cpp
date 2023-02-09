@@ -96,10 +96,12 @@ void Run_Pwm_Blocking(void){
         if(0U == timer)
         {
             /*Start of the period - All channels begin duty cycle*/
+            pthread_mutex_trylock(&Pwm_lock_G);
             Width_Array[CHAN_1] = Convert_Thrust_To_Tics(Perc_Array[CHAN_1]);
             Width_Array[CHAN_2] = Convert_Thrust_To_Tics(Perc_Array[CHAN_2]);
             Width_Array[CHAN_3] = Convert_Thrust_To_Tics(Perc_Array[CHAN_3]);
             Width_Array[CHAN_4] = Convert_Thrust_To_Tics(Perc_Array[CHAN_4]);
+            pthread_mutex_unlock(&Pwm_lock_G);
 
             (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_1], true); // TODO: fix passing here channels
             (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_2], true);

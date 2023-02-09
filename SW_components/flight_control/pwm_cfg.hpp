@@ -17,7 +17,7 @@ Project Configuration of pwm functionality.
 #define PIN_MOTOR_2 0   /*Physical 11*/
 #define PIN_MOTOR_3 2   /*Physical 13*/
 #define PIN_MOTOR_4 3   /*Physical 15*/
-#define PIN_DEBUG 1
+#define PIN_DEBUG 1     /*Physical 12*/
 
 
 const int Pwm_Chann_To_Pin_Map[] =

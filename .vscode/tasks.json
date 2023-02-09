@@ -58,6 +58,22 @@
       },
       {
          "type": "shell",
+         "label": "Clean",
+         "command": "make clean",
+         "args": [],
+         "options": {
+            "cwd": "${workspaceFolder}/Builds"
+         },
+         "problemMatcher": {
+            "base": "$gcc",
+            "fileLocation": [
+               "${workspaceFolder}/Builds"
+            ]
+         },
+         "group": "build"
+      },
+      {
+         "type": "shell",
          "label": "Generate CMake tests",
          "command": "cmake -B Builds/",
          "args": [],

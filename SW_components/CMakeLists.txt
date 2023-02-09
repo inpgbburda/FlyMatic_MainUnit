@@ -3,10 +3,12 @@ project(drone_code)
 
 set(SOURCES 
     flight_control/pwm.cpp
+    services/Thread_Manager.cpp
 )
 
 set(HEADERS
     flight_control
+    services
 )
 
 option(_RASP "Compile for Raspbberry" OFF)
