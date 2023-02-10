@@ -78,7 +78,7 @@
          "command": "cmake -B Builds/",
          "args": [],
          "options": {
-            "cwd": "Testing"
+            "cwd": "${workspaceFolder}/Testing"
          },
          "group": {
             "kind": "test",

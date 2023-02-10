@@ -65,17 +65,6 @@ void *Do_Main_Routine(void *data)
 }
 
 
-struct sched_attr {
-    uint32_t size;
-    uint32_t sched_policy;
-    uint64_t sched_flags;
-    int32_t sched_nice;
-    uint32_t sched_priority;
-    uint64_t sched_runtime;
-    uint64_t sched_deadline;
-    uint64_t sched_period;
-};
-
 int sched_setattr(pid_t pid, const struct sched_attr *attr, unsigned int flags) 
 {
     return syscall(__NR_sched_setattr, pid, attr, flags);
@@ -107,13 +96,8 @@ void *calculate_flight_controls(void *data_ptr)
 
 int main()
 {
-    pthread_t thread_1;
     pthread_t thread_2;
     pthread_t thread_3;
-    struct sched_attr attr_1;
-    attr_1.sched_policy   = SCHED_DEADLINE;
-    attr_1.sched_runtime  =  100000;
-    attr_1.sched_deadline = attr_1.sched_period = 1000000;
 
     /* Lock memory - prevent from paging to the swap area -
     * all of the process memory will stay in RAM
@@ -125,9 +109,10 @@ int main()
     }
 
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
-    RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 1000, 10000, 1000, &calculate_flight_controls);
     Init_Pwm();
-    pthread_create(&thread_1, NULL, calculate_flight_controls, &attr_1);
+    RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 100, 1000, 10000, &calculate_flight_controls);
+    rt_thread_1.Init();
+    rt_thread_1.Run();
     pthread_create(&thread_2, NULL, Do_Pwm, NULL);
     pthread_create(&thread_3, NULL, Do_Main_Routine, NULL);
 
