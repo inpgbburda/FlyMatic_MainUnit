@@ -21,21 +21,26 @@
 extern uint32_t Time_Calibration_G;
 pthread_mutex_t Pwm_lock_G;
 
-
-void *Do_Pwm(void *data)
+int sched_setattr(pid_t pid, const struct sched_attr *attr, unsigned int flags) 
 {
-    int s;
-   
-    pthread_t thread;
-    cpu_set_t cpuset;
-    thread = pthread_self();/**returns the ID of the thread in which it is invoked*/
-    CPU_ZERO(&cpuset); 
-    CPU_SET(1, &cpuset);
-     
-    /**Assign CPU to current thread*/
-   s = pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset);
-   if (s != 0)
-      handle_error_en(s, "pthread_setaffinity_np");
+    return syscall(__NR_sched_setattr, pid, attr, flags);
+}
+
+
+void *Do_Pwm(void *data_ptr)
+{
+    int flags = 0;
+    int ret;
+    const struct sched_attr* attr_ptr = (const struct sched_attr*) data_ptr;
+    struct sched_attr attr_local = *attr_ptr;
+    memset(&attr_local, 0, sizeof(attr_local)); 
+    ret = sched_setattr(0, &attr_local, flags);
+    std::cout << ret << std::endl;
+    if (ret < 0) {
+        perror("sched_setattr failed to set the priorities");
+        exit(-1);
+    };
+    std::cout << "Started pwm routine"<< std::endl;
     while(1){
         Run_Pwm_Blocking();
     }
@@ -44,7 +49,7 @@ void *Do_Pwm(void *data)
 
 void *Do_Main_Routine(void *data)
 {
-   Pwm_lock_G = PTHREAD_MUTEX_INITIALIZER;
+    Pwm_lock_G = PTHREAD_MUTEX_INITIALIZER;
     std::cout << "Step 1" << std::endl;
     Set_Pwm(CHAN_1, 0U);
     sleep(5);
@@ -60,45 +65,28 @@ void *Do_Main_Routine(void *data)
     std::cout << "Step 4" << std::endl;
     Set_Pwm(CHAN_1, 100U);
     sleep(5);
-   pthread_mutex_destroy(&Pwm_lock_G);	
+    pthread_mutex_destroy(&Pwm_lock_G);	
     return NULL;
 }
 
-
-int sched_setattr(pid_t pid, const struct sched_attr *attr, unsigned int flags) 
-{
-    return syscall(__NR_sched_setattr, pid, attr, flags);
-}
 
 void *calculate_flight_controls(void *data_ptr)
 {
     int ret;
     int flags = 0;
-    struct sched_attr attr;
-    cpu_set_t cpuset;
-    pthread_t thread;
-    thread = pthread_self();/**returns the ID of the thread in which it is invoked*/
-    CPU_SET(2, &cpuset);
-    /**Assign CPU to current thread*/
-    pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset);
-    memset(&attr, 0, sizeof(attr)); 
-    attr.size = sizeof(attr);
-
     ret = sched_setattr(0, (const struct sched_attr*)data_ptr, flags);
     
     if (ret < 0) {
         perror("sched_setattr failed to set the priorities");
         exit(-1);
     };
+    std::cout << "Started flight controls"<< std::endl;
     return NULL;
 }
 
 
 int main()
 {
-    pthread_t thread_2;
-    pthread_t thread_3;
-
     /* Lock memory - prevent from paging to the swap area -
     * all of the process memory will stay in RAM
     */
@@ -108,14 +96,19 @@ int main()
         exit(-2);
     }
 
+    bool Core_Set_1[4] = {true, false, false, false};
+    bool Core_Set_2[4] = {false, true, true, true};
+
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
     Init_Pwm();
-    RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 100, 1000, 10000, &calculate_flight_controls);
+    RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 100, 1000, 10000, &Do_Pwm, Core_Set_1);
     rt_thread_1.Init();
     rt_thread_1.Run();
-    pthread_create(&thread_2, NULL, Do_Pwm, NULL);
-    pthread_create(&thread_3, NULL, Do_Main_Routine, NULL);
+    rt_thread_1.Assign_Affinity();
+    // RT_Thread rt_thread_2 = RT_Thread(SCHED_DEADLINE, 100, 1000, 10000, &calculate_flight_controls, Core_Set_2);
+    // rt_thread_2.Init();
+    // rt_thread_2.Run();
+    // rt_thread_2.Assign_Affinity();
 
-    pthread_join(thread_3, NULL);
     return 0;
 }

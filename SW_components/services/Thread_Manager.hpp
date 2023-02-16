@@ -2,6 +2,11 @@
 
 #include <pthread.h>
 #include <stdint.h>
+#include <sys/syscall.h>      /* Definition of SYS_* constants */
+#include <unistd.h>           /* Definition of syscalls */
+#include <iostream>
+
+#define TMANG_RPI_CORE_NUMBER 4U
 
 struct sched_attr {
     uint32_t size;
@@ -38,11 +43,12 @@ private:
     pthread_t posix_instance_;
     void* (*fun_ptr_)(void *data);
     struct sched_attr attr_;
+    bool Cpu_Set_[TMANG_RPI_CORE_NUMBER];
 
 public:
     RT_Thread
             (
-                int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data)
+                int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data), bool (&cpu_set)[TMANG_RPI_CORE_NUMBER]
             )
     {
         scheduler_type_ = scheduler_type;
@@ -50,11 +56,16 @@ public:
         deadline_ = deadline;
         period_ = period;
         fun_ptr_ = fun_ptr;
+        for(unsigned int i=0; i<TMANG_RPI_CORE_NUMBER; i++)
+        {
+            Cpu_Set_[i] = cpu_set[i];
+        }
     }
 
     /** Copies thread parameters into standarised attributes structure.
     */
     void Init(void){
+        attr_.size = sizeof(attr_);
         attr_.sched_policy = scheduler_type_;
         attr_.sched_runtime = runtime_;
         attr_.sched_deadline = deadline_;
@@ -64,9 +75,32 @@ public:
     /** Creates Posix thread with prevoiusly set paramaters
     */
     void Run(void){
-        pthread_create(&posix_instance_, NULL, fun_ptr_, &attr_);
+        pthread_create(&posix_instance_, NULL, fun_ptr_, (void*)&attr_);
     }
+
+    void Assign_Affinity(void)
+    {
+        int aff_result;
+        cpu_set_t cpuset;
+        CPU_ZERO(&cpuset);
+        for(unsigned int i=0; i<TMANG_RPI_CORE_NUMBER; i++)
+        {
+            if(Cpu_Set_[i])
+            {
+                CPU_SET(i, &cpuset);
+            }
+        } 
+        aff_result = pthread_setaffinity_np(posix_instance_,sizeof(cpuset), &cpuset);
+        if (0 != aff_result)
+        {
+            std::cout << "Error- affinity problem" << std::endl;
+        }
+    }
+
     void DeInit(void);
 
    ~RT_Thread(){};
 };
+
+
+int Set_Scheduler_Attributes(const struct sched_attr* data_ptr, int flags);
