@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.18.1)
 project(drone_code)
 
+message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
+
 set(SOURCES 
     flight_control/pwm.cpp
     services/Thread_Manager.cpp
