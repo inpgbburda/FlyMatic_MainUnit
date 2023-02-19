@@ -6,7 +6,7 @@
 #include <unistd.h>           /* Definition of syscalls */
 #include <iostream>
 
-#define TMANG_RPI_CORE_NUMBER 4U
+#define THR_MNGR_RPI_CORE_NUMBER 4U
 
 struct sched_attr {
     uint32_t size;
@@ -43,12 +43,12 @@ private:
     pthread_t posix_instance_;
     void* (*fun_ptr_)(void *data);
     struct sched_attr attr_;
-    bool Cpu_Set_[TMANG_RPI_CORE_NUMBER];
+    bool Cpu_Set_[THR_MNGR_RPI_CORE_NUMBER];
 
 public:
     RT_Thread
             (
-                int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data), bool (&cpu_set)[TMANG_RPI_CORE_NUMBER]
+                int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data), bool (&cpu_set)[THR_MNGR_RPI_CORE_NUMBER]
             )
     {
         scheduler_type_ = scheduler_type;
@@ -56,7 +56,7 @@ public:
         deadline_ = deadline;
         period_ = period;
         fun_ptr_ = fun_ptr;
-        for(unsigned int i=0; i<TMANG_RPI_CORE_NUMBER; i++)
+        for(unsigned int i=0; i<THR_MNGR_RPI_CORE_NUMBER; i++)
         {
             Cpu_Set_[i] = cpu_set[i];
         }
@@ -78,12 +78,12 @@ public:
         pthread_create(&posix_instance_, NULL, fun_ptr_, (void*)&attr_);
     }
 
-    void Assign_Affinity(void)
+    void AssignAffinity(void)
     {
         int aff_result;
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
-        for(unsigned int i=0; i<TMANG_RPI_CORE_NUMBER; i++)
+        for(unsigned int i=0; i<THR_MNGR_RPI_CORE_NUMBER; i++)
         {
             if(Cpu_Set_[i])
             {
@@ -97,10 +97,15 @@ public:
         }
     }
 
+    void Join(void)
+    {
+        pthread_join(posix_instance_, NULL);
+    }
+
     void DeInit(void);
 
    ~RT_Thread(){};
 };
 
 
-int Set_Scheduler_Attributes(const struct sched_attr* data_ptr, int flags);
+int SetSchedulerAttributes(void* data_ptr, int flags);
