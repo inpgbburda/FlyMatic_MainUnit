@@ -8,6 +8,9 @@
 
 #define THR_MNGR_RPI_CORE_NUMBER 4U
 
+#define handle_error_en(en, msg) \
+    do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
 struct sched_attr {
     uint32_t size;
     uint32_t sched_policy;
@@ -18,6 +21,7 @@ struct sched_attr {
     uint64_t sched_deadline;
     uint64_t sched_period;
 };
+
 
 class Thread_Manager
 {
@@ -108,4 +112,4 @@ public:
 };
 
 
-int SetSchedulerAttributes(void* data_ptr, int flags);
+int SchedSetAttr(pid_t pid, struct sched_attr *attr_ptr,unsigned int flags);

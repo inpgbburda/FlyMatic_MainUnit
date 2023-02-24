@@ -10,8 +10,6 @@
 #include <sys/mman.h>
 #include <linux/sched.h>      /* Definition of SCHED_* constants */
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
-#include <string.h>           /* Needed for memset() call*/
-#include <errno.h>
 
 #include "Thread_Manager.hpp"
 
@@ -26,7 +24,7 @@ void *DoPwm(void *data_ptr)
 {
     int flags = 0;
     int ret;
-    ret = SetSchedulerAttributes(data_ptr, flags);
+    ret = SchedSetAttr(0, (struct sched_attr*)data_ptr, flags);
     std::cout << ret << std::endl;
     if (ret < 0) {
         perror("sched_setattr failed to set the priorities");
@@ -66,12 +64,18 @@ void *CalculateFlightControls(void *data_ptr)
 {
     int ret;
     int flags = 0;
-    ret = SetSchedulerAttributes(data_ptr, flags);
+    ret = SchedSetAttr(0, (struct sched_attr*)data_ptr, flags);
     if (ret < 0) {
         perror("sched_setattr failed to set the Flight Controls priorities");
         exit(-1);
     };
-    std::cout << "Started flight controls"<< std::endl;
+    volatile int cnt = 0;
+    /*Just for debugg - simulate high load task*/
+    for(cnt=0; cnt<1000000; cnt++)
+    {   
+        for(cnt=0; cnt<100; cnt++);
+    }
+  
     return NULL;
 }
 
@@ -93,19 +97,14 @@ int main()
 
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
     Init_Pwm();
-    RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 1000, 1000, 1000, &DoPwm, Core_Set_1);
+    RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 1000000, 1000000, 1000000, &DoPwm, Core_Set_2);
     rt_thread_1.Init();
     rt_thread_1.Run();
-    rt_thread_1.AssignAffinity();
-    RT_Thread rt_thread_2 = RT_Thread(SCHED_DEADLINE, 100, 1000, 10000, &CalculateFlightControls, Core_Set_2);
+
+    RT_Thread rt_thread_2 = RT_Thread(SCHED_DEADLINE, 100000, 1000000, 1000000, &CalculateFlightControls, Core_Set_2);
     rt_thread_2.Init();
     rt_thread_2.Run();
-    rt_thread_2.AssignAffinity();
-    RT_Thread rt_thread_3 = RT_Thread(SCHED_DEADLINE, 100, 1000, 10000, &DoMainRoutine, Core_Set_3);
-    rt_thread_3.Init();
-    rt_thread_3.Run();
-    rt_thread_3.AssignAffinity();
-    rt_thread_3.Join();
+    DoMainRoutine(NULL);
 
     return 0;
 }
