@@ -12,6 +12,8 @@
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
 
 #include "Thread_Manager.hpp"
+#include <wiringPi.h>
+
 
 #define handle_error_en(en, msg) \
     do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
@@ -24,7 +26,7 @@ void *DoPwm(void *data_ptr)
 {
     int flags = 0;
     int ret;
-    ret = SchedSetAttr(0, (struct sched_attr*)data_ptr, flags);
+    ret = SchedSetAttr(0, (sched_attr_t*)data_ptr, flags);
     std::cout << ret << std::endl;
     if (ret < 0) {
         perror("sched_setattr failed to set the priorities");
@@ -64,16 +66,18 @@ void *CalculateFlightControls(void *data_ptr)
 {
     int ret;
     int flags = 0;
-    ret = SchedSetAttr(0, (struct sched_attr*)data_ptr, flags);
+    ret = SchedSetAttr(0, (sched_attr_t*)data_ptr, flags);
     if (ret < 0) {
         perror("sched_setattr failed to set the Flight Controls priorities");
         exit(-1);
     };
     volatile int cnt = 0;
     /*Just for debugg - simulate high load task*/
-    for(cnt=0; cnt<1000000; cnt++)
+    while(1)
     {   
+        digitalWrite (1, true);
         for(cnt=0; cnt<100; cnt++);
+        digitalWrite (1, false);
     }
   
     return NULL;
@@ -97,11 +101,11 @@ int main()
 
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
     Init_Pwm();
-    RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 1000000, 1000000, 1000000, &DoPwm, Core_Set_2);
+    RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 100000, 100000, 100000, &DoPwm, Core_Set_2);
     rt_thread_1.Init();
     rt_thread_1.Run();
 
-    RT_Thread rt_thread_2 = RT_Thread(SCHED_DEADLINE, 100000, 1000000, 1000000, &CalculateFlightControls, Core_Set_2);
+    RT_Thread rt_thread_2 = RT_Thread(SCHED_DEADLINE, 100000, 100000, 20000000, &CalculateFlightControls, Core_Set_2);
     rt_thread_2.Init();
     rt_thread_2.Run();
     DoMainRoutine(NULL);

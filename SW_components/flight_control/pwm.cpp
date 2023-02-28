@@ -139,7 +139,7 @@ static uint32_t Convert_Thrust_To_Tics(int32_t percentage){
 
 
 static void Set_Pin_State(int wpi_pin, bool state){
-    #ifdef _RASP //TODO: Fix to proper pin mapping
+    #ifdef _RASP
         digitalWrite (wpi_pin, state);
     #endif
 }

@@ -7,11 +7,13 @@
 #include <iostream>
 
 #define THR_MNGR_RPI_CORE_NUMBER 4U
+#define SCHED_US_MULTP 10U /* To obtain 1 us timestamp, it's required by scheduler API to pass value 10*/
 
 #define handle_error_en(en, msg) \
     do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
-struct sched_attr {
+typedef struct
+{
     uint32_t size;
     uint32_t sched_policy;
     uint64_t sched_flags;
@@ -20,7 +22,8 @@ struct sched_attr {
     uint64_t sched_runtime;
     uint64_t sched_deadline;
     uint64_t sched_period;
-};
+}
+sched_attr_t;
 
 
 class Thread_Manager
@@ -46,7 +49,7 @@ private:
     int period_;
     pthread_t posix_instance_;
     void* (*fun_ptr_)(void *data);
-    struct sched_attr attr_;
+    sched_attr_t attr_;
     bool Cpu_Set_[THR_MNGR_RPI_CORE_NUMBER];
 
 public:
@@ -112,4 +115,4 @@ public:
 };
 
 
-int SchedSetAttr(pid_t pid, struct sched_attr *attr_ptr,unsigned int flags);
+int SchedSetAttr(pid_t pid, sched_attr_t *attr_ptr,unsigned int flags);
