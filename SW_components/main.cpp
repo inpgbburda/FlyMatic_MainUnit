@@ -12,7 +12,9 @@
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
 
 #include "Thread_Manager.hpp"
+#ifdef _RASP
 #include <wiringPi.h>
+#endif /* _RASP */
 
 
 #define handle_error_en(en, msg) \
@@ -21,12 +23,10 @@
 extern uint32_t Time_Calibration_G;
 pthread_mutex_t Pwm_lock_G;
 
-
 void *DoPwm(void *data_ptr)
 {
-    int flags = 0;
     int ret;
-    ret = SchedSetAttr(0, (sched_attr_t*)data_ptr, flags);
+    ret = SchedSetAttr((sched_attr_t*)data_ptr);
     std::cout << ret << std::endl;
     if (ret < 0) {
         perror("sched_setattr failed to set the priorities");
@@ -65,21 +65,25 @@ void *DoMainRoutine(void *data)
 void *CalculateFlightControls(void *data_ptr)
 {
     int ret;
-    int flags = 0;
-    ret = SchedSetAttr(0, (sched_attr_t*)data_ptr, flags);
+    ret = SchedSetAttr((sched_attr_t*)data_ptr);
     if (ret < 0) {
         perror("sched_setattr failed to set the Flight Controls priorities");
         exit(-1);
     };
-    volatile int cnt = 0;
-    /*Just for debugg - simulate high load task*/
+    /*Just for testing - simulate high load task
+    inifnite loop is needed for cyclic task excecution
+    */
     while(1)
     {   
+        #ifdef _RASP
+        volatile int cnt = 0;
         digitalWrite (1, true);
-        for(cnt=0; cnt<100; cnt++);
+        for(cnt=0; cnt<10000; cnt++);
         digitalWrite (1, false);
+        #endif /* _RASP */
+        /*Inform scheduler that calculation is done*/
+        sched_yield();
     }
-  
     return NULL;
 }
 
@@ -95,17 +99,14 @@ int main()
         exit(-2);
     }
 
-    bool Core_Set_1[4] = {true, false, false, false};
     bool Core_Set_2[4] = {false, true, true, true};
-    bool Core_Set_3[4] = {false, true, true, true};
 
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
     Init_Pwm();
     RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 100000, 100000, 100000, &DoPwm, Core_Set_2);
     rt_thread_1.Init();
     rt_thread_1.Run();
-
-    RT_Thread rt_thread_2 = RT_Thread(SCHED_DEADLINE, 100000, 100000, 20000000, &CalculateFlightControls, Core_Set_2);
+    RT_Thread rt_thread_2 = RT_Thread(SCHED_DEADLINE, 50000000, 100000000, 100000000, &CalculateFlightControls, Core_Set_2);
     rt_thread_2.Init();
     rt_thread_2.Run();
     DoMainRoutine(NULL);

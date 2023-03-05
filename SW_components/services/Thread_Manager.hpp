@@ -115,4 +115,4 @@ public:
 };
 
 
-int SchedSetAttr(pid_t pid, sched_attr_t *attr_ptr,unsigned int flags);
+int SchedSetAttr(sched_attr_t *attr_ptr);
