@@ -11,7 +11,7 @@ include_directories(../)
 
 add_definitions ( -D_UNIT_TEST )
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
 add_executable(Thread_Manager_UT
     Thread_Manager_UT.cpp

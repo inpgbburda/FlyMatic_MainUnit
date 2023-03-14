@@ -26,65 +26,43 @@ typedef struct
 sched_attr_t;
 
 
-class Thread_Manager
-{
-private:
-   /* data */
-public:
-    Thread_Manager(/* args */);
-    void Init(void);
-    void DeInit(void);
-
-   ~Thread_Manager();
-};
-
-
 class RT_Thread
 {
 private:
     /* data */
-    int scheduler_type_;
-    int runtime_;
-    int deadline_;
-    int period_;
     pthread_t posix_instance_;
     void* (*fun_ptr_)(void *data);
     sched_attr_t attr_;
     bool Cpu_Set_[THR_MNGR_RPI_CORE_NUMBER];
+    bool exec_state_;
 
 public:
     RT_Thread
             (
-                int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data), bool (&cpu_set)[THR_MNGR_RPI_CORE_NUMBER]
+                int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data)
             )
     {
-        scheduler_type_ = scheduler_type;
-        runtime_ = runtime;
-        deadline_ = deadline;
-        period_ = period;
         fun_ptr_ = fun_ptr;
-        for(unsigned int i=0; i<THR_MNGR_RPI_CORE_NUMBER; i++)
-        {
-            Cpu_Set_[i] = cpu_set[i];
-        }
-    }
+        exec_state_ = false;
 
-    /** Copies thread parameters into standarised attributes structure.
-    */
-    void Init(void){
         attr_.size = sizeof(attr_);
-        attr_.sched_policy = scheduler_type_;
-        attr_.sched_runtime = runtime_;
-        attr_.sched_deadline = deadline_;
-        attr_.sched_period = period_;
+        attr_.sched_policy = scheduler_type;
+        attr_.sched_runtime = runtime;
+        attr_.sched_deadline = deadline;
+        attr_.sched_period = period;
     }
 
     /** Creates Posix thread with prevoiusly set paramaters
     */
     void Run(void){
+        exec_state_ = true;
         pthread_create(&posix_instance_, NULL, fun_ptr_, (void*)&attr_);
     }
 
+    bool IsRun()
+    {
+        return exec_state_;
+    }
     void AssignAffinity(void)
     {
         int aff_result;
@@ -112,7 +90,49 @@ public:
     void DeInit(void);
 
    ~RT_Thread(){};
+
+    bool operator==(const RT_Thread& rt_thread) const {
+        bool result;
+        result = 
+        (
+            (this->attr_.sched_policy == rt_thread.attr_.sched_policy) &&
+            (this->attr_.sched_period == rt_thread.attr_.sched_period) &&
+            (this->attr_.sched_deadline == rt_thread.attr_.sched_deadline)
+        );
+        return result;
+        
+}
 };
 
-
 int SchedSetAttr(sched_attr_t *attr_ptr);
+
+class Thread_Manager
+{
+private:
+   /* data */
+   std::vector<RT_Thread> collected_threads_;
+
+public:
+    Thread_Manager(/* args */){};
+    void Init(void) {};
+    void AddThread(RT_Thread &thread) {};
+    std::vector<RT_Thread> const GetAllThreads()
+    {
+        return collected_threads_;
+    };
+    void DeInit(void);
+
+    void CollectThreads(std::vector<RT_Thread> &thread_list)
+    {
+        collected_threads_ = thread_list;
+    }
+
+    void RunAllThreads(void)
+    {
+        for (auto & thread : collected_threads_) 
+        {
+            thread.Run();
+        }
+    }
+   ~Thread_Manager(){};
+};
