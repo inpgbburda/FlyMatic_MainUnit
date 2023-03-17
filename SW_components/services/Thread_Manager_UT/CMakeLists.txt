@@ -15,6 +15,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
 add_executable(Thread_Manager_UT
     Thread_Manager_UT.cpp
+    ../Thread_Manager.cpp
 )
 
 target_link_libraries(Thread_Manager_UT PRIVATE Catch2::Catch2WithMain)

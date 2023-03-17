@@ -5,6 +5,7 @@
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
 #include <unistd.h>           /* Definition of syscalls */
 #include <iostream>
+#include <vector>
 
 #define THR_MNGR_RPI_CORE_NUMBER 4U
 #define SCHED_US_MULTP 10U /* To obtain 1 us timestamp, it's required by scheduler API to pass value 10*/
@@ -25,9 +26,11 @@ typedef struct
 }
 sched_attr_t;
 
+int SchedSetAttr(sched_attr_t *attr_ptr);
 
 class RT_Thread
 {
+
 private:
     /* data */
     pthread_t posix_instance_;
@@ -38,73 +41,26 @@ private:
 
 public:
     RT_Thread
-            (
-                int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data)
-            )
-    {
-        fun_ptr_ = fun_ptr;
-        exec_state_ = false;
+    (
+        int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data)
+    );
 
-        attr_.size = sizeof(attr_);
-        attr_.sched_policy = scheduler_type;
-        attr_.sched_runtime = runtime;
-        attr_.sched_deadline = deadline;
-        attr_.sched_period = period;
-    }
+    /** Creates Posix thread with prevoiusly set paramaters*/
+    void Run(void);
 
-    /** Creates Posix thread with prevoiusly set paramaters
-    */
-    void Run(void){
-        exec_state_ = true;
-        pthread_create(&posix_instance_, NULL, fun_ptr_, (void*)&attr_);
-    }
+    bool IsRun(void) {return exec_state_;}
 
-    bool IsRun()
-    {
-        return exec_state_;
-    }
-    void AssignAffinity(void)
-    {
-        int aff_result;
-        cpu_set_t cpuset;
-        CPU_ZERO(&cpuset);
-        for(unsigned int i=0; i<THR_MNGR_RPI_CORE_NUMBER; i++)
-        {
-            if(Cpu_Set_[i])
-            {
-                CPU_SET(i, &cpuset);
-            }
-        } 
-        aff_result = pthread_setaffinity_np(posix_instance_,sizeof(cpuset), &cpuset);
-        if (0 != aff_result)
-        {
-            std::cout << "Error- affinity problem" << std::endl;
-        }
-    }
+    void AssignAffinity(void);
 
-    void Join(void)
-    {
-        pthread_join(posix_instance_, NULL);
-    }
+    void Join(void) { pthread_join(posix_instance_, NULL); }
+
+    bool operator==(const RT_Thread& rt_thread)const;
 
     void DeInit(void);
 
    ~RT_Thread(){};
-
-    bool operator==(const RT_Thread& rt_thread) const {
-        bool result;
-        result = 
-        (
-            (this->attr_.sched_policy == rt_thread.attr_.sched_policy) &&
-            (this->attr_.sched_period == rt_thread.attr_.sched_period) &&
-            (this->attr_.sched_deadline == rt_thread.attr_.sched_deadline)
-        );
-        return result;
-        
-}
 };
 
-int SchedSetAttr(sched_attr_t *attr_ptr);
 
 class Thread_Manager
 {
@@ -114,25 +70,18 @@ private:
 
 public:
     Thread_Manager(/* args */){};
+    
     void Init(void) {};
+    
     void AddThread(RT_Thread &thread) {};
-    std::vector<RT_Thread> const GetAllThreads()
-    {
-        return collected_threads_;
-    };
+    
+    std::vector<RT_Thread> const GetAllThreads(){ return collected_threads_; }
+
     void DeInit(void);
 
-    void CollectThreads(std::vector<RT_Thread> &thread_list)
-    {
-        collected_threads_ = thread_list;
-    }
+    void CollectThreads(std::vector<RT_Thread> &thread_list){ collected_threads_ = thread_list; }
 
-    void RunAllThreads(void)
-    {
-        for (auto & thread : collected_threads_) 
-        {
-            thread.Run();
-        }
-    }
+    void RunAllThreads(void);
+
    ~Thread_Manager(){};
 };
