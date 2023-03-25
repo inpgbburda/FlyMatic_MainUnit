@@ -5,7 +5,9 @@ message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 
 set(SOURCES 
     flight_control/pwm.cpp
+    flight_control/balancer.cpp
     services/Thread_Manager.cpp
+    services/Thread_Manager_Cfg.cpp
 )
 
 set(HEADERS

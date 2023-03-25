@@ -3,7 +3,7 @@
 #include <wiringPi.h>
 #endif
 #include "time.h"
-
+#include "Thread_Manager.hpp"
 
 uint32_t Time_Calibration_G;
 
@@ -183,4 +183,13 @@ Gpio_Channel_T& operator ++ (Gpio_Channel_T& chan)
     }
     chan = Gpio_Channel_T(static_cast<std::underlying_type<Gpio_Channel_T>::type>(chan) + 1);
     return chan;
+}
+
+void *DoPwm(void *data_ptr)
+{
+    SchedSetAttr((sched_attr_t*)data_ptr);
+    std::cout << "Started pwm routine"<< std::endl;
+    while(1){
+        Run_Pwm_Blocking();
+    }
 }

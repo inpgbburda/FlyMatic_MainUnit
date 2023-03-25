@@ -47,4 +47,7 @@ void Set_Pwm(Gpio_Channel_T channel, int32_t pwm_percentage);
 int32_t Get_Pwm(Gpio_Channel_T channel);
 void Run_Pwm_Blocking(void);
 
+void *DoPwm(void *data_ptr);
+
+
 #endif // PMM_HPP

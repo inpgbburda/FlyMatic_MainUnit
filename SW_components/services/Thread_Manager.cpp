@@ -1,21 +1,28 @@
 #include "Thread_Manager.hpp"
 #include <string.h>             /* Needed for memset() call*/
 
+#include "Thread_Manager_Cfg.hpp"
+
 #define DEFAULT_PID 0U
 #define DEFAULT_FLAGS 0U
 
-int SchedSetAttr(sched_attr_t *attr_ptr) 
+void SchedSetAttr(sched_attr_t *attr_ptr) 
 {
+    int result;
     sched_attr_t attr_local;
     memset(&attr_local, 0, sizeof(attr_local)); 
-    #ifdef _RASP
+    //TODO: change to shorter copying
     attr_local.size = attr_ptr->size;
     attr_local.sched_policy = attr_ptr->sched_policy ;
     attr_local.sched_runtime = attr_ptr->sched_runtime;
     attr_local.sched_deadline = attr_ptr->sched_deadline;
     attr_local.sched_period = attr_ptr->sched_period;
-    #endif /* _RASP */
-    return syscall(__NR_sched_setattr, DEFAULT_PID, &attr_local, DEFAULT_FLAGS);
+    result = syscall(__NR_sched_setattr, DEFAULT_PID, &attr_local, DEFAULT_FLAGS);
+    if(result < 0)
+    {
+        // throw std::runtime_error("sched_setattr failed to set the priorities");
+        std::cout << "sched_setattr failed to set the priorities"<< std::endl;
+    }
 }
 
 

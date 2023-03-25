@@ -1,5 +1,6 @@
 #include <iostream>
 #include "pwm.hpp"
+#include "balancer.hpp"
 #include <mutex>
 #include <unistd.h>
 
@@ -8,8 +9,6 @@
 #include <limits.h>
 #include <pthread.h>
 #include <sys/mman.h>
-#include <linux/sched.h>      /* Definition of SCHED_* constants */
-#include <sys/syscall.h>      /* Definition of SYS_* constants */
 
 #include "Thread_Manager.hpp"
 #ifdef _RASP
@@ -20,73 +19,9 @@
 #define handle_error_en(en, msg) \
     do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
-extern uint32_t Time_Calibration_G;
-pthread_mutex_t Pwm_lock_G;
-
-void *DoPwm(void *data_ptr)
-{
-    int ret;
-    ret = SchedSetAttr((sched_attr_t*)data_ptr);
-    std::cout << ret << std::endl;
-    if (ret < 0) {
-        perror("sched_setattr failed to set the priorities");
-        exit(-1);
-    };
-    std::cout << "Started pwm routine"<< std::endl;
-    while(1){
-        Run_Pwm_Blocking();
-    }
-}
-
-
-void *DoMainRoutine(void *data)
-{
-    Pwm_lock_G = PTHREAD_MUTEX_INITIALIZER;
-    std::cout << "Step 1" << std::endl;
-    Set_Pwm(CHAN_1, 0U);
-    sleep(5);
-
-    std::cout << "Step 2" << std::endl;
-    Set_Pwm(CHAN_1, 25U);
-    sleep(5);
-
-    std::cout << "Step 3" << std::endl;
-    Set_Pwm(CHAN_1, 50U);
-    sleep(5);
-
-    std::cout << "Step 4" << std::endl;
-    Set_Pwm(CHAN_1, 100U);
-    sleep(5);
-    pthread_mutex_destroy(&Pwm_lock_G);	
-    return NULL;
-}
-
-
-void *CalculateFlightControls(void *data_ptr)
-{
-    int ret;
-    ret = SchedSetAttr((sched_attr_t*)data_ptr);
-    if (ret < 0) {
-        perror("sched_setattr failed to set the Flight Controls priorities");
-        exit(-1);
-    };
-    /*Just for testing - simulate high load task
-    inifnite loop is needed for cyclic task excecution
-    */
-    while(1)
-    {   
-        #ifdef _RASP
-        volatile int cnt = 0;
-        digitalWrite (1, true);
-        for(cnt=0; cnt<10000; cnt++);
-        digitalWrite (1, false);
-        #endif /* _RASP */
-        /*Inform scheduler that calculation is done*/
-        sched_yield();
-    }
-    return NULL;
-}
-
+extern std::vector<RT_Thread> Initial_Threads_G;
+extern Thread_Manager Manager_G;
+extern RT_Thread thread_3;
 
 int main()
 {
@@ -99,17 +34,11 @@ int main()
         exit(-2);
     }
 
-    bool Core_Set_2[4] = {false, true, true, true};
-
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
     Init_Pwm();
-    RT_Thread rt_thread_1 = RT_Thread(SCHED_DEADLINE, 100000, 100000, 100000, &DoPwm, Core_Set_2);
-    rt_thread_1.Init();
-    rt_thread_1.Run();
-    RT_Thread rt_thread_2 = RT_Thread(SCHED_DEADLINE, 50000000, 100000000, 100000000, &CalculateFlightControls, Core_Set_2);
-    rt_thread_2.Init();
-    rt_thread_2.Run();
-    DoMainRoutine(NULL);
+    Manager_G.CollectThreads(Initial_Threads_G);
+    Manager_G.RunAllThreads();
+    DoMainRoutine();
 
     return 0;
 }

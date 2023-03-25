@@ -13,6 +13,7 @@
 #define handle_error_en(en, msg) \
     do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
+
 typedef struct
 {
     uint32_t size;
@@ -26,7 +27,8 @@ typedef struct
 }
 sched_attr_t;
 
-int SchedSetAttr(sched_attr_t *attr_ptr);
+void
+ SchedSetAttr(sched_attr_t *attr_ptr);
 
 class RT_Thread
 {
@@ -85,3 +87,7 @@ public:
 
    ~Thread_Manager(){};
 };
+
+
+extern std::vector<RT_Thread> Initial_Threads_G;
+extern Thread_Manager Manager_G;
