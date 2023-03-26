@@ -1,0 +1,52 @@
+{
+    "configurations": [
+
+    {
+        "name": "(gdb) Launch-RPi_local",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/Builds/executable",
+        "args": [],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        // "miDebuggerPath": "${workspaceFolder}/Tools/sudo_gdb/sudo_gdb.sh",
+        "MIMode": "gdb",
+        "setupCommands": 
+        [
+        {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+        },
+        ]
+    },
+
+      
+    {
+        "name": "(gdb) Thread_Manager_UT",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/SW_components/services/Thread_Manager_UT/builds_UT/Thread_Manager_UT",
+        "args": [],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+            {
+                "description": "Włącz formatowanie kodu dla gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            },
+            {
+                "description": "Ustaw wariant dezasemblacji na Intel",
+                "text": "-gdb-set disassembly-flavor intel",
+                "ignoreFailures": true
+            }
+        ]
+    },
+      
+   ]
+}

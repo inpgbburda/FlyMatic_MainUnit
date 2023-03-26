@@ -1,12 +1,18 @@
 cmake_minimum_required(VERSION 3.18.1)
 project(drone_code)
 
+message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
+
 set(SOURCES 
     flight_control/pwm.cpp
+    flight_control/balancer.cpp
+    services/Thread_Manager.cpp
+    services/Thread_Manager_Cfg.cpp
 )
 
 set(HEADERS
     flight_control
+    services
 )
 
 option(_RASP "Compile for Raspbberry" OFF)
@@ -16,7 +22,9 @@ endif()
 
 include_directories(${HEADERS})
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -pthread")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 add_executable (executable ${SOURCES} main.cpp)
 

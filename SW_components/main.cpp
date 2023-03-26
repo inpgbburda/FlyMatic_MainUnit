@@ -1,47 +1,44 @@
 #include <iostream>
 #include "pwm.hpp"
+#include "balancer.hpp"
 #include <mutex>
-#include <thread>
 #include <unistd.h>
 
-extern uint32_t Time_Calibration_G;
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <pthread.h>
+#include <sys/mman.h>
 
-void Do_Pwm(void)
-{
-	while(1){
-		Run_Pwm_Blocking();
-	}
-}
+#include "Thread_Manager.hpp"
+#ifdef _RASP
+#include <wiringPi.h>
+#endif /* _RASP */
 
-void Do_Main_Routine(void)
-{
-	std::cout << "Step 1" << std::endl;
-	Set_Pwm(CHAN_1, 100U);
-	sleep(5);
 
-	std::cout << "Step 2" << std::endl;
-	Set_Pwm(CHAN_1, 0U);
-	sleep(5);
+#define handle_error_en(en, msg) \
+    do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
-	std::cout << "Step 3" << std::endl;
-	Set_Pwm(CHAN_1, 70U);
-	sleep(5);
-
-	std::cout << "Step 4" << std::endl;
-	Set_Pwm(CHAN_1, 100U);
-	sleep(5);	
-}
+extern std::vector<RT_Thread> Initial_Threads_G;
+extern Thread_Manager Manager_G;
+extern RT_Thread thread_3;
 
 int main()
 {
-	std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
+    /* Lock memory - prevent from paging to the swap area -
+    * all of the process memory will stay in RAM
+    */
+    if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) 
+    {
+        printf("mlockall failed: %m\n");
+        exit(-2);
+    }
 
-	Init_Pwm();
-	std::thread thread_pwm(Do_Pwm);
-	std::thread thread_main_routine(Do_Main_Routine);
+    std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
+    Init_Pwm();
+    Manager_G.CollectThreads(Initial_Threads_G);
+    Manager_G.RunAllThreads();
+    DoMainRoutine();
 
-	thread_main_routine.join();
-	thread_pwm.join();
-	
-	return 0;
+    return 0;
 }

@@ -3,7 +3,7 @@
 #include <wiringPi.h>
 #endif
 #include "time.h"
-
+#include "Thread_Manager.hpp"
 
 uint32_t Time_Calibration_G;
 
@@ -96,10 +96,12 @@ void Run_Pwm_Blocking(void){
         if(0U == timer)
         {
             /*Start of the period - All channels begin duty cycle*/
+            pthread_mutex_trylock(&Pwm_lock_G);
             Width_Array[CHAN_1] = Convert_Thrust_To_Tics(Perc_Array[CHAN_1]);
             Width_Array[CHAN_2] = Convert_Thrust_To_Tics(Perc_Array[CHAN_2]);
             Width_Array[CHAN_3] = Convert_Thrust_To_Tics(Perc_Array[CHAN_3]);
             Width_Array[CHAN_4] = Convert_Thrust_To_Tics(Perc_Array[CHAN_4]);
+            pthread_mutex_unlock(&Pwm_lock_G);
 
             (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_1], true); // TODO: fix passing here channels
             (Gpio_Interface.set_pin_state_fptr)(Pwm_Chann_To_Pin_Map[CHAN_2], true);
@@ -138,18 +140,7 @@ static uint32_t Convert_Thrust_To_Tics(int32_t percentage){
 
 static void Set_Pin_State(int wpi_pin, bool state){
     #ifdef _RASP
-    if(1 == wpi_pin){
-        digitalWrite (PIN_MOTOR_1, HIGH);
-    }
-    if(2 == wpi_pin){
-        digitalWrite (PIN_MOTOR_2, HIGH);
-    }
-    if(3 == wpi_pin){
-        digitalWrite (PIN_MOTOR_3, HIGH);
-    }
-    if(4 == wpi_pin){
-        digitalWrite (PIN_MOTOR_4, HIGH);
-    }
+        digitalWrite (wpi_pin, state);
     #endif
 }
 
@@ -192,4 +183,13 @@ Gpio_Channel_T& operator ++ (Gpio_Channel_T& chan)
     }
     chan = Gpio_Channel_T(static_cast<std::underlying_type<Gpio_Channel_T>::type>(chan) + 1);
     return chan;
+}
+
+void *DoPwm(void *data_ptr)
+{
+    SchedSetAttr((sched_attr_t*)data_ptr);
+    std::cout << "Started pwm routine"<< std::endl;
+    while(1){
+        Run_Pwm_Blocking();
+    }
 }
