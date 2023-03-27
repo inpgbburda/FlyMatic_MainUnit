@@ -5,6 +5,7 @@ message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 
 set(SOURCES 
     flight_control/pwm.cpp
+    flight_control/i2c.cpp
     flight_control/balancer.cpp
     services/Thread_Manager.cpp
     services/Thread_Manager_Cfg.cpp
@@ -31,6 +32,9 @@ add_executable (executable ${SOURCES} main.cpp)
 if (_RASP)
 
   find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
-  target_link_libraries(executable ${WIRINGPI_LIBRARIES})
+  target_link_libraries(executable
+                        ${WIRINGPI_LIBRARIES}
+                        i2c
+   )
 
 endif()

@@ -3,8 +3,6 @@
 *
 */
 
-#ifndef I2C_HPP_
-#define I2C_HPP_
+#pragma once
 
-
-#endif //I2C_HPP_
+void i2c_main_fun(void);

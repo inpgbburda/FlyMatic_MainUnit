@@ -14,6 +14,7 @@
 #ifdef _RASP
 #include <wiringPi.h>
 #endif /* _RASP */
+#include "i2c.hpp"
 
 
 #define handle_error_en(en, msg) \
@@ -36,6 +37,7 @@ int main()
 
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
     Init_Pwm();
+    i2c_main_fun();
     Manager_G.CollectThreads(Initial_Threads_G);
     Manager_G.RunAllThreads();
     DoMainRoutine();
