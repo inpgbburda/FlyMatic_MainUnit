@@ -7,4 +7,5 @@ Testing/build/
 
 #Unit tests ignores:
 SW_components/flight_control/pwm_UT/builds_UT
+SW_components/flight_control/i2c_UT/builds_UT
 SW_components/services/Thread_Manager_UT/builds_UT
