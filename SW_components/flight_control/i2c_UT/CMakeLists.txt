@@ -2,12 +2,14 @@
 
 cmake_minimum_required(VERSION 3.18.1)
 project(i2c_UT)
-find_package(Catch2 3 REQUIRED)
 message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 
 # These tests can use the Catch2-provided main
 
-include_directories(../)
+include_directories(
+    ../
+    cpp_utest/includes/
+)
 
 add_definitions ( -D_UNIT_TEST )
 
@@ -15,6 +17,10 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
 
 add_executable(i2c_UT
     i2c_UT.cpp
+    run_all_tests.cpp
 )
 
-target_link_libraries(i2c_UT PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(i2c_UT 
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpp_utest/libs/libCppUTestExt.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpp_utest/libs/libCppUTest.a       
+)
