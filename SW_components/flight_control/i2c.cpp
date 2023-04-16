@@ -17,11 +17,12 @@ extern "C" {
 #include "i2c_cfg.hpp"
 
 #define I2C_DRV_DESRC_MAX_FILE_L 20
+#define I2C_SLAVE 10
 
 static int I2c_File_Dcr = 0;
 
 static uint8_t I2c_Read_Byte(uint8_t reg_address);
-static void ComposeDriverFilename(char* filename, int adapter_nr);
+void ComposeDriverFilename(char* filename, int adapter_nr);
 // static void SetSlaveAddr();
 static void DriverInit(int driver_num);
 
@@ -69,7 +70,7 @@ static uint8_t I2c_Read_Byte(uint8_t reg_address)
   return result;
 }
 
-static void ComposeDriverFilename(char* filename, int adapter_nr)
+void ComposeDriverFilename(char* filename, int adapter_nr)
 {
     if( (nullptr != filename) && (adapter_nr >= 0) && (adapter_nr < 10) )
     {

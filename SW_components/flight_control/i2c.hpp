@@ -3,6 +3,7 @@
 *
 */
 
-#pragma once
+// #pragma once
 
 void i2c_main_fun(void);
+void ComposeDriverFilename(char* filename, int adapter_nr);
