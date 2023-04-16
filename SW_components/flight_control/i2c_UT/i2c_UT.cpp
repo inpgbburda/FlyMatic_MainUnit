@@ -4,20 +4,8 @@
 
 #define I2C_DRV_DESRC_MAX_FILE_L 10
 
-class MyClass
+TEST_GROUP(I2c)
 {
-private:
-    void MyMethod(){};
-
-    friend class TEST_GROUP_CppUTestGroupMyClass;
-};
-
-TEST_GROUP(MyClass)
-{
-    void CallMyMethod( MyClass &o )
-    {
-        o.MyMethod();
-    }
     void teardown()
     {
         mock().clear();
@@ -29,7 +17,7 @@ void productionCode()
     mock().actualCall("productionCode");
 }
 
-TEST(MyClass, SimpleScenario)
+TEST(I2c, SimpleScenario_Mocking_function)
 {
     mock().expectOneCall("productionCode");
     productionCode();
@@ -37,17 +25,22 @@ TEST(MyClass, SimpleScenario)
     mock().checkExpectations();
 }
 
-TEST(MyClass, FirstTest)
+TEST(I2c, FirstTest)
 {
+    I2c testObj;
     char filename[I2C_DRV_DESRC_MAX_FILE_L];
-    ComposeDriverFilename(filename, 1);
+    testObj.ComposeDriverFilename(filename, 1);
     std::string filename_str(filename);
     CHECK_EQUAL(filename_str, "/dev/i2c-1");
-    
-    MyClass testObj;
-    CallMyMethod( testObj );
 }
 
+// TEST(MyClass, MockPrivateMethod)
+// {
+//     mock().expectOneCall("MyMethod");
+//     MyClass testObj;
+//     CallMyMethod( testObj );
+//     mock().checkExpectations();
+// }
 // TEST(I2c_Init, FirstTest)
 // {
 //     // expect ComposeDriverFilename()

@@ -15,6 +15,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdexcept>
 #include "i2c_cfg.hpp"
+#include "i2c.hpp"
 
 #define I2C_DRV_DESRC_MAX_FILE_L 20
 #define I2C_SLAVE 10
@@ -22,16 +23,34 @@ extern "C" {
 static int I2c_File_Dcr = 0;
 
 static uint8_t I2c_Read_Byte(uint8_t reg_address);
-void ComposeDriverFilename(char* filename, int adapter_nr);
-// static void SetSlaveAddr();
 static void DriverInit(int driver_num);
+
+I2c::I2c(/* args */)
+{
+}
+
+void I2c::ComposeDriverFilename(char* filename, int adapter_nr)
+{
+    if( (nullptr != filename) && (adapter_nr >= 0) && (adapter_nr < 10) )
+    {
+        snprintf(filename, I2C_DRV_DESRC_MAX_FILE_L, "/dev/i2c-%d", adapter_nr);
+    }
+    else
+    {
+        throw "out of range";
+    }
+}
+
+I2c::~I2c()
+{
+}
 
 void i2c_main_fun(void)
 {
     int adapter_nr = I2C_KERNEL_ADAPTER_NUM; /* probably dynamically determined */
     char filename[I2C_KERNEL_FILENAME_MAX_SIZE];
 
-    ComposeDriverFilename(filename, adapter_nr);
+    // ComposeDriverFilename(filename, adapter_nr);
     I2c_File_Dcr = open(filename, O_RDWR); /* Open file read/write access*/
     if (I2c_File_Dcr < 0) {
         /* ERROR HANDLING; you can check errno to see what went wrong */
@@ -70,17 +89,6 @@ static uint8_t I2c_Read_Byte(uint8_t reg_address)
   return result;
 }
 
-void ComposeDriverFilename(char* filename, int adapter_nr)
-{
-    if( (nullptr != filename) && (adapter_nr >= 0) && (adapter_nr < 10) )
-    {
-        snprintf(filename, I2C_DRV_DESRC_MAX_FILE_L, "/dev/i2c-%d", adapter_nr);
-    }
-    else
-    {
-        throw "out of range";
-    }
-}
 
 static void DriverInit(int driver_num)
 {
