@@ -1,8 +1,6 @@
 extern "C" {
   #include <linux/i2c-dev.h>
-#ifndef _UNIT_TEST 
   #include <i2c/smbus.h>
-#endif /* _UNIT_TEST */
 }
 
 #include <fcntl.h>    /* For O_RDWR */
@@ -39,6 +37,22 @@ void I2c::ComposeDriverFilename(char* filename, int adapter_nr)
     {
         throw "out of range";
     }
+}
+
+void I2c::OpenDriverFile(void)
+{
+    
+}
+
+void I2c::Init(void)
+{
+    this->OpenDriverFile();
+}
+
+void I2c::ReadByte(int addr)
+{
+    int dummy_dtr = 0;
+    i2c_smbus_read_byte_data(dummy_dtr, addr);
 }
 
 I2c::~I2c()

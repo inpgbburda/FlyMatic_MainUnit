@@ -12,18 +12,6 @@ TEST_GROUP(I2c)
     }
 };
 
-void productionCode()
-{
-    mock().actualCall("productionCode");
-}
-
-TEST(I2c, SimpleScenario_Mocking_function)
-{
-    mock().expectOneCall("productionCode");
-    productionCode();
-    productionCode();
-    mock().checkExpectations();
-}
 
 TEST(I2c, FirstTest)
 {
@@ -34,34 +22,23 @@ TEST(I2c, FirstTest)
     CHECK_EQUAL(filename_str, "/dev/i2c-1");
 }
 
-// TEST(MyClass, MockPrivateMethod)
-// {
-//     mock().expectOneCall("MyMethod");
-//     MyClass testObj;
-//     CallMyMethod( testObj );
-//     mock().checkExpectations();
-// }
-// TEST(I2c_Init, FirstTest)
-// {
-//     // expect ComposeDriverFilename()
-//     // expect opendriverFile
-// }
 
 // TEST(I2c_Init fault, FirstTest)
 // {
 //     // expect ComposeDriverFilename()
-//     // expect opendriverFile
+//     // expect OpenDriverFile
 //     // *błąd initu drivera* //
 //     //CHECK(exception is thrown);
 // }
 
 
-// TEST(I2c_Read_Byte, FirstTest)
-// {
-//     //wynik = I2c_Read_Byte( rejestr);
-//     //expect i2c_smbus_read_byte_data( rejestr)
-//     //CHECK(wynik == oczekiwany wynik);
-// }
+TEST(I2c, Read_Byte_Ok)
+{
+    I2c testObj;
+    mock().expectOneCall("i2c_smbus_read_byte_data");
+    testObj.ReadByte(10);
+    mock().checkExpectations();
+}
 
 // TEST(faulty I2c_Read_Byte, FirstTest)
 // {

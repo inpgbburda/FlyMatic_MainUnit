@@ -16,10 +16,12 @@ class I2c
 {
 PRIVATE_IFN_UT
     void ComposeDriverFilename(char* filename, int adapter_nr);
-    friend class TEST_GROUP_CppUTestGroupI2c;
-    /* data */
+    void OpenDriverFile(void);
+
 public:
     I2c(/* args */);
+    void Init(void);
+    void ReadByte(int addr);
     ~I2c();
 };
 

@@ -20,6 +20,7 @@ add_executable(i2c_UT
     i2c_UT.cpp
     run_all_tests.cpp
     ../i2c.cpp
+    mocks/smbus_mock.cpp
 )
 
 target_link_libraries(i2c_UT 
