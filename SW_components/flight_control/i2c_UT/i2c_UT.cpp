@@ -15,9 +15,9 @@ TEST_GROUP(I2c)
 
 TEST(I2c, FirstTest)
 {
-    I2c testObj;
+    I2c i2cObj;
     char filename[I2C_DRV_DESRC_MAX_FILE_L];
-    testObj.ComposeDriverFilename(filename, 1);
+    i2cObj.ComposeDriverFilename(filename, 1);
     std::string filename_str(filename);
     CHECK_EQUAL(filename_str, "/dev/i2c-1");
 }
@@ -34,19 +34,27 @@ TEST(I2c, FirstTest)
 
 TEST(I2c, Read_Byte_Ok)
 {
-    I2c testObj;
-    mock().expectOneCall("i2c_smbus_read_byte_data");
-    testObj.ReadByte(10);
+    int reg_val;
+    I2c i2cObj;
+    int reg_addr = 30;
+
+    mock().expectOneCall("i2c_smbus_read_byte_data").andReturnValue(10);
+    reg_val = i2cObj.ReadByte(reg_addr);
+    CHECK_EQUAL(reg_val, 10);
     mock().checkExpectations();
 }
 
-// TEST(faulty I2c_Read_Byte, FirstTest)
-// {
-//     //wynik = I2c_Read_Byte( rejestr);
-//     //expect i2c_smbus_read_byte_data( rejestr)
-//     // *błąd odczytu* //
-//     //CHECK(exception is thrown);
-// }
+TEST(I2c, Read_Byte_Nok)
+{
+    int reg_val;
+    I2c i2cObj;
+    int reg_addr = 30;
+
+    mock().expectOneCall("i2c_smbus_read_byte_data").andReturnValue(-10);
+    /* Reading byte faulty */
+    CHECK_THROWS(std::exception, i2cObj.ReadByte(reg_addr));
+    mock().checkExpectations();
+}
 
 // TEST(I2c_Read_Bytes, FirstTest)
 // {

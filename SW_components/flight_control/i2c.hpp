@@ -21,7 +21,7 @@ PRIVATE_IFN_UT
 public:
     I2c(/* args */);
     void Init(void);
-    void ReadByte(int addr);
+    int ReadByte(int addr);
     ~I2c();
 };
 

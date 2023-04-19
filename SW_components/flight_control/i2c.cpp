@@ -49,10 +49,16 @@ void I2c::Init(void)
     this->OpenDriverFile();
 }
 
-void I2c::ReadByte(int addr)
+int I2c::ReadByte(int addr)
 {
     int dummy_dtr = 0;
-    i2c_smbus_read_byte_data(dummy_dtr, addr);
+    int read_val;
+    read_val = i2c_smbus_read_byte_data(dummy_dtr, addr);
+    if (0 > read_val) {
+        /* ERROR HANDLING: i2c transaction failed */
+        throw std::runtime_error("I2C reading error");
+    }
+    return read_val;
 }
 
 I2c::~I2c()
@@ -103,8 +109,3 @@ static uint8_t I2c_Read_Byte(uint8_t reg_address)
   return result;
 }
 
-
-static void DriverInit(int driver_num)
-{
-    
-}
