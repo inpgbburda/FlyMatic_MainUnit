@@ -16,12 +16,10 @@ extern "C" {
 #include "i2c.hpp"
 
 #define I2C_DRV_DESRC_MAX_FILE_L 20
-#define I2C_SLAVE 10
 
 static int I2c_File_Dcr = 0;
 
 static uint8_t I2c_Read_Byte(uint8_t reg_address);
-static void DriverInit(int driver_num);
 
 I2c::I2c(/* args */)
 {
@@ -102,7 +100,7 @@ static uint8_t I2c_Read_Byte(uint8_t reg_address)
 #endif
   if (result < 0) {
      /* ERROR HANDLING: i2c transaction failed */
-     read_data = 0U;
+     read_data = (uint8_t)0U;
   } else {
      read_data = (uint8_t)result;
   }
