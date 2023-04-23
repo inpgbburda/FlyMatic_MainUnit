@@ -4,11 +4,13 @@ cmake_minimum_required(VERSION 3.18.1)
 project(i2c_UT)
 message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 
-# These tests can use the Catch2-provided main
+SET(CPPUTEST_RLV_PATH 
+    ../../../Testing/cpp_utest
+)
 
 include_directories(
+    ${CPPUTEST_RLV_PATH}/includes/
     ../
-    cpp_utest/includes/
     stubs/
 )
 
@@ -21,9 +23,10 @@ add_executable(i2c_UT
     run_all_tests.cpp
     ../i2c.cpp
     mocks/smbus_mock.cpp
+    mocks/ioctl_mock.cpp
 )
 
 target_link_libraries(i2c_UT 
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpp_utest/libs/libCppUTestExt.a
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpp_utest/libs/libCppUTest.a       
+    ${CMAKE_CURRENT_SOURCE_DIR}/${CPPUTEST_RLV_PATH}/libs/libCppUTestExt.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/${CPPUTEST_RLV_PATH}/libs/libCppUTest.a       
 )
