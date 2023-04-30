@@ -12,8 +12,7 @@ TEST_GROUP(I2c)
     }
 };
 
-
-TEST(I2c, FirstTest)
+TEST(I2c, ComposeDriverFilename)
 {
     I2c i2cObj;
     char filename[I2C_DRV_DESRC_MAX_FILE_L];
@@ -23,16 +22,16 @@ TEST(I2c, FirstTest)
 }
 
 
-// TEST(I2c_Init fault, FirstTest)
-// {
-//     // expect ComposeDriverFilename()
-//     // expect OpenDriverFile
-//     // *błąd initu drivera* //
-//     //CHECK(exception is thrown);
-// }
+TEST(I2c, SetSlaveAddr)
+{
+    mock().expectOneCall("ioctl");
+    I2c i2cObj;
+    i2cObj.SetSlaveAddr(0xABCD);
+    mock().checkExpectations();
+}
 
 
-TEST(I2c, Read_Byte_Ok)
+TEST(I2c, ReadByte_Ok)
 {
     int reg_val;
     I2c i2cObj;
@@ -44,7 +43,7 @@ TEST(I2c, Read_Byte_Ok)
     mock().checkExpectations();
 }
 
-TEST(I2c, Read_Byte_Nok)
+TEST(I2c, ReadByte_Nok)
 {
     int reg_val;
     I2c i2cObj;
@@ -55,11 +54,3 @@ TEST(I2c, Read_Byte_Nok)
     CHECK_THROWS(std::exception, i2cObj.ReadByte(reg_addr));
     mock().checkExpectations();
 }
-
-// TEST(I2c_Read_Bytes, FirstTest)
-// {
-//     //result = I2c_Read_Bytes(start addr, len)
-//     //expect i2c_smbus_read_byte_data( rejestr)
-//     // *błąd odczytu* //
-//     //CHECK(exception is thrown);
-// }

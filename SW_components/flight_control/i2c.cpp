@@ -42,6 +42,11 @@ void I2c::OpenDriverFile(void)
     
 }
 
+void I2c::SetSlaveAddr(uint32_t slave_addr)
+{
+    ioctl(I2c_File_Dcr, I2C_SLAVE, slave_addr);
+}
+
 void I2c::Init(void)
 {
     this->OpenDriverFile();

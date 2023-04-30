@@ -17,6 +17,7 @@ class I2c
 PRIVATE_IFN_UT
     void ComposeDriverFilename(char* filename, int adapter_nr);
     void OpenDriverFile(void);
+    void SetSlaveAddr(uint32_t slave_addr);
 
 public:
     I2c(/* args */);
