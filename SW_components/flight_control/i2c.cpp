@@ -37,26 +37,30 @@ void I2c::ComposeDriverFilename(char* filename, int adapter_nr)
     }
 }
 
-void I2c::OpenDriverFile(void)
+void I2c::OpenDriverFile(char filename[])
 {
-    
+    this->file_dptr = open(filename, O_RDWR);
+    //TODO: Add handling negative result
 }
 
 void I2c::SetSlaveAddr(uint32_t slave_addr)
 {
-    ioctl(I2c_File_Dcr, I2C_SLAVE, slave_addr);
+    ioctl(this->file_dptr, I2C_SLAVE, slave_addr);
+    //TODO: Add handling negative result
 }
 
 void I2c::Init(void)
 {
-    this->OpenDriverFile();
+    char filename[I2C_DRV_DESRC_MAX_FILE_L];
+    this->ComposeDriverFilename(filename, 1);
+    this->OpenDriverFile(filename);
 }
 
 int I2c::ReadByte(int addr)
 {
     int dummy_dtr = 0;
     int read_val;
-    read_val = i2c_smbus_read_byte_data(dummy_dtr, addr);
+    read_val = i2c_smbus_read_byte_data(this->file_dptr, addr);
     if (0 > read_val) {
         /* ERROR HANDLING: i2c transaction failed */
         throw std::runtime_error("I2C reading error");
@@ -68,47 +72,6 @@ I2c::~I2c()
 {
 }
 
-void i2c_main_fun(void)
-{
-    int adapter_nr = I2C_KERNEL_ADAPTER_NUM; /* probably dynamically determined */
-    char filename[I2C_KERNEL_FILENAME_MAX_SIZE];
-
-    // ComposeDriverFilename(filename, adapter_nr);
-    I2c_File_Dcr = open(filename, O_RDWR); /* Open file read/write access*/
-    if (I2c_File_Dcr < 0) {
-        /* ERROR HANDLING; you can check errno to see what went wrong */
-        printf("Failed to open file\n");
-    }
-
-    int addr = I2C_MPU6050_ADD;
 
 
-    if (ioctl(I2c_File_Dcr, I2C_SLAVE, addr) < 0) {
-        /* ERROR HANDLING; you can check errno to see what went wrong */
-        printf("Failed to ioctl\n");
-    }
-
-
-    uint8_t reg = I2C_MPU6050_WHO_AM_I_REG;
-    uint8_t res = I2c_Read_Byte(reg);
-    printf("Read slave address is: 0x%02X\n", res);
-    
-}
-
-
-static uint8_t I2c_Read_Byte(uint8_t reg_address)
-{
-  int32_t result;
-  uint8_t read_data;
-#ifndef _UNIT_TEST 
-  result = i2c_smbus_read_byte_data(I2c_File_Dcr, reg_address);
-#endif
-  if (result < 0) {
-     /* ERROR HANDLING: i2c transaction failed */
-     read_data = (uint8_t)0U;
-  } else {
-     read_data = (uint8_t)result;
-  }
-  return result;
-}
 

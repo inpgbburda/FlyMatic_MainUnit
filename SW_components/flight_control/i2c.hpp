@@ -15,13 +15,14 @@ void i2c_main_fun(void);
 class I2c
 {
 PRIVATE_IFN_UT
+    int file_dptr;
     void ComposeDriverFilename(char* filename, int adapter_nr);
-    void OpenDriverFile(void);
-    void SetSlaveAddr(uint32_t slave_addr);
+    void OpenDriverFile(char filename[]);
 
 public:
     I2c(/* args */);
     void Init(void);
+    void SetSlaveAddr(uint32_t slave_addr);
     int ReadByte(int addr);
     ~I2c();
 };

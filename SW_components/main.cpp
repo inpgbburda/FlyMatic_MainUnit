@@ -15,7 +15,7 @@
 #include <wiringPi.h>
 #endif /* _RASP */
 #include "i2c.hpp"
-
+#include "i2c_cfg.hpp"
 
 #define handle_error_en(en, msg) \
     do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
@@ -23,6 +23,8 @@
 extern std::vector<RT_Thread> Initial_Threads_G;
 extern Thread_Manager Manager_G;
 extern RT_Thread thread_3;
+
+I2c I2c_ifc;
 
 int main()
 {
@@ -34,10 +36,10 @@ int main()
         printf("mlockall failed: %m\n");
         exit(-2);
     }
-
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
-    Init_Pwm();
-    i2c_main_fun();
+    I2c_ifc.Init();
+    I2c_ifc.SetSlaveAddr(I2C_MPU6050_ADD);
+    I2c_ifc.ReadByte(I2C_MPU6050_WHO_AM_I_REG);
     Manager_G.CollectThreads(Initial_Threads_G);
     Manager_G.RunAllThreads();
     DoMainRoutine();
