@@ -16,6 +16,7 @@
 #endif /* _RASP */
 #include "i2c.hpp"
 #include "i2c_cfg.hpp"
+#include "pwm.hpp"
 
 #define handle_error_en(en, msg) \
     do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
@@ -37,9 +38,13 @@ int main()
         exit(-2);
     }
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
+
     I2c_ifc.Init();
+    Init_Pwm();
+
     I2c_ifc.SetSlaveAddr(I2C_MPU6050_ADD);
     I2c_ifc.ReadByte(I2C_MPU6050_WHO_AM_I_REG);
+    
     Manager_G.CollectThreads(Initial_Threads_G);
     Manager_G.RunAllThreads();
     DoMainRoutine();
