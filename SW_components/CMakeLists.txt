@@ -3,17 +3,20 @@ project(drone_code)
 
 message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 
-set(SOURCES 
-    flight_control/pwm.cpp
-    flight_control/i2c.cpp
-    flight_control/balancer.cpp
-    services/Thread_Manager.cpp
-    services/Thread_Manager_Cfg.cpp
+set(SOURCES
+    02_Srv/main.cpp
+    02_Srv/threads/Thread_Manager.cpp
+    02_Srv/threads/Thread_Manager_Cfg.cpp
+    03_IoHwab/flight_control/balancer.cpp
+    04_Drv/pwm/pwm.cpp
+    04_Drv/i2c/i2c.cpp
 )
 
 set(HEADERS
-    flight_control
-    services
+    02_Srv/threads/
+    03_IoHwab/flight_control/
+    04_Drv/pwm/
+    04_Drv/i2c/
 )
 
 option(_RASP "Compile for Raspbberry" OFF)
@@ -27,7 +30,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -pthread")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
-add_executable (executable ${SOURCES} main.cpp)
+add_executable (executable ${SOURCES})
 
 if (_RASP)
 
