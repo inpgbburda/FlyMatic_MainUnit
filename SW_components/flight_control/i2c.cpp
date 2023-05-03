@@ -17,9 +17,6 @@ extern "C" {
 
 #define I2C_DRV_DESRC_MAX_FILE_L 20
 
-static int I2c_File_Dcr = 0;
-
-static uint8_t I2c_Read_Byte(uint8_t reg_address);
 
 I2c::I2c(/* args */)
 {
@@ -58,7 +55,6 @@ void I2c::Init(void)
 
 int I2c::ReadByte(int addr)
 {
-    int dummy_dtr = 0;
     int read_val;
     read_val = i2c_smbus_read_byte_data(this->file_dptr, addr);
     if (0 > read_val) {
