@@ -5,7 +5,7 @@ project(i2c_UT)
 message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 
 SET(CPPUTEST_RLV_PATH 
-    ../../../Tools/Testing/cpp_utest
+    ../../../../Tools/Testing/cpp_utest
 )
 
 include_directories(

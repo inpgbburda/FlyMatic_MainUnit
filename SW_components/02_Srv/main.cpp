@@ -18,14 +18,11 @@
 #include "i2c_cfg.hpp"
 #include "pwm.hpp"
 
-#define handle_error_en(en, msg) \
-    do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
 extern std::vector<RT_Thread> Initial_Threads_G;
 extern Thread_Manager Manager_G;
-extern RT_Thread thread_3;
 
-I2c I2c_ifc;
+I2c i2c;
 
 int main()
 {
@@ -39,11 +36,11 @@ int main()
     }
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
 
-    I2c_ifc.Init();
+    i2c.Init();
     Init_Pwm();
 
-    I2c_ifc.SetSlaveAddr(I2C_MPU6050_ADD);
-    I2c_ifc.ReadByte(I2C_MPU6050_WHO_AM_I_REG);
+    i2c.SetSlaveAddr(I2C_MPU6050_ADD);
+    i2c.ReadByte(I2C_MPU6050_WHO_AM_I_REG);
     
     Manager_G.CollectThreads(Initial_Threads_G);
     Manager_G.RunAllThreads();
