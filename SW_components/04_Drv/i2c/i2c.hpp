@@ -23,6 +23,7 @@ public:
     I2c(/* args */);
     void Init(void);
     void SetSlaveAddr(uint32_t slave_addr);
+    void WriteByte(int addr, uint8_t data);
     int ReadByte(int addr);
     ~I2c();
 };

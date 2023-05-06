@@ -46,6 +46,11 @@ void I2c::SetSlaveAddr(uint32_t slave_addr)
     //TODO: Add handling negative result
 }
 
+void I2c::WriteByte(int addr, uint8_t data)
+{
+    i2c_smbus_write_byte_data(this->file_dptr, addr, data);
+}
+
 void I2c::Init(void)
 {
     char filename[I2C_DRV_DESRC_MAX_FILE_L];
