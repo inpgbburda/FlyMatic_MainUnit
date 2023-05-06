@@ -4,7 +4,7 @@
             "type": "gdb",
             "request": "launch",
             "name": "Launch-RPi_local",
-            "target": "${workspaceFolder}/Builds/executable",
+            "target": "${workspaceFolder}/Builds/DroneExec",
             "cwd": "${workspaceRoot}",
             "valuesFormatting": "parseText"
         },

@@ -30,14 +30,21 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -pthread")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
-add_executable (executable ${SOURCES})
+SET(EXEC_NAME "DroneExec")
+
+add_executable (${EXEC_NAME} ${SOURCES})
 
 if (_RASP)
 
   find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
-  target_link_libraries(executable
+  target_link_libraries(${EXEC_NAME}
                         ${WIRINGPI_LIBRARIES}
                         i2c
    )
+
+# Print size of linked binary file
+add_custom_command(TARGET ${EXEC_NAME} POST_BUILD
+    COMMAND size --format=berkeley --totals "${EXEC_NAME}"
+    COMMENT "Invoking: GNU Print Size")
 
 endif()
