@@ -22,46 +22,58 @@ I2c::I2c(/* args */)
 {
 }
 
-void I2c::ComposeDriverFilename(char* filename, int adapter_nr)
+std::string I2c::ComposeDriverFilename(int adapter_nr) const
 {
-    if( (nullptr != filename) && (adapter_nr >= 0) && (adapter_nr < 10) )
+    //TODO: Refactor Me!
+    std::string filename;
+    if(adapter_nr == 1)
     {
-        snprintf(filename, I2C_DRV_DESRC_MAX_FILE_L, "/dev/i2c-%d", adapter_nr);
+        filename = "/dev/i2c-1";
     }
-    else
+    else if(adapter_nr == 2)
     {
-        throw "out of range";
+        filename = "/dev/i2c-2";
     }
+    else if(adapter_nr == 6)
+    {
+        filename = "/dev/i2c-6";
+    }
+    return filename;
 }
 
-void I2c::OpenDriverFile(char filename[])
+void I2c::OpenDriver()
 {
-    this->file_dptr = open(filename, O_RDWR);
+    linux_driver_ = open(filename_.c_str(), O_RDWR);
     //TODO: Add handling negative result
 }
 
 void I2c::SetSlaveAddr(uint32_t slave_addr)
 {
-    ioctl(this->file_dptr, I2C_SLAVE, slave_addr);
+    ioctl(linux_driver_, I2C_SLAVE, slave_addr);
     //TODO: Add handling negative result
 }
 
 void I2c::WriteByte(int addr, uint8_t data)
 {
-    i2c_smbus_write_byte_data(this->file_dptr, addr, data);
+    i2c_smbus_write_byte_data(linux_driver_, addr, data);
 }
 
-void I2c::Init(void)
+void I2c::Init(const Drv_Instance_T hw_i2c)
 {
-    char filename[I2C_DRV_DESRC_MAX_FILE_L];
-    this->ComposeDriverFilename(filename, 1);
-    this->OpenDriverFile(filename);
+    filename_ = ComposeDriverFilename(hw_i2c);
+    OpenDriver();
+    inited_ = true;
+}
+
+bool I2c::isInited(void) const
+{
+    return inited_;
 }
 
 int I2c::ReadByte(int addr)
 {
     int read_val;
-    read_val = i2c_smbus_read_byte_data(this->file_dptr, addr);
+    read_val = i2c_smbus_read_byte_data(linux_driver_, addr);
     if (0 > read_val) {
         /* ERROR HANDLING: i2c transaction failed */
         throw std::runtime_error("I2C reading error");
