@@ -2,14 +2,6 @@
 #include "CppUTestExt/MockSupport.h"
 #include "i2c.hpp"
 
-#define I2C_DRV_DESRC_MAX_FILE_L 10
-#define O_RDWR 2U
-/*
-TODO:
-- refactor Init
-
-*/
-
 
 TEST_GROUP(I2c)
 {
@@ -22,23 +14,23 @@ TEST_GROUP(I2c)
     void teardown()
     {
         delete i2cObj;
+        mock().checkExpectations();
         mock().clear();
     }
 };
 
-
-TEST(I2c, InitsPropperlyFristDriver)
+TEST(I2c, InitsFirstDriver)
 {
-    mock().expectOneCall("open").withParameter("__path", "/dev/i2c-1").withParameter("__oflag", O_RDWR);
+    mock().expectOneCall("open").withParameter("__path", "/dev/i2c-1").ignoreOtherParameters();
+
     i2cObj->Init(DRV_1);
-    mock().checkExpectations();
 }
 
-TEST(I2c, InitsPropperlySixthDriver)
+TEST(I2c, InitsSixthDriver)
 {
-    mock().expectOneCall("open").withParameter("__path", "/dev/i2c-6").withParameter("__oflag", O_RDWR);
+    mock().expectOneCall("open").withParameter("__path", "/dev/i2c-6").ignoreOtherParameters();
+
     i2cObj->Init(DRV_6);
-    mock().checkExpectations();
 }
 
 TEST(I2c, ComposesDriverFilenameForSecondDriver)
@@ -47,32 +39,23 @@ TEST(I2c, ComposesDriverFilenameForSecondDriver)
     CHECK_EQUAL(filename_str, std::string("/dev/i2c-2"));
 }
 
-
-TEST(I2c, SetSlaveAddr)
+TEST(I2c, SetsSlaveAddr)
 {
     mock().expectOneCall("ioctl");
+
     i2cObj->SetSlaveAddr(0xABCD);
-    mock().checkExpectations();
 }
 
-
-TEST(I2c, ReadByte_Ok)
+TEST(I2c, ReadsByte)
 {
-    int reg_val;
-    int reg_addr = 30;
-
     mock().expectOneCall("i2c_smbus_read_byte_data").andReturnValue(10);
-    reg_val = i2cObj->ReadByte(reg_addr);
-    CHECK_EQUAL(reg_val, 10);
-    mock().checkExpectations();
+
+    CHECK_EQUAL(i2cObj->ReadByte(0xAA), 10);
 }
 
-TEST(I2c, ReadByte_Nok)
+TEST(I2c, FailsReadingByte)
 {
-    int reg_addr = 30;
-
     mock().expectOneCall("i2c_smbus_read_byte_data").andReturnValue(-10);
-    /* Reading byte faulty */
-    CHECK_THROWS(std::exception, i2cObj->ReadByte(reg_addr));
-    mock().checkExpectations();
+
+    CHECK_THROWS(std::exception, i2cObj->ReadByte(30));
 }

@@ -24,6 +24,7 @@ add_executable(i2c_UT
     ../i2c.cpp
     mocks/smbus_mock.cpp
     mocks/ioctl_mock.cpp
+    mocks/fcntl2_mock.cpp
 )
 
 target_link_libraries(i2c_UT 

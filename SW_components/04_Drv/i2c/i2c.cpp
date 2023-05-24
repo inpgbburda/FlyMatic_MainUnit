@@ -15,8 +15,6 @@ extern "C" {
 #include "i2c_cfg.hpp"
 #include "i2c.hpp"
 
-#define I2C_DRV_DESRC_MAX_FILE_L 20
-
 
 I2c::I2c(/* args */)
 {
@@ -24,21 +22,8 @@ I2c::I2c(/* args */)
 
 std::string I2c::ComposeDriverFilename(int adapter_nr) const
 {
-    //TODO: Refactor Me!
-    std::string filename;
-    if(adapter_nr == 1)
-    {
-        filename = "/dev/i2c-1";
-    }
-    else if(adapter_nr == 2)
-    {
-        filename = "/dev/i2c-2";
-    }
-    else if(adapter_nr == 6)
-    {
-        filename = "/dev/i2c-6";
-    }
-    return filename;
+    std::string base = "/dev/i2c-";
+    return base + std::to_string(adapter_nr);
 }
 
 void I2c::OpenDriver()
@@ -62,12 +47,6 @@ void I2c::Init(const Drv_Instance_T hw_i2c)
 {
     filename_ = ComposeDriverFilename(hw_i2c);
     OpenDriver();
-    inited_ = true;
-}
-
-bool I2c::isInited(void) const
-{
-    return inited_;
 }
 
 int I2c::ReadByte(int addr)
