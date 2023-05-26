@@ -39,6 +39,8 @@ public:
     void SetSlaveAddr(uint32_t slave_addr);
     void WriteByte(int addr, uint8_t data);
     int ReadByte(int addr);
+    void ReadBytes(int addr, int len, uint8_t* data);
+
     ~I2c();
 };
 
