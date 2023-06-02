@@ -59,3 +59,11 @@ TEST(I2c, FailsReadingByte)
 
     CHECK_THROWS(std::exception, i2cObj->ReadByte(30));
 }
+#include <vector>
+
+TEST(I2c, ReadsBlockOfFourBytes)
+{
+    std::vector<uint8_t> exp_bytes = {1, 5, 16, 8};
+
+    MEMCMP_EQUAL(i2cObj->ReadBytes(100, 10).data(), exp_bytes.data(), 4);
+}

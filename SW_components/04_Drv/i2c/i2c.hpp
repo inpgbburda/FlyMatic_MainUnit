@@ -11,6 +11,7 @@
 #define PRIVATE_IFN_UT private:
 #endif
 
+#include <vector>
 typedef enum
 {
     DRV_1 = 1,
@@ -39,7 +40,7 @@ public:
     void SetSlaveAddr(uint32_t slave_addr);
     void WriteByte(int addr, uint8_t data);
     int ReadByte(int addr);
-    void ReadBytes(int addr, int len, uint8_t* data);
+    std::vector<uint8_t> ReadBytes(int addr, int len);
 
     ~I2c();
 };

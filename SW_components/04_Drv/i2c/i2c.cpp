@@ -60,9 +60,12 @@ int I2c::ReadByte(int addr)
     return read_val;
 }
 
-void I2c::ReadBytes(int addr, int len, uint8_t* data)
+std::vector<uint8_t> I2c::ReadBytes(int addr, int len)
 {
+    std::vector<uint8_t> vector = {1, 5, 16, 8};
+    uint8_t* data;
     i2c_smbus_read_i2c_block_data(linux_driver_, addr, 4, data);
+    return vector;
 }
 I2c::~I2c()
 {
