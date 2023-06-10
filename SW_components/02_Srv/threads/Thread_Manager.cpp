@@ -8,7 +8,7 @@
 
 void SchedSetAttr(sched_attr_t *attr_ptr) 
 {
-    int result;
+    int result = 0;
     sched_attr_t attr_local;
     memset(&attr_local, 0, sizeof(attr_local)); 
     //TODO: change to shorter copying

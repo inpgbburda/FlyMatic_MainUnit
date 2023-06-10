@@ -121,7 +121,7 @@
       {
          "type": "shell",
          "label": "Run App",
-         "command": "sudo ./executable",
+         "command": "sudo ./DroneExec",
          "args": [],
          "options": {
             "cwd": "${workspaceFolder}/Builds"
