@@ -49,7 +49,7 @@ void I2c::Init(const Drv_Instance_T hw_i2c)
     OpenDriver();
 }
 
-int I2c::ReadByte(int addr)
+int I2c::ReadByte(int addr) const
 {
     int read_val;
     read_val = i2c_smbus_read_byte_data(linux_driver_, addr);
@@ -60,12 +60,11 @@ int I2c::ReadByte(int addr)
     return read_val;
 }
 
-std::vector<uint8_t> I2c::ReadBytes(int addr, int len)
+std::vector<uint8_t> I2c::ReadBlockOfBytes(uint8_t start_reg_addr, uint8_t block_len) const
 {
-    std::vector<uint8_t> vector = {1, 5, 16, 8};
-    uint8_t* data;
-    i2c_smbus_read_i2c_block_data(linux_driver_, addr, 4, data);
-    return vector;
+    std::vector<uint8_t> Block(block_len);
+    i2c_smbus_read_i2c_block_data(linux_driver_, start_reg_addr, block_len, Block.data());
+    return Block;
 }
 I2c::~I2c()
 {

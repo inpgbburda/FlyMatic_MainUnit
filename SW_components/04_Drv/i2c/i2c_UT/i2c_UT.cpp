@@ -1,7 +1,7 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
 #include "i2c.hpp"
-
+#include <vector>
 
 TEST_GROUP(I2c)
 {
@@ -18,6 +18,8 @@ TEST_GROUP(I2c)
         mock().clear();
     }
 };
+
+const uint8_t arbitrary_addr = 0xAA;
 
 TEST(I2c, InitsFirstDriver)
 {
@@ -59,11 +61,27 @@ TEST(I2c, FailsReadingByte)
 
     CHECK_THROWS(std::exception, i2cObj->ReadByte(30));
 }
-#include <vector>
 
 TEST(I2c, ReadsBlockOfFourBytes)
 {
-    std::vector<uint8_t> exp_bytes = {1, 5, 16, 8};
+    uint8_t Exp_Bytes[] = {0x01, 0x05, 0x16, 0x08};
+    
+    mock().expectOneCall("i2c_smbus_read_i2c_block_data")
+        .withOutputParameterReturning("values", Exp_Bytes, sizeof(Exp_Bytes))
+        .ignoreOtherParameters();
 
-    MEMCMP_EQUAL(i2cObj->ReadBytes(100, 10).data(), exp_bytes.data(), 4);
+    MEMCMP_EQUAL(i2cObj->ReadBlockOfBytes(arbitrary_addr, 4).data(), Exp_Bytes, 4);
+}
+
+TEST(I2c, ReadsBlockOfTwoBytes)
+{
+    uint8_t Exp_Bytes[] = {0x01, 0x08};
+
+    mock().expectOneCall("i2c_smbus_read_i2c_block_data")
+        .withOutputParameterReturning("values", Exp_Bytes, sizeof(Exp_Bytes))
+        .ignoreOtherParameters();
+        
+    std::vector<uint8_t> Read_Bytes = i2cObj->ReadBlockOfBytes(arbitrary_addr, 2);
+
+    MEMCMP_EQUAL(Read_Bytes.data(), Exp_Bytes, 2);
 }
