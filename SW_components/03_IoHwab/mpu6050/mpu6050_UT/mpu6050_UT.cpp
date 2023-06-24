@@ -1,15 +1,43 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
+
 #include "mpu6050.hpp"
 
-TEST_GROUP(I2c)
+#include <vector>
+
+TEST_GROUP(Mpu6050)
 {
+    Mpu6050* mpu6050;
+
     void setup()
     {
+        mpu6050 = new Mpu6050();
     }
     void teardown()
     {
-
+        delete mpu6050;
+        mock().checkExpectations();
+        mock().clear();
     }
 };
 
+TEST(Mpu6050, ReadsAccelerationInXAxis)
+{
+    std::vector<uint8_t> Minus_Ten_In_U2 = {0xFF,0xF6};
+    mock().expectOneCall("ReadBlockOfBytes").andReturnValue(&Minus_Ten_In_U2);
+
+    int16_t x_acc = mpu6050->ReadAccceleration(X);
+
+    CHECK_EQUAL(x_acc, -10);
+}
+
+
+TEST(Mpu6050, ReadsAccelerationInYAxis)
+{
+    std::vector<uint8_t> Ten_In_U2 = {0x00,0x14};
+    mock().expectOneCall("ReadBlockOfBytes").andReturnValue(&Ten_In_U2);
+
+    int16_t y_acc = mpu6050->ReadAccceleration(Y);
+
+    CHECK_EQUAL(y_acc, 20);
+}

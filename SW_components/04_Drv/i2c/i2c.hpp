@@ -12,6 +12,8 @@
 #endif
 
 #include <vector>
+#include <string>
+
 typedef enum
 {
     DRV_1 = 1,

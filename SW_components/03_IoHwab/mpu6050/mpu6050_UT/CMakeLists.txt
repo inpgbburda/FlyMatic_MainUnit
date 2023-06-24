@@ -22,9 +22,7 @@ add_executable(${CMAKE_PROJECT_NAME}
     mpu6050_UT.cpp
     run_all_tests.cpp
     ../mpu6050.cpp
-    # mocks/smbus_mock.cpp
-    # mocks/ioctl_mock.cpp
-    # mocks/fcntl2_mock.cpp
+    mocks/i2c_mock.cpp
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}

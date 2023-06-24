@@ -17,7 +17,7 @@
 #include "i2c.hpp"
 #include "i2c_cfg.hpp"
 #include "pwm.hpp"
-
+#include "mpu6050.hpp"
 
 extern std::vector<RT_Thread> Initial_Threads_G;
 extern Thread_Manager Manager_G;
@@ -46,7 +46,7 @@ int main()
 
     volatile int x_acc = 0;
     while(1){
-        x_acc = i2c.ReadByte(0x3B);
+        i2c.ReadBlockOfBytes(0x3B, 2);
         sleep(1);
         std::cout << "Acceleration is: "<< x_acc << std::endl;
 
