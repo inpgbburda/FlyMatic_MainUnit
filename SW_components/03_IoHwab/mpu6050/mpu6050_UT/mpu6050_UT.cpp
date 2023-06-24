@@ -21,6 +21,14 @@ TEST_GROUP(Mpu6050)
     }
 };
 
+TEST(Mpu6050, InitWithI2cInstance)
+{
+    I2c i2c;
+    mpu6050->Init(&i2c);
+
+    CHECK(mpu6050->hasValidI2cInstance());
+}
+
 TEST(Mpu6050, ReadsAccelerationInXAxis)
 {
     std::vector<uint8_t> Minus_Ten_In_U2 = {0xFF,0xF6};
