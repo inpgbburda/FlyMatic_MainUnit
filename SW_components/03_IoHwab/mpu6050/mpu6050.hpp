@@ -21,8 +21,10 @@ private:
 
 public:
     Mpu6050(/* args */);
-    bool hasValidI2cInstance(void) const;
     void Init(I2c* i2c_ptr);
+    void Start(void);
+    bool IsSensorPresent(void) const;
+    bool HasValidI2cInstance(void) const;
     int16_t ReadAccceleration(Acc_Axis_T axis) const;
     ~Mpu6050();
 };

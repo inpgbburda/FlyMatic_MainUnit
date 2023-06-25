@@ -26,7 +26,13 @@ TEST(Mpu6050, InitWithI2cInstance)
     I2c i2c;
     mpu6050->Init(&i2c);
 
-    CHECK(mpu6050->hasValidI2cInstance());
+    CHECK(mpu6050->HasValidI2cInstance());
+}
+
+TEST(Mpu6050, Starts)
+{
+    mpu6050->Start();
+    CHECK(mpu6050->IsSensorPresent());
 }
 
 TEST(Mpu6050, ReadsAccelerationInXAxis)
