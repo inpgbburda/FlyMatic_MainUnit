@@ -32,7 +32,19 @@ TEST(Mpu6050, InitWithI2cInstance)
 TEST(Mpu6050, Starts)
 {
     mpu6050->Start();
-    CHECK(mpu6050->IsSensorPresent());
+}
+
+TEST(Mpu6050, AsksPhysicalSensorToReportItsPresence)
+{
+    mock().expectOneCall("ReadByte").andReturnValue(MPU6050_WHO_AM_I_VAL);
+    CHECK(mpu6050->CheckPhysicalPresence());
+}
+
+TEST(Mpu6050, AsksPhysicalSensorThatIsNotPresent)
+{
+    const uint8_t arbitrary_invalid_value = 0;
+    mock().expectOneCall("ReadByte").andReturnValue(arbitrary_invalid_value);
+    CHECK_FALSE(mpu6050->CheckPhysicalPresence());
 }
 
 TEST(Mpu6050, ReadsAccelerationInXAxis)

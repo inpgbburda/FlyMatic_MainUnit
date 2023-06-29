@@ -21,9 +21,10 @@ void Mpu6050::Start(void)
 {
 }
 
-bool Mpu6050::IsSensorPresent(void) const
+bool Mpu6050::CheckPhysicalPresence(void) const
 {
-    return true;
+    int who_i_am = i2c_handle_->ReadByte(MPU6050_WHO_AM_I);
+    return MPU6050_WHO_AM_I_VAL == who_i_am;
 }
 
 int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis) const

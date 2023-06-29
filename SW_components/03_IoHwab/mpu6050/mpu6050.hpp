@@ -4,6 +4,8 @@
 
 #include "i2c.hpp"
 
+#define MPU6050_WHO_AM_I 0x75
+#define MPU6050_WHO_AM_I_VAL 0x68
 #define ACCEL_XOUT_H 0x3B
 #define ACCEL_YOUT_H 0x3D
 
@@ -23,7 +25,7 @@ public:
     Mpu6050(/* args */);
     void Init(I2c* i2c_ptr);
     void Start(void);
-    bool IsSensorPresent(void) const;
+    bool CheckPhysicalPresence(void) const;
     bool HasValidI2cInstance(void) const;
     int16_t ReadAccceleration(Acc_Axis_T axis) const;
     ~Mpu6050();
