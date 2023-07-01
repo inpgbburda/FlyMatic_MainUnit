@@ -1,6 +1,17 @@
 #include "mpu6050.hpp"
 #include "i2c.hpp"
+
 #include <vector>
+#include <stdexcept>
+
+#define WHO_AM_I 0x75
+#define WHO_AM_I_VAL 0x68
+
+#define PWR_MGMT_1 0x6B
+#define PWR_MGMT_1_WAKE_UP 0x00
+
+#define ACCEL_XOUT_H 0x3B
+#define ACCEL_YOUT_H 0x3D
 
 #define ACC_H 0U
 #define ACC_L 1U
@@ -19,12 +30,17 @@ void Mpu6050::Init(I2c* i2c_ptr)
 
 void Mpu6050::Start(void)
 {
+    bool sensor_detected = CheckPhysicalPresence();
+    if(sensor_detected)
+    {
+        i2c_handle_ -> WriteByte(PWR_MGMT_1, PWR_MGMT_1_WAKE_UP);
+    }
 }
 
 bool Mpu6050::CheckPhysicalPresence(void) const
 {
-    int who_i_am = i2c_handle_->ReadByte(MPU6050_WHO_AM_I);
-    return MPU6050_WHO_AM_I_VAL == who_i_am;
+    int who_i_am = i2c_handle_->ReadByte(WHO_AM_I);
+    return WHO_AM_I_VAL == who_i_am;
 }
 
 int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis) const

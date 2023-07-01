@@ -29,23 +29,36 @@ TEST(Mpu6050, InitWithI2cInstance)
     CHECK(mpu6050->HasValidI2cInstance());
 }
 
-TEST(Mpu6050, Starts)
+TEST(Mpu6050, StartsProperly)
 {
+    const uint8_t Mpu6050_Who_Am_I = 0x75;
+    const uint8_t Mpu6050_Who_Am_I_Val = 0x68;
+    const uint8_t Mpu6050_Pwr_Mgmt_1 = 0x6B;
+    const uint8_t Mpu6050_Pwr_Mgmt_1_Wake_Up = 0x00;
+
+    mock().expectOneCall("ReadByte")
+          .withParameter("addr", Mpu6050_Who_Am_I)
+          .andReturnValue(Mpu6050_Who_Am_I_Val);
+
+    mock().expectOneCall("WriteByte")
+          .withParameter("addr", Mpu6050_Pwr_Mgmt_1)
+          .withParameter("data", Mpu6050_Pwr_Mgmt_1_Wake_Up);
+
     mpu6050->Start();
 }
 
-TEST(Mpu6050, AsksPhysicalSensorToReportItsPresence)
+TEST(Mpu6050, CannotDetectPhysicalSensor)
 {
-    mock().expectOneCall("ReadByte").andReturnValue(MPU6050_WHO_AM_I_VAL);
-    CHECK(mpu6050->CheckPhysicalPresence());
+    const uint8_t Mpu6050_Who_Am_I = 0x75;
+    const uint8_t Arbitrary_Value = 0x00;
+
+    mock().expectOneCall("ReadByte")
+          .withParameter("addr", Mpu6050_Who_Am_I)
+          .andReturnValue(Arbitrary_Value);
+
+    mpu6050->Start();
 }
 
-TEST(Mpu6050, AsksPhysicalSensorThatIsNotPresent)
-{
-    const uint8_t arbitrary_invalid_value = 0;
-    mock().expectOneCall("ReadByte").andReturnValue(arbitrary_invalid_value);
-    CHECK_FALSE(mpu6050->CheckPhysicalPresence());
-}
 
 TEST(Mpu6050, ReadsAccelerationInXAxis)
 {

@@ -5,7 +5,16 @@
 
 int I2c::ReadByte(int addr) const
 {
-    return mock().actualCall("ReadByte").returnIntValue();
+    return mock().actualCall("ReadByte")
+                 .withParameter("addr", addr)
+                 .returnIntValue();
+}
+
+void I2c:: WriteByte(int addr, uint8_t data)
+{
+    mock().actualCall("WriteByte")
+          .withParameter("addr", addr)
+          .withParameter("data", data);
 }
 
 std::vector<uint8_t> I2c::ReadBlockOfBytes(uint8_t start_reg_addr, uint8_t block_len) const

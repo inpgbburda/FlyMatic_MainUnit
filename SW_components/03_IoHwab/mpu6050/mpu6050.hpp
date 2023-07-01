@@ -3,12 +3,6 @@
 #include <cstdint>
 
 #include "i2c.hpp"
-
-#define MPU6050_WHO_AM_I 0x75
-#define MPU6050_WHO_AM_I_VAL 0x68
-#define ACCEL_XOUT_H 0x3B
-#define ACCEL_YOUT_H 0x3D
-
 typedef enum
 {
     X,
