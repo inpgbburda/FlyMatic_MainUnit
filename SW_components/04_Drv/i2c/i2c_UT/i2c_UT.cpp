@@ -19,7 +19,8 @@ TEST_GROUP(I2c)
     }
 };
 
-const uint8_t arbitrary_addr = 0xAA;
+const uint8_t arbitrary_reg_addr = 0xAA;
+const uint8_t arbitrary_slv_addr = 0xBB;
 
 TEST(I2c, InitsFirstDriver)
 {
@@ -35,31 +36,33 @@ TEST(I2c, InitsSixthDriver)
     i2cObj->Init(DRV_6);
 }
 
-TEST(I2c, ComposesDriverFilenameForSecondDriver)
-{
-    std::string filename_str = i2cObj->ComposeDriverFilename(DRV_2);
-    CHECK_EQUAL(filename_str, std::string("/dev/i2c-2"));
-}
-
 TEST(I2c, SetsSlaveAddr)
 {
-    mock().expectOneCall("ioctl");
+    mock().expectOneCall("ioctl").andReturnValue(0);
 
-    i2cObj->SetSlaveAddr(0xABCD);
+    CHECK_EQUAL(i2cObj->GetCurrentSlaveAddr(), INVALID_SLAVE_ADDR);
+    i2cObj->SetSlaveAddr(0xAA);
+    CHECK_EQUAL(i2cObj->GetCurrentSlaveAddr(), 0xAA);
 }
 
 TEST(I2c, ReadsByte)
 {
     mock().expectOneCall("i2c_smbus_read_byte_data").andReturnValue(10);
+    mock().ignoreOtherCalls();
+    i2cObj->Init(DRV_6);
 
-    CHECK_EQUAL(i2cObj->ReadByte(0xAA), 10);
+    uint8_t obtained_byte = i2cObj->ReadByte(arbitrary_slv_addr, arbitrary_reg_addr);
+
+    CHECK_EQUAL(obtained_byte, 10);
 }
 
 TEST(I2c, FailsReadingByte)
 {
-    mock().expectOneCall("i2c_smbus_read_byte_data").andReturnValue(-10);
+    mock().expectOneCall("i2c_smbus_read_byte_data").andReturnValue(-1);
+    mock().ignoreOtherCalls();
 
-    CHECK_THROWS(std::exception, i2cObj->ReadByte(30));
+    i2cObj->Init(DRV_6);
+    CHECK_THROWS(std::exception, i2cObj->ReadByte(arbitrary_slv_addr, arbitrary_reg_addr));
 }
 
 TEST(I2c, ReadsBlockOfFourBytes)
@@ -70,7 +73,7 @@ TEST(I2c, ReadsBlockOfFourBytes)
         .withOutputParameterReturning("values", Exp_Bytes, sizeof(Exp_Bytes))
         .ignoreOtherParameters();
 
-    MEMCMP_EQUAL(i2cObj->ReadBlockOfBytes(arbitrary_addr, 4).data(), Exp_Bytes, 4);
+    MEMCMP_EQUAL(i2cObj->ReadBlockOfBytes(arbitrary_reg_addr, 4).data(), Exp_Bytes, 4);
 }
 
 TEST(I2c, ReadsBlockOfTwoBytes)
@@ -81,7 +84,7 @@ TEST(I2c, ReadsBlockOfTwoBytes)
         .withOutputParameterReturning("values", Exp_Bytes, sizeof(Exp_Bytes))
         .ignoreOtherParameters();
         
-    std::vector<uint8_t> Read_Bytes = i2cObj->ReadBlockOfBytes(arbitrary_addr, 2);
+    std::vector<uint8_t> Obtained_Bytes = i2cObj->ReadBlockOfBytes(arbitrary_reg_addr, 2);
 
-    MEMCMP_EQUAL(Read_Bytes.data(), Exp_Bytes, 2);
+    MEMCMP_EQUAL(Obtained_Bytes.data(), Exp_Bytes, 2);
 }

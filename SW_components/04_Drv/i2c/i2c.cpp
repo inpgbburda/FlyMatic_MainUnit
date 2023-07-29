@@ -18,6 +18,7 @@ extern "C" {
 
 I2c::I2c(/* args */)
 {
+    curr_slave_addr_ = INVALID_SLAVE_ADDR;
 }
 
 std::string I2c::ComposeDriverFilename(int adapter_nr) const
@@ -35,7 +36,13 @@ void I2c::OpenDriver()
 void I2c::SetSlaveAddr(uint32_t slave_addr)
 {
     ioctl(linux_driver_, I2C_SLAVE, slave_addr);
+    curr_slave_addr_ = slave_addr;
     //TODO: Add handling negative result
+}
+
+uint8_t I2c::GetCurrentSlaveAddr(void) const
+{
+    return curr_slave_addr_;
 }
 
 void I2c::WriteByte(int addr, uint8_t data)
@@ -49,9 +56,10 @@ void I2c::Init(const Drv_Instance_T hw_i2c)
     OpenDriver();
 }
 
-int I2c::ReadByte(int addr) const
+int I2c::ReadByte(uint8_t slave_addr, int addr)
 {
     int read_val;
+    SetSlaveAddr(slave_addr);
     read_val = i2c_smbus_read_byte_data(linux_driver_, addr);
     if (0 > read_val) {
         /* ERROR HANDLING: i2c transaction failed */

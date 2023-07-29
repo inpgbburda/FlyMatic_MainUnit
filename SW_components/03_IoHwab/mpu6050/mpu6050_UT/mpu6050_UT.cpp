@@ -5,6 +5,8 @@
 
 #include <vector>
 
+//TODO: update functions and mocks to comply with new i2c drivers
+
 TEST_GROUP(Mpu6050)
 {
     Mpu6050* mpu6050;
@@ -50,11 +52,11 @@ TEST(Mpu6050, StartsProperly)
 TEST(Mpu6050, CannotDetectPhysicalSensor)
 {
     const uint8_t Mpu6050_Who_Am_I = 0x75;
-    const uint8_t Arbitrary_Value = 0x00;
+    const uint8_t Arbitrary_Incorrect_Value = 0xAB;
 
     mock().expectOneCall("ReadByte")
           .withParameter("addr", Mpu6050_Who_Am_I)
-          .andReturnValue(Arbitrary_Value);
+          .andReturnValue(Arbitrary_Incorrect_Value);
 
     mpu6050->Start();
 }
@@ -73,8 +75,8 @@ TEST(Mpu6050, ReadsAccelerationInXAxis)
 
 TEST(Mpu6050, ReadsAccelerationInYAxis)
 {
-    std::vector<uint8_t> Ten_In_U2 = {0x00,0x14};
-    mock().expectOneCall("ReadBlockOfBytes").andReturnValue(&Ten_In_U2);
+    std::vector<uint8_t> Twenty_In_U2 = {0x00,0x14};
+    mock().expectOneCall("ReadBlockOfBytes").andReturnValue(&Twenty_In_U2);
 
     int16_t y_acc = mpu6050->ReadAccceleration(Y);
 
