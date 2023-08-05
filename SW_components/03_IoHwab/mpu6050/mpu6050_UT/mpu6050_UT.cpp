@@ -5,7 +5,6 @@
 
 #include <vector>
 
-//TODO: update functions and mocks to comply with new i2c drivers
 
 TEST_GROUP(Mpu6050)
 {
@@ -23,6 +22,9 @@ TEST_GROUP(Mpu6050)
     }
 };
 
+const uint8_t Mpu6050_Who_Am_I = 0x75;
+const uint8_t Mpu6050_I2c_Addr = 0x68;
+
 TEST(Mpu6050, InitWithI2cInstance)
 {
     I2c i2c;
@@ -39,24 +41,26 @@ TEST(Mpu6050, StartsProperly)
     const uint8_t Mpu6050_Pwr_Mgmt_1_Wake_Up = 0x00;
 
     mock().expectOneCall("ReadByte")
-          .withParameter("addr", Mpu6050_Who_Am_I)
-          .andReturnValue(Mpu6050_Who_Am_I_Val);
+        .withParameter("slave_addr", Mpu6050_I2c_Addr)
+        .withParameter("addr", Mpu6050_Who_Am_I)
+        .andReturnValue(Mpu6050_Who_Am_I_Val);
 
     mock().expectOneCall("WriteByte")
-          .withParameter("addr", Mpu6050_Pwr_Mgmt_1)
-          .withParameter("data", Mpu6050_Pwr_Mgmt_1_Wake_Up);
+        .withParameter("slave_addr", Mpu6050_I2c_Addr)
+        .withParameter("addr", Mpu6050_Pwr_Mgmt_1)
+        .withParameter("data", Mpu6050_Pwr_Mgmt_1_Wake_Up);
 
     mpu6050->Start();
 }
 
 TEST(Mpu6050, CannotDetectPhysicalSensor)
 {
-    const uint8_t Mpu6050_Who_Am_I = 0x75;
     const uint8_t Arbitrary_Incorrect_Value = 0xAB;
 
     mock().expectOneCall("ReadByte")
-          .withParameter("addr", Mpu6050_Who_Am_I)
-          .andReturnValue(Arbitrary_Incorrect_Value);
+        .withParameter("slave_addr", Mpu6050_I2c_Addr)
+        .withParameter("addr", Mpu6050_Who_Am_I)
+        .andReturnValue(Arbitrary_Incorrect_Value);
 
     mpu6050->Start();
 }

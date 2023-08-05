@@ -4,14 +4,16 @@
 #include <vector>
 #include <stdexcept>
 
-#define WHO_AM_I 0x75
-#define WHO_AM_I_VAL 0x68
+#define MPU6050_I2R_ADDR 0x68U
 
-#define PWR_MGMT_1 0x6B
-#define PWR_MGMT_1_WAKE_UP 0x00
+#define WHO_AM_I 0x75U
+#define WHO_AM_I_VAL 0x68U
 
-#define ACCEL_XOUT_H 0x3B
-#define ACCEL_YOUT_H 0x3D
+#define PWR_MGMT_1 0x6BU
+#define PWR_MGMT_1_WAKE_UP 0x00U
+
+#define ACCEL_XOUT_H 0x3BU
+#define ACCEL_YOUT_H 0x3DU
 
 #define ACC_H 0U
 #define ACC_L 1U
@@ -33,13 +35,13 @@ void Mpu6050::Start(void)
     bool sensor_detected = CheckPhysicalPresence();
     if(sensor_detected)
     {
-        i2c_handle_ -> WriteByte(PWR_MGMT_1, PWR_MGMT_1_WAKE_UP);
+        i2c_handle_ -> WriteByte(MPU6050_I2R_ADDR, PWR_MGMT_1, PWR_MGMT_1_WAKE_UP);
     }
 }
 
 bool Mpu6050::CheckPhysicalPresence(void) const
 {
-    int who_i_am = i2c_handle_->ReadByte(WHO_AM_I);
+    int who_i_am = i2c_handle_->ReadByte(MPU6050_I2R_ADDR, WHO_AM_I);
     return WHO_AM_I_VAL == who_i_am;
 }
 

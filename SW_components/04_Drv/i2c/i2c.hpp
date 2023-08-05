@@ -41,11 +41,11 @@ PRIVATE_IFN_UT
 public:
     I2c(/* args */);
     void Init(const Drv_Instance_T hw_i2c);
-    void SetSlaveAddr(uint32_t slave_addr);
+    void SetSlaveAddr(uint8_t slave_addr);
     uint8_t GetCurrentSlaveAddr(void) const;
-    void WriteByte(int addr, uint8_t data);
-    int ReadByte(uint8_t slave_addr, int addr);
-    std::vector<uint8_t> ReadBlockOfBytes(uint8_t start_reg_addr, uint8_t block_len) const;
+    void WriteByte(uint8_t slave_addr, uint8_t addr, uint8_t data);
+    int ReadByte(uint8_t slave_addr, uint8_t addr);
+    std::vector<uint8_t> ReadBlockOfBytes(uint8_t slave_addr, uint8_t start_reg_addr, uint8_t block_len);
 
     ~I2c();
 };

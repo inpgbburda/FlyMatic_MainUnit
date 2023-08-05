@@ -12,7 +12,11 @@ int i2c_smbus_read_byte_data(int file, uint8_t command)
 
 int i2c_smbus_write_byte_data(int file, uint8_t command, uint8_t value)
 {
-    mock().actualCall("i2c_smbus_write_byte_data");
+    mock().actualCall("i2c_smbus_write_byte_data")
+          .withParameter("file", file)
+          .withParameter("command", command)
+          .withParameter("value", value);
+
     return mock().intReturnValue();
 }
 

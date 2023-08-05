@@ -3,18 +3,20 @@
 
 #include "i2c.hpp"
 
-int I2c::ReadByte(int addr) const
+int I2c::ReadByte(uint8_t slave_addr, uint8_t addr)
 {
     return mock().actualCall("ReadByte")
-                 .withParameter("addr", addr)
-                 .returnIntValue();
-}
+                .withParameter("slave_addr", slave_addr)
+                .withParameter("addr", addr)
+                .returnIntValue();
+}               
 
-void I2c:: WriteByte(int addr, uint8_t data)
+void I2c:: WriteByte(uint8_t slave_addr, int addr, uint8_t data)
 {
     mock().actualCall("WriteByte")
-          .withParameter("addr", addr)
-          .withParameter("data", data);
+        .withParameter("slave_addr", slave_addr)
+        .withParameter("addr", addr)
+        .withParameter("data", data);
 }
 
 std::vector<uint8_t> I2c::ReadBlockOfBytes(uint8_t start_reg_addr, uint8_t block_len) const

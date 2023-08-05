@@ -33,7 +33,7 @@ void I2c::OpenDriver()
     //TODO: Add handling negative result
 }
 
-void I2c::SetSlaveAddr(uint32_t slave_addr)
+void I2c::SetSlaveAddr(uint8_t slave_addr)
 {
     ioctl(linux_driver_, I2C_SLAVE, slave_addr);
     curr_slave_addr_ = slave_addr;
@@ -45,18 +45,19 @@ uint8_t I2c::GetCurrentSlaveAddr(void) const
     return curr_slave_addr_;
 }
 
-void I2c::WriteByte(int addr, uint8_t data)
-{
-    i2c_smbus_write_byte_data(linux_driver_, addr, data);
-}
-
 void I2c::Init(const Drv_Instance_T hw_i2c)
 {
     filename_ = ComposeDriverFilename(hw_i2c);
     OpenDriver();
 }
 
-int I2c::ReadByte(uint8_t slave_addr, int addr)
+void I2c::WriteByte(uint8_t slave_addr, uint8_t addr, uint8_t data)
+{
+    SetSlaveAddr(slave_addr);
+    i2c_smbus_write_byte_data(linux_driver_, addr, data);
+}
+
+int I2c::ReadByte(uint8_t slave_addr, uint8_t addr)
 {
     int read_val;
     SetSlaveAddr(slave_addr);
@@ -68,12 +69,14 @@ int I2c::ReadByte(uint8_t slave_addr, int addr)
     return read_val;
 }
 
-std::vector<uint8_t> I2c::ReadBlockOfBytes(uint8_t start_reg_addr, uint8_t block_len) const
+std::vector<uint8_t> I2c::ReadBlockOfBytes(uint8_t slave_addr, uint8_t start_reg_addr, uint8_t block_len)
 {
+    SetSlaveAddr(slave_addr);
     std::vector<uint8_t> Block(block_len);
     i2c_smbus_read_i2c_block_data(linux_driver_, start_reg_addr, block_len, Block.data());
     return Block;
 }
+
 I2c::~I2c()
 {
 }
