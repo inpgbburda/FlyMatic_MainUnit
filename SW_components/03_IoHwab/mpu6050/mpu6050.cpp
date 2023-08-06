@@ -63,7 +63,7 @@ int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis) const
     {
     }
 
-    Acc_Bytes = i2c_handle_->ReadBlockOfBytes(start_reg, ACC_SIZE);
+    Acc_Bytes = i2c_handle_->ReadBlockOfBytes(MPU6050_I2R_ADDR, start_reg, ACC_SIZE);
     acc = ((int16_t)(Acc_Bytes[ACC_H]) << 8) + (int16_t)Acc_Bytes[ACC_L];
 
     return acc;

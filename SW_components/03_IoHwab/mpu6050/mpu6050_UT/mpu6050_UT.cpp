@@ -24,6 +24,7 @@ TEST_GROUP(Mpu6050)
 
 const uint8_t Mpu6050_Who_Am_I = 0x75;
 const uint8_t Mpu6050_I2c_Addr = 0x68;
+const uint8_t Acc_Size = 2U;
 
 TEST(Mpu6050, InitWithI2cInstance)
 {
@@ -65,11 +66,16 @@ TEST(Mpu6050, CannotDetectPhysicalSensor)
     mpu6050->Start();
 }
 
-
 TEST(Mpu6050, ReadsAccelerationInXAxis)
 {
+    const uint8_t Mpu6050_Accel_Xout_H = 0x3BU;
     std::vector<uint8_t> Minus_Ten_In_U2 = {0xFF,0xF6};
-    mock().expectOneCall("ReadBlockOfBytes").andReturnValue(&Minus_Ten_In_U2);
+
+    mock().expectOneCall("ReadBlockOfBytes")
+        .withParameter("slave_addr", Mpu6050_I2c_Addr)
+        .withParameter("start_reg_addr", Mpu6050_Accel_Xout_H)
+        .withParameter("block_len", Acc_Size)
+        .andReturnValue(&Minus_Ten_In_U2);
 
     int16_t x_acc = mpu6050->ReadAccceleration(X);
 
@@ -79,8 +85,14 @@ TEST(Mpu6050, ReadsAccelerationInXAxis)
 
 TEST(Mpu6050, ReadsAccelerationInYAxis)
 {
+    const uint8_t Mpu6050_Accel_Yout_H = 0x3DU;
     std::vector<uint8_t> Twenty_In_U2 = {0x00,0x14};
-    mock().expectOneCall("ReadBlockOfBytes").andReturnValue(&Twenty_In_U2);
+
+    mock().expectOneCall("ReadBlockOfBytes")
+        .withParameter("slave_addr", Mpu6050_I2c_Addr)
+        .withParameter("start_reg_addr", Mpu6050_Accel_Yout_H)
+        .withParameter("block_len", Acc_Size)
+        .andReturnValue(&Twenty_In_U2);
 
     int16_t y_acc = mpu6050->ReadAccceleration(Y);
 
