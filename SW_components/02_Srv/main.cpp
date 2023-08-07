@@ -1,5 +1,4 @@
 #include <iostream>
-#include <sys/mman.h>
 
 #include "Thread_Manager.hpp"
 #include "i2c.hpp"
@@ -16,19 +15,11 @@ Mpu6050 mpu6050;
 
 int main()
 {
-    /* Lock memory - prevent from paging to the swap area -
-    * all of the process memory will stay in RAM
-    */
-    if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) 
-    {
-        printf("mlockall failed: %m\n");
-        exit(-2);
-    }
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
 
+    PreventPagingToSwapArea();
     Init_Pwm();
     i2c.Init(DRV_1);
-    i2c.SetSlaveAddr(I2C_MPU6050_ADD);
     mpu6050.Init(&i2c);
 
     mpu6050.Start();
