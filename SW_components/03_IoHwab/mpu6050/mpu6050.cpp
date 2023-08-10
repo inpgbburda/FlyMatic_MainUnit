@@ -14,6 +14,7 @@
 
 #define ACCEL_XOUT_H 0x3BU
 #define ACCEL_YOUT_H 0x3DU
+#define ACCEL_ZOUT_H 0x3FU
 
 #define ACC_H 0U
 #define ACC_L 1U
@@ -58,6 +59,10 @@ int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis) const
     else if(Y == axis)
     {
         start_reg = ACCEL_YOUT_H;
+    }
+    else if(Z == axis)
+    {
+        start_reg = ACCEL_ZOUT_H;
     }
     else
     {

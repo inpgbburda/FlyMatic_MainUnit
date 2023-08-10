@@ -6,7 +6,8 @@
 typedef enum
 {
     X,
-    Y
+    Y,
+    Z
 }Acc_Axis_T;
 
 class Mpu6050

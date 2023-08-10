@@ -82,7 +82,6 @@ TEST(Mpu6050, ReadsAccelerationInXAxis)
     CHECK_EQUAL(x_acc, -10);
 }
 
-
 TEST(Mpu6050, ReadsAccelerationInYAxis)
 {
     const uint8_t Mpu6050_Accel_Yout_H = 0x3DU;
@@ -97,4 +96,21 @@ TEST(Mpu6050, ReadsAccelerationInYAxis)
     int16_t y_acc = mpu6050->ReadAccceleration(Y);
 
     CHECK_EQUAL(y_acc, 20);
+}
+
+TEST(Mpu6050, ReadsAccelerationInZAxis)
+{
+    const uint8_t Mpu6050_Accel_Zout_H = 0x3FU;
+    std::vector<uint8_t> Minus_Thirty_In_U2 = {0xFF,0xE2};
+
+    mock().expectOneCall("ReadBlockOfBytes")
+            .withParameter("slave_addr", Mpu6050_I2c_Addr)
+            .withParameter("start_reg_addr", Mpu6050_Accel_Zout_H)
+            .withParameter("block_len", Acc_Size)
+            .ignoreOtherParameters()
+            .andReturnValue(&Minus_Thirty_In_U2);
+        
+    int16_t z_acc = mpu6050->ReadAccceleration(Z);
+
+    CHECK_EQUAL(z_acc, -30);
 }
