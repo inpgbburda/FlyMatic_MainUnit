@@ -12,11 +12,14 @@ void *CalculateFlightControls(void *data_ptr)
     SchedSetAttr((sched_attr_t*)data_ptr);
 
     int x_acc = 0;
+    int x_phys_acc = 0;
     
     while(1)
     {   
         x_acc = mpu6050.ReadAccceleration(X);
-        std::cout << "Acceleration is: "<< x_acc << std::endl;
+        mpu6050.SetRawAcceleration(X, x_acc);
+        x_phys_acc = mpu6050.GetPhysicalAcceleration();
+        std::cout << "Acceleration is: "<< x_phys_acc << std::endl;
         /*Inform scheduler that calculation is done*/
         sched_yield();
     }
