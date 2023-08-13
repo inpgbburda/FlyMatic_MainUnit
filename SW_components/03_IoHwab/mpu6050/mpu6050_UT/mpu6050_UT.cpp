@@ -114,3 +114,26 @@ TEST(Mpu6050, ReadsAccelerationInZAxis)
 
     CHECK_EQUAL(z_acc, -30);
 }
+
+TEST(Mpu6050, ConvertsPositiveRawReadingsToPhysicalAcceleration)
+{
+    mpu6050->SetRawAcceleration(X, 2000);
+    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(), 122);
+}
+
+TEST(Mpu6050, ConvertsNegativeRawReadingsToPhysicalAcceleration)
+{
+    mpu6050->SetRawAcceleration(X, -600);
+    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(), -36);
+}
+
+TEST(Mpu6050, ConvertsMinimalPositiveRawReadingsToPhysicalAcceleration)
+{
+    mpu6050->SetRawAcceleration(X, 1);
+    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(), 0);
+}
+
+//Pomysł:
+/*Dzielimy odczyt przysp na 2 fazy 
+    - faktyczny odczyt
+    -transformacja do fizycznej wielkości*/

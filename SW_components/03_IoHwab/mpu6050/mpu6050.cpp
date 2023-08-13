@@ -20,6 +20,9 @@
 #define ACC_L 1U
 #define ACC_SIZE 2U
 
+#define INT16_T_MAX_VAL 32767
+#define ACC_MAX_VAL 2
+
 I2c i2c_bus;
 
 Mpu6050::Mpu6050():i2c_handle_(nullptr)
@@ -72,6 +75,18 @@ int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis) const
     acc = ((int16_t)(Acc_Bytes[ACC_H]) << 8) + (int16_t)Acc_Bytes[ACC_L];
 
     return acc;
+}
+
+void Mpu6050::SetRawAcceleration(Acc_Axis_T axis, int16_t acc)
+{
+    raw_acc_value_ = acc;
+}
+
+int32_t Mpu6050::GetPhysicalAcceleration(void) const
+{
+    int32_t value = 0;
+    value = raw_acc_value_ * ACC_MAX_VAL * 1000 / INT16_T_MAX_VAL;
+    return value;
 }
 
 bool Mpu6050::HasValidI2cInstance(void) const

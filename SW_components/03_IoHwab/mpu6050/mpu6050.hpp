@@ -15,6 +15,7 @@ class Mpu6050
 private:
     /* data */
     I2c* i2c_handle_;
+    int32_t raw_acc_value_;
 
 public:
     Mpu6050(/* args */);
@@ -23,5 +24,7 @@ public:
     bool CheckPhysicalPresence(void) const;
     bool HasValidI2cInstance(void) const;
     int16_t ReadAccceleration(Acc_Axis_T axis) const;
+    void SetRawAcceleration(Acc_Axis_T axis, int16_t acc);
+    int32_t GetPhysicalAcceleration(void) const;
     ~Mpu6050();
 };
