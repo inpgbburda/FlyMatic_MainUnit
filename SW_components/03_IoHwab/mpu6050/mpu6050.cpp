@@ -79,13 +79,16 @@ int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis) const
 
 void Mpu6050::SetRawAcceleration(Acc_Axis_T axis, int16_t acc)
 {
-    raw_acc_value_ = acc;
+    Raw_Accelerations_[axis] = acc;
 }
 
-int32_t Mpu6050::GetPhysicalAcceleration(void) const
+int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
 {
     int32_t value = 0;
-    value = raw_acc_value_ * ACC_MAX_VAL * 1000 / INT16_T_MAX_VAL;
+    int32_t raw_value = 0;
+
+    raw_value = Raw_Accelerations_[axis];
+    value = raw_value * ACC_MAX_VAL * 1000 / INT16_T_MAX_VAL;
     return value;
 }
 
