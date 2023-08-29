@@ -36,14 +36,14 @@ void Mpu6050::Init(I2c* i2c_ptr)
 
 void Mpu6050::Start(void)
 {
-    bool sensor_detected = CheckPhysicalPresence();
+    bool sensor_detected = CheckSensorPresence();
     if(sensor_detected)
     {
         i2c_handle_ -> WriteByte(MPU6050_I2R_ADDR, PWR_MGMT_1, PWR_MGMT_1_WAKE_UP);
     }
 }
 
-bool Mpu6050::CheckPhysicalPresence(void) const
+bool Mpu6050::CheckSensorPresence(void) const
 {
     int who_i_am = i2c_handle_->ReadByte(MPU6050_I2R_ADDR, WHO_AM_I);
     return WHO_AM_I_VAL == who_i_am;

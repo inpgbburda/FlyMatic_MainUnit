@@ -122,46 +122,44 @@ TEST(Mpu6050, ReadsAccelerationInZAxis)
 
 TEST(Mpu6050, ConvertsPositiveRawReadingsToPhysicalAccelerationInXAxis)
 {
-    const int rawAccelerationX = 2000;
-    const int expectedPhysicalAccelerationX = 122;
+    const int Raw_Acceleration_X = 2000;
+    const int Expected_Physical_Acceleration_X = 122;
 
-    mpu6050->SetRawAcceleration(X, rawAccelerationX);
+    mpu6050->SetRawAcceleration(X, Raw_Acceleration_X);
     mpu6050->ConvertReadings();
-    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), expectedPhysicalAccelerationX);
+    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
 }
 
 TEST(Mpu6050, ConvertsNegativeRawReadingsToPhysicalAccelerationInXAxis)
 {
-    const int rawAccelerationX = -600;
-    const int expectedPhysicalAccelerationX = -36;
+    const int Raw_Acceleration_X = -600;
+    const int Expected_Physical_Acceleration_X = -36;
 
-    mpu6050->SetRawAcceleration(X, rawAccelerationX);
+    mpu6050->SetRawAcceleration(X, Raw_Acceleration_X);
     mpu6050->ConvertReadings();
-    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), expectedPhysicalAccelerationX);
+    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
 }
 
-// TEST(Mpu6050, ConvertsMinimalPositiveRawReadingsToPhysicalAccelerationInXAxis)
-// {
-//     mpu6050->SetRawAcceleration(X, 1);
-//     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), 0);
-// }
+TEST(Mpu6050, ConvertsRawReadingsToPhysicalAccelerationInYAxisAndIgnoresChangesInOtherAxis)
+{
+    const int16_t Arbitrary_Raw_Acceleration = 2137;
+    const int Raw_Acceleration_Y = -32767;
+    const int Expected_Physical_Acceleration_Y = -2000;
 
-// TEST(Mpu6050, ConvertsRawReadingsToPhysicalAccelerationInYAxisAndIgnoresChengesInOtherAxis)
-// {
-//     const int16_t Arbitrary_Raw_Value = 2137;
-    
-//     mpu6050->SetRawAcceleration(Y, -32767);
-//     mpu6050->SetRawAcceleration(X, Arbitrary_Raw_Value);
+    mpu6050->SetRawAcceleration(Y, Raw_Acceleration_Y);
+    mpu6050->SetRawAcceleration(X, Arbitrary_Raw_Acceleration);
 
-//     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Y), -2000);
-// }
+    mpu6050->ConvertReadings();
+
+    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Y), Expected_Physical_Acceleration_Y);
+}
 
 TEST(Mpu6050, ConvertsMaxRawReadingsToPhysicalAccelerationInZAxis)
 {
-    const int rawAccelerationX = 32767;
-    const int expectedPhysicalAccelerationX = 2000;
+    const int Raw_Acceleration_Z = 32767;
+    const int Expected_Physical_Acceleration_Z = 2000;
 
-    mpu6050->SetRawAcceleration(Z, rawAccelerationX);
+    mpu6050->SetRawAcceleration(Z, Raw_Acceleration_Z);
     mpu6050->ConvertReadings();
-    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Z), expectedPhysicalAccelerationX);
+    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Z), Expected_Physical_Acceleration_Z);
 }

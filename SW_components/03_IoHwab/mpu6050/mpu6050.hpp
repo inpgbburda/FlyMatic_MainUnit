@@ -23,7 +23,7 @@ public:
     Mpu6050(/* args */);
     void Init(I2c* i2c_ptr);
     void Start(void);
-    bool CheckPhysicalPresence(void) const;
+    bool CheckSensorPresence(void) const;
     bool HasValidI2cInstance(void) const;
     int16_t ReadAccceleration(Acc_Axis_T axis) const;
     void SetRawAcceleration(Acc_Axis_T axis, int16_t acc);
