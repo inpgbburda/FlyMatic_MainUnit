@@ -84,17 +84,21 @@ void Mpu6050::SetRawAcceleration(Acc_Axis_T axis, int16_t acc)
 
 int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
 {
-    int32_t value = 0;
-    int32_t raw_value = 0;
-
-    raw_value = Raw_Accelerations_[axis];
-    value = raw_value * ACC_MAX_VAL * 1000 / INT16_T_MAX_VAL;
-    return value;
+    return Physical_Accelerations_[axis];
 }
 
 bool Mpu6050::HasValidI2cInstance(void) const
 {
     return nullptr != i2c_handle_;
+}
+
+void Mpu6050::ConvertReadings(void)
+{
+    for(int i=0; i<MAX_AXIS_NUMBER; i++)
+    {
+        int32_t raw_value = Raw_Accelerations_[i];
+        Physical_Accelerations_[i] = raw_value * ACC_MAX_VAL * 1000 / INT16_T_MAX_VAL;
+    }
 }
 
 Mpu6050::~Mpu6050()
