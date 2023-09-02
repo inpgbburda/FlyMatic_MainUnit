@@ -18,8 +18,10 @@ void *CalculateFlightControls(void *data_ptr)
     {   
         x_acc = mpu6050.ReadAccceleration(X);
         mpu6050.SetRawAcceleration(X, x_acc);
-        x_phys_acc = mpu6050.GetPhysicalAcceleration();
+        mpu6050.ConvertReadings();
+        x_phys_acc = mpu6050.GetPhysicalAcceleration(X);
         std::cout << "Acceleration is: "<< x_phys_acc << std::endl;
+
         /*Inform scheduler that calculation is done*/
         sched_yield();
     }
