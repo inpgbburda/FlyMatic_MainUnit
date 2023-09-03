@@ -43,6 +43,20 @@ void Mpu6050::Start(void)
     }
 }
 
+void Mpu6050::MainFunc(void)
+{
+    int raw_acc_x = 0;
+    int raw_acc_z = 0;
+
+    raw_acc_x = ReadAccceleration(X);
+    SetRawAcceleration(X, raw_acc_x);
+
+    raw_acc_z = ReadAccceleration(Z);
+    SetRawAcceleration(Z, raw_acc_z);
+
+    ConvertReadings();
+}
+
 bool Mpu6050::CheckSensorPresence(void) const
 {
     int who_i_am = i2c_handle_->ReadByte(MPU6050_I2R_ADDR, WHO_AM_I);
