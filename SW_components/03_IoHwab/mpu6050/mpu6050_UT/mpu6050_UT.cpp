@@ -167,8 +167,12 @@ TEST(Mpu6050, ConvertsMaxRawReadingsToPhysicalAccelerationInZAxis)
 TEST(Mpu6050, ExecutesMainFunction)
 {
     const uint8_t Mpu6050_Accel_Xout_H = 0x3BU;
-    std::vector<uint8_t> One_Hundret_In_U2 = {0x00, 0x64};
+    std::vector<uint8_t> One_Hundred_In_U2 = {0x00, 0x64};
     const int Expected_Physical_Acceleration_X = 6;
+
+    const uint8_t Mpu6050_Accel_Yout_H = 0x3DU;
+    std::vector<uint8_t> Five_Hundred_In_U2 = {0x01,0xF4};
+    const int Expected_Physical_Acceleration_Y = 30;
 
     const uint8_t Mpu6050_Accel_Zout_H = 0x3FU;
     std::vector<uint8_t> Minus_Thirty_In_U2 = {0xFF,0xE2};
@@ -177,7 +181,12 @@ TEST(Mpu6050, ExecutesMainFunction)
     mock().expectOneCall("ReadBlockOfBytes")
         .withParameter("start_reg_addr", Mpu6050_Accel_Xout_H)
         .ignoreOtherParameters()
-        .andReturnValue(&One_Hundret_In_U2);
+        .andReturnValue(&One_Hundred_In_U2);
+
+    mock().expectOneCall("ReadBlockOfBytes")
+        .withParameter("start_reg_addr", Mpu6050_Accel_Yout_H)
+        .ignoreOtherParameters()
+        .andReturnValue(&Five_Hundred_In_U2);
 
     mock().expectOneCall("ReadBlockOfBytes")
         .withParameter("start_reg_addr", Mpu6050_Accel_Zout_H)
@@ -187,5 +196,6 @@ TEST(Mpu6050, ExecutesMainFunction)
     mpu6050->MainFunc();
 
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
+    CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Y), Expected_Physical_Acceleration_Y);
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Z), Expected_Physical_Acceleration_Z);
 }

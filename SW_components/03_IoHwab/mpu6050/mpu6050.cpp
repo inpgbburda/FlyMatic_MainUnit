@@ -45,15 +45,15 @@ void Mpu6050::Start(void)
 
 void Mpu6050::MainFunc(void)
 {
-    int raw_acc_x = 0;
-    int raw_acc_z = 0;
+    Acc_Axis_T axis = MAX_AXIS_NUMBER;
+    int16_t raw_acc = 0;
 
-    raw_acc_x = ReadAccceleration(X);
-    SetRawAcceleration(X, raw_acc_x);
-
-    raw_acc_z = ReadAccceleration(Z);
-    SetRawAcceleration(Z, raw_acc_z);
-
+    for(int i=0; i<MAX_AXIS_NUMBER; i++)
+    {
+        axis = static_cast<Acc_Axis_T>(i);
+        raw_acc = ReadAccceleration(axis);
+        SetRawAcceleration(axis, raw_acc);
+    }
     ConvertReadings();
 }
 
