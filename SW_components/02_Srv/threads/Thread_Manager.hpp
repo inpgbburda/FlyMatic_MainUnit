@@ -27,8 +27,8 @@ typedef struct
 }
 sched_attr_t;
 
-void
- SchedSetAttr(sched_attr_t *attr_ptr);
+void SchedSetAttr(sched_attr_t *attr_ptr);
+void PreventPagingToSwapArea(void);
 
 class RT_Thread
 {

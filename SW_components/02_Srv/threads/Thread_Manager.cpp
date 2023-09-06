@@ -1,5 +1,6 @@
 #include "Thread_Manager.hpp"
-#include <string.h>             /* Needed for memset() call*/
+#include <string.h>
+#include <sys/mman.h>
 
 #include "Thread_Manager_Cfg.hpp"
 
@@ -25,6 +26,17 @@ void SchedSetAttr(sched_attr_t *attr_ptr)
     }
 }
 
+/* Lock memory - prevent from paging to the swap area -
+    * all of the process memory will stay in RAM
+    */
+void PreventPagingToSwapArea(void)
+{
+    if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) 
+    {
+        printf("mlockall failed: %m\n");
+        exit(-2);
+    }
+}
 
 RT_Thread::RT_Thread
 (

@@ -1,27 +1,24 @@
 #include "balancer.hpp"
 #include "Thread_Manager.hpp"
 #include "pwm.hpp"
-#ifdef _RASP
-#include <wiringPi.h>
-#endif /* _RASP */
+#include "mpu6050.hpp"
 
 extern uint32_t Time_Calibration_G;
+extern Mpu6050 mpu6050;
 pthread_mutex_t Pwm_lock_G;
 
 void *CalculateFlightControls(void *data_ptr)
 {
     SchedSetAttr((sched_attr_t*)data_ptr);
-    /*Just for testing - simulate high load task
-    inifnite loop is needed for cyclic task excecution
-    */
+
+    int x_phys_acc = 0;
+    
     while(1)
-    {   
-        #ifdef _RASP
-        volatile int cnt = 0;
-        digitalWrite (1, true);
-        for(cnt=0; cnt<10000; cnt++);
-        digitalWrite (1, false);
-        #endif /* _RASP */
+    {
+        mpu6050.MainFunc();
+        x_phys_acc = mpu6050.GetPhysicalAcceleration(X);
+        std::cout << "Acceleration is: "<< x_phys_acc << std::endl;
+
         /*Inform scheduler that calculation is done*/
         sched_yield();
     }

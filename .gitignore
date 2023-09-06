@@ -7,5 +7,6 @@ Testing/build/
 
 #Unit tests ignores:
 SW_components/02_Srv/threads/Thread_Manager_UT/builds_UT
+SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT
 SW_components/04_Drv/pwm/pwm_UT/builds_UT
 SW_components/04_Drv/i2c/i2c_UT/builds_UT
