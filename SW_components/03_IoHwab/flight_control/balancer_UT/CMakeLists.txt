@@ -1,7 +1,7 @@
 #Configuration of build is precised in CMakePresets.json file
 
 cmake_minimum_required(VERSION 3.18.1)
-project(mpu6050_UT)
+project(balancer_UT)
 message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 
 SET(CPPUTEST_RLV_PATH 
@@ -21,6 +21,9 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 add_executable(${CMAKE_PROJECT_NAME}
     balancer_UT.cpp
     run_all_tests.cpp
+    mocks/mpu6050_mock.cpp
+    mocks/pwm_mock.cpp
+    mocks/Thread_Manager_mock.cpp
     ../balancer.cpp
 )
 
