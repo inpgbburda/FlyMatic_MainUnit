@@ -1,10 +1,7 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
 
-#include "mpu6050.hpp"
-
-#include <vector>
-
+#include "balancer.hpp"
 
 TEST_GROUP(balancer)
 {
@@ -16,7 +13,9 @@ TEST_GROUP(balancer)
     }
 };
 
-TEST(balancer, FirstTest)
+TEST(balancer, TestCalculatingControlSignalForYaw)
 {
+    Balancer balancer;
+    balancer.Runable();
     CHECK_EQUAL(1, 1);
 }

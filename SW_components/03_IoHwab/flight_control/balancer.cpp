@@ -48,3 +48,15 @@ void *DoMainRoutine(void)
         pthread_mutex_destroy(&Pwm_lock_G);
     return NULL;
 }
+
+Balancer::Balancer(/* args */)
+{
+}
+
+Balancer::~Balancer()
+{
+}
+
+void Balancer::Runable(void) const
+{
+}
