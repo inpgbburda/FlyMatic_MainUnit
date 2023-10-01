@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <stdexcept>
+#include <math.h>
 
 #define MPU6050_I2R_ADDR 0x68U
 
@@ -55,6 +56,7 @@ void Mpu6050::MainFunc(void)
         SetRawAcceleration(axis, raw_acc);
     }
     ConvertReadings();
+    CalculateSpiritAngles();
 }
 
 bool Mpu6050::CheckSensorPresence(void) const
@@ -103,17 +105,8 @@ void Mpu6050::SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc)
 
 void Mpu6050::CalculateSpiritAngles(void)
 {
-    if(-1000 == Physical_Accelerations_[Y]){
-        Spirit_Angle_X_ = 90;
-    }else if(707 == Physical_Accelerations_[Y]){
-        Spirit_Angle_X_ = -45;
-    }
-
-    if(0 == Physical_Accelerations_[X]){
-        Spirit_Angle_Y_ = 0;
-    }else if(-500 == Physical_Accelerations_[X]){
-        Spirit_Angle_Y_ = 30;
-    }
+    Spirit_Angle_X_ = std::round(57.295779513 * (-asin((float)Physical_Accelerations_[Y]/1000.0)));
+    Spirit_Angle_Y_ = std::round(57.295779513 * (-asin((float)Physical_Accelerations_[X]/1000.0)));
 }
 
 int32_t Mpu6050::GetSpiritAngle(Acc_Axis_T axis) const
