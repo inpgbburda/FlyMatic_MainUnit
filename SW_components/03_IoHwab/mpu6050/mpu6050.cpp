@@ -111,12 +111,14 @@ void Mpu6050::CalculateSpiritAngles(void)
 
 int32_t Mpu6050::GetSpiritAngle(Acc_Axis_T axis) const
 {
+    int32_t angle = 0;
     if(X == axis){
-        return Spirit_Angle_X_;
+        angle = Spirit_Angle_X_;
     }
     else if(Y == axis){
-        return Spirit_Angle_Y_;
+        angle = Spirit_Angle_Y_;
     }
+    return angle;
 }
 
 int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
