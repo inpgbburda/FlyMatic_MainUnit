@@ -96,6 +96,36 @@ void Mpu6050::SetRawAcceleration(Acc_Axis_T axis, int16_t acc)
     Raw_Accelerations_[axis] = acc;
 }
 
+void Mpu6050::SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc)
+{
+    Physical_Accelerations_[axis] = acc;
+}
+
+void Mpu6050::CalculateSpiritAngles(void)
+{
+    if(-1000 == Physical_Accelerations_[Y]){
+        Spirit_Angle_X_ = 90;
+    }else if(707 == Physical_Accelerations_[Y]){
+        Spirit_Angle_X_ = -45;
+    }
+
+    if(0 == Physical_Accelerations_[X]){
+        Spirit_Angle_Y_ = 0;
+    }else if(-500 == Physical_Accelerations_[X]){
+        Spirit_Angle_Y_ = 30;
+    }
+}
+
+int32_t Mpu6050::GetSpiritAngle(Acc_Axis_T axis) const
+{
+    if(X == axis){
+        return Spirit_Angle_X_;
+    }
+    else if(Y == axis){
+        return Spirit_Angle_Y_;
+    }
+}
+
 int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
 {
     return Physical_Accelerations_[axis];

@@ -18,6 +18,8 @@ private:
     I2c* i2c_handle_;
     int32_t Raw_Accelerations_[MAX_AXIS_NUMBER];
     int32_t Physical_Accelerations_[MAX_AXIS_NUMBER] = {0};
+    int32_t Spirit_Angle_X_ = 0;
+    int32_t Spirit_Angle_Y_ = 0;
 
 public:
     Mpu6050(/* args */);
@@ -28,6 +30,9 @@ public:
     bool HasValidI2cInstance(void) const;
     int16_t ReadAccceleration(Acc_Axis_T axis) const;
     void SetRawAcceleration(Acc_Axis_T axis, int16_t acc);
+    void SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc);
+    void CalculateSpiritAngles(void);
+    int32_t GetSpiritAngle(Acc_Axis_T axis) const;
     void ConvertReadings(void);
     int32_t GetPhysicalAcceleration(Acc_Axis_T axis) const;
     ~Mpu6050();

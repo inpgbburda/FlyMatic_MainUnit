@@ -199,3 +199,43 @@ TEST(Mpu6050, ExecutesMainFunction)
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Y), Expected_Physical_Acceleration_Y);
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Z), Expected_Physical_Acceleration_Z);
 }
+
+TEST(Mpu6050, CalculatesRollSpiritAngle)
+{
+    const uint32_t Phys_Acc_Y = -1000;
+    const uint32_t Expected_Roll_Angle = 90;
+
+    mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(X), Expected_Roll_Angle);
+}
+
+TEST(Mpu6050, CalculatesSecondRollSpiritAngle)
+{
+    const uint32_t Phys_Acc_Y = 707;
+    const uint32_t Expected_Roll_Angle = -45;
+
+    mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(X), Expected_Roll_Angle);
+}
+
+TEST(Mpu6050, CalculatesPitchSpiritAngle)
+{
+    const uint32_t Phys_Acc_X = 0;
+    const uint32_t Expected_Pitch_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(Y), Expected_Pitch_Angle);
+}
+
+TEST(Mpu6050, CalculatesSecondPitchSpiritAngle)
+{
+    const uint32_t Phys_Acc_X = -500;
+    const uint32_t Expected_Pitch_Angle = 30;
+
+    mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(Y), Expected_Pitch_Angle);
+}
