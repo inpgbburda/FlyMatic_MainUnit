@@ -24,7 +24,12 @@
 #define INT16_T_MAX_VAL 32767
 #define ACC_MAX_VAL 2
 
+#define DEGREES_IN_RADIAN 57.295779513f
+
 I2c i2c_bus;
+
+static pthread_mutex_t Angle_Lock;
+static pthread_mutex_t Acc_Lock;
 
 Mpu6050::Mpu6050():i2c_handle_(nullptr)
 {
@@ -32,6 +37,8 @@ Mpu6050::Mpu6050():i2c_handle_(nullptr)
 
 void Mpu6050::Init(I2c* i2c_ptr)
 {
+    pthread_mutex_init(&Angle_Lock, NULL);
+    pthread_mutex_init(&Acc_Lock, NULL);    
     i2c_handle_ = i2c_ptr;
 }
 
@@ -105,12 +112,15 @@ void Mpu6050::SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc)
 
 void Mpu6050::CalculateSpiritAngles(void)
 {
-    Spirit_Angle_X_ = std::round(57.295779513 * (-asin((float)Physical_Accelerations_[Y]/1000.0)));
-    Spirit_Angle_Y_ = std::round(57.295779513 * (-asin((float)Physical_Accelerations_[X]/1000.0)));
+    pthread_mutex_lock(&Angle_Lock);
+    Spirit_Angle_X_ = std::round(DEGREES_IN_RADIAN * (-asin((float)Physical_Accelerations_[Y]/1000.0)));
+    Spirit_Angle_Y_ = std::round(DEGREES_IN_RADIAN * (-asin((float)Physical_Accelerations_[X]/1000.0)));
+    pthread_mutex_unlock(&Angle_Lock);
 }
 
 int32_t Mpu6050::GetSpiritAngle(Acc_Axis_T axis) const
 {
+    pthread_mutex_lock(&Angle_Lock);
     int32_t angle = 0;
     if(X == axis){
         angle = Spirit_Angle_X_;
@@ -118,12 +128,17 @@ int32_t Mpu6050::GetSpiritAngle(Acc_Axis_T axis) const
     else if(Y == axis){
         angle = Spirit_Angle_Y_;
     }
+    pthread_mutex_unlock(&Angle_Lock);
     return angle;
 }
 
 int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
 {
-    return Physical_Accelerations_[axis];
+    int32_t acc = 0;
+    pthread_mutex_lock(&Acc_Lock);
+    acc = Physical_Accelerations_[axis];
+    pthread_mutex_unlock(&Acc_Lock);
+    return acc;
 }
 
 bool Mpu6050::HasValidI2cInstance(void) const
@@ -133,11 +148,13 @@ bool Mpu6050::HasValidI2cInstance(void) const
 
 void Mpu6050::ConvertReadings(void)
 {
+    pthread_mutex_lock(&Acc_Lock);
     for(int i=0; i<MAX_AXIS_NUMBER; i++)
     {
         int32_t raw_value = Raw_Accelerations_[i];
         Physical_Accelerations_[i] = raw_value * ACC_MAX_VAL * 1000 / INT16_T_MAX_VAL;
     }
+    pthread_mutex_unlock(&Acc_Lock);
 }
 
 Mpu6050::~Mpu6050()
