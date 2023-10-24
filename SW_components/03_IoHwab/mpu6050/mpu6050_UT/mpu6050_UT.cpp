@@ -126,7 +126,7 @@ TEST(Mpu6050, ConvertsPositiveRawReadingsToPhysicalAccelerationInXAxis)
     const int Expected_Physical_Acceleration_X = 122;
 
     mpu6050->SetRawAcceleration(X, Raw_Acceleration_X);
-    mpu6050->ConvertReadings();
+    mpu6050->ConvertAccelerations();
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
 }
 
@@ -136,7 +136,7 @@ TEST(Mpu6050, ConvertsNegativeRawReadingsToPhysicalAccelerationInXAxis)
     const int Expected_Physical_Acceleration_X = -36;
 
     mpu6050->SetRawAcceleration(X, Raw_Acceleration_X);
-    mpu6050->ConvertReadings();
+    mpu6050->ConvertAccelerations();
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
 }
 
@@ -149,7 +149,7 @@ TEST(Mpu6050, ConvertsRawReadingsToPhysicalAccelerationInYAxisAndIgnoresChangesI
     mpu6050->SetRawAcceleration(Y, Raw_Acceleration_Y);
     mpu6050->SetRawAcceleration(X, Arbitrary_Raw_Acceleration);
 
-    mpu6050->ConvertReadings();
+    mpu6050->ConvertAccelerations();
 
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Y), Expected_Physical_Acceleration_Y);
 }
@@ -160,7 +160,7 @@ TEST(Mpu6050, ConvertsMaxRawReadingsToPhysicalAccelerationInZAxis)
     const int Expected_Physical_Acceleration_Z = 2000;
 
     mpu6050->SetRawAcceleration(Z, Raw_Acceleration_Z);
-    mpu6050->ConvertReadings();
+    mpu6050->ConvertAccelerations();
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Z), Expected_Physical_Acceleration_Z);
 }
 
@@ -241,4 +241,45 @@ TEST(Mpu6050, CalculatesSecondPitchSpiritAngle)
     mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X);
     mpu6050->CalculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(Y), Expected_Pitch_Angle);
+}
+
+/*Spirit angles during too hight linear accelerations*/
+TEST(Mpu6050, CalculatesPitchSpiritAngleDuringPositveOversteering)
+{
+    const int32_t Phys_Acc_X_Out_Of_Range = 5000;
+    const int32_t Expected_Pitch_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X_Out_Of_Range);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(Y), Expected_Pitch_Angle);
+}
+
+TEST(Mpu6050, CalculatesPitchSpiritAngleDuringNegativeOversteering)
+{
+    const int32_t Phys_Acc_X_Out_Of_Range = -15000;
+    const int32_t Expected_Pitch_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X_Out_Of_Range);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(Y), Expected_Pitch_Angle);
+}
+
+TEST(Mpu6050, CalculatesRollSpiritAngleDuringPositiveOversteering)
+{
+    const int32_t Phys_Acc_Y_Out_Of_Range = 1234;
+    const int32_t Expected_Roll_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y_Out_Of_Range);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(X), Expected_Roll_Angle);
+}
+
+TEST(Mpu6050, CalculatesRollSpiritAngleDuringNegativeeOversteering)
+{
+    const int32_t Phys_Acc_Y_Out_Of_Range = -1001;
+    const int32_t Expected_Roll_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y_Out_Of_Range);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(X), Expected_Roll_Angle);
 }

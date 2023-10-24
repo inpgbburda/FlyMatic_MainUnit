@@ -33,7 +33,7 @@ public:
     void SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc);
     void CalculateSpiritAngles(void);
     int32_t GetSpiritAngle(Acc_Axis_T axis) const;
-    void ConvertReadings(void);
+    void ConvertAccelerations(void);
     int32_t GetPhysicalAcceleration(Acc_Axis_T axis) const;
     ~Mpu6050();
 };
