@@ -11,6 +11,14 @@ typedef enum
     MAX_AXIS_NUMBER
 }Acc_Axis_T;
 
+typedef enum
+{
+    ROLL,
+    PITCH,
+    MAX_ANGLE_AXIS_NUM
+}
+Angle_Axis_T;
+
 class Mpu6050
 {
 private:
@@ -18,8 +26,7 @@ private:
     I2c* i2c_handle_;
     int32_t Raw_Accelerations_[MAX_AXIS_NUMBER];
     int32_t Physical_Accelerations_[MAX_AXIS_NUMBER] = {0};
-    int32_t Spirit_Angle_X_ = 0;
-    int32_t Spirit_Angle_Y_ = 0;
+    int32_t Spirit_Angles_[2];
 
 public:
     Mpu6050(/* args */);
@@ -32,7 +39,7 @@ public:
     void SetRawAcceleration(Acc_Axis_T axis, int16_t acc);
     void SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc);
     void CalculateSpiritAngles(void);
-    int32_t GetSpiritAngle(Acc_Axis_T axis) const;
+    int32_t GetSpiritAngle(Angle_Axis_T axis) const;
     void ConvertAccelerations(void);
     int32_t GetPhysicalAcceleration(Acc_Axis_T axis) const;
     ~Mpu6050();

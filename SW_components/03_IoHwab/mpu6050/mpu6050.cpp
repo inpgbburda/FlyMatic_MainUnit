@@ -27,8 +27,10 @@
 #define INT16_T_MAX_VAL 32767
 #define ACC_MAX_VAL 2
 
-#define DEGREES_IN_RADIAN 57.295779513f
-#define ONE_G_TRESHOLD 1000
+/* Spirit angle calculation constants */
+#define DEGREES_IN_RADIAN   57.295779513f
+#define ONE_G_TRESHOLD      1000
+#define ONE_G               1000.0f
 
 I2c i2c_bus;
 
@@ -42,12 +44,11 @@ static const std::map<Acc_Axis_T, uint8_t> Acc_Reg_Cfg
     {Z, ACCEL_ZOUT_H},
 };
 
-static const std::map<Acc_Axis_T, Acc_Axis_T> Spirits_Cfg
+static const std::map<uint8_t, Angle_Axis_T> Angle_Cfg
 {
-    {X, Y},
-    {Y, X},
+    {Y, ROLL },
+    {X, PITCH}
 };
-
 
 Mpu6050::Mpu6050():i2c_handle_(nullptr)
 {
@@ -118,31 +119,38 @@ void Mpu6050::SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc)
 
 void Mpu6050::CalculateSpiritAngles(void)
 {
-    int spirits[2] = {0};
+    int   angle = 0;
+    int   acc   = 0;
+    float acc_f    = 0.0;
+    float angle_f  = 0.0;
+
     pthread_mutex_lock(&Angle_Lock);
-    for(int i=0; i<2; i++){
-        if(ONE_G_TRESHOLD < abs(Physical_Accelerations_[i])){
-            spirits[i] = 0;
+    for (auto const& x : Angle_Cfg)
+    {
+        acc = Physical_Accelerations_[x.first];
+        if(ONE_G_TRESHOLD < abs(acc)){
+            angle = 0;
         }
         else{
-            spirits[i] = std::round(DEGREES_IN_RADIAN * (-asin((float)Physical_Accelerations_[i]/1000.0)));
+            acc_f = (float)acc;
+            angle_f = DEGREES_IN_RADIAN * (-asin(acc_f/ONE_G));
+            angle = std::round(angle_f);
         }
+        Spirit_Angles_[x.second] = angle;
     }
-    Spirit_Angle_Y_ = spirits[0];
-    Spirit_Angle_X_ = spirits[1];
     pthread_mutex_unlock(&Angle_Lock);
 }
 
-int32_t Mpu6050::GetSpiritAngle(Acc_Axis_T axis) const
+int32_t Mpu6050::GetSpiritAngle(Angle_Axis_T axis) const
 {
     int32_t angle = 0;
     
     pthread_mutex_lock(&Angle_Lock);
-    if(X == axis){
-        angle = Spirit_Angle_X_;
+    if(ROLL == axis){
+        angle = Spirit_Angles_[0];
     }
-    else if(Y == axis){
-        angle = Spirit_Angle_Y_;
+    else if(PITCH == axis){
+        angle = Spirit_Angles_[1];
     }
     else{
         /*Do nothing*/
