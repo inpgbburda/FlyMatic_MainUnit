@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 
 #include "i2c.hpp"
 typedef enum
@@ -24,9 +25,23 @@ class Mpu6050
 private:
     /* data */
     I2c* i2c_handle_;
-    int32_t Raw_Accelerations_[MAX_AXIS_NUMBER];
-    int32_t Physical_Accelerations_[MAX_AXIS_NUMBER] = {0};
-    int32_t Spirit_Angles_[2];
+     std::map<Acc_Axis_T, int32_t> Raw_Accelerations_
+    {
+        {X, 0},
+        {Y, 0},
+        {Z, 0}
+    };
+    std::map<Acc_Axis_T, int32_t> Physical_Accelerations_
+    {
+        {X, 0},
+        {Y, 0},
+        {Z, 0}
+    };
+    std::map<Angle_Axis_T, int32_t> Spirit_Angles_
+    {
+        {ROLL, 0},
+        {PITCH, 0}
+    };
 
 public:
     Mpu6050(/* args */);

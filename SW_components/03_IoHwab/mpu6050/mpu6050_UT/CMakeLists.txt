@@ -16,7 +16,7 @@ include_directories(
 
 add_definitions ( -D_UNIT_TEST )
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -DCPPUTEST_MEM_LEAK_DETECTION_DISABLED")
 
 add_executable(${CMAKE_PROJECT_NAME}
     mpu6050_UT.cpp
