@@ -49,50 +49,52 @@ static const std::map<Angle_Axis_T, Acc_Axis_T> Angle_Cfg
     {PITCH, X}
 };
 
-Mpu6050::Mpu6050():i2c_handle_(nullptr)
-{
-}
+// Mpu6050::Mpu6050(): i2c_handle_(nullptr), 
+//                     Raw_Accelerations_      ({{X,    0}   ,{Y,     0}   ,{Z, 0}}),
+//                     Physical_Accelerations_ ({{X,    0}   ,{Y,     0}   ,{Z, 0}}),
+//                     Spirit_Angles_          ({{ROLL, 0}   ,{PITCH, 0}          })
+// {
+// }
 
-void Mpu6050::Init(I2c* i2c_ptr)
+void Mpu6050::Init(void)
 {
     pthread_mutex_init(&Angle_Lock, NULL);
-    pthread_mutex_init(&Acc_Lock, NULL);
-    i2c_handle_ = i2c_ptr;
+    // pthread_mutex_init(&Acc_Lock, NULL);
 }
 
 void Mpu6050::Start(void)
 {
     bool sensor_detected = false;
-    sensor_detected = CheckSensorPresence();
+    // sensor_detected = CheckSensorPresence();
     if(sensor_detected)
     {
         i2c_handle_ -> WriteByte(MPU6050_I2C_ADDR, PWR_MGMT_1, PWR_MGMT_1_WAKE_UP);
     }
 }
 
-void Mpu6050::MainFunc(void)
-{
-    Acc_Axis_T axis = MAX_AXIS_NUMBER;
-    int16_t raw_acc = 0;
+// void Mpu6050::MainFunc(void)
+// {
+//     Acc_Axis_T axis = MAX_AXIS_NUMBER;
+//     int16_t raw_acc = 0;
 
-    for(int i=0; i<MAX_AXIS_NUMBER; i++)
-    {
-        axis = static_cast<Acc_Axis_T>(i);
-        raw_acc = ReadAccceleration(axis);
-        SetRawAcceleration(axis, raw_acc);
-    }
-    ConvertAccelerations();
-    CalculateSpiritAngles();
-}
+//     for(int i=0; i<MAX_AXIS_NUMBER; i++)
+//     {
+//         axis = static_cast<Acc_Axis_T>(i);
+//         raw_acc = ReadAccceleration(axis);
+//         SetRawAcceleration(axis, raw_acc);
+//     }
+//     ConvertAccelerations();
+//     CalculateSpiritAngles();
+// }
 
-bool Mpu6050::CheckSensorPresence(void) const
-{
-    int who_i_am = i2c_handle_->ReadByte(MPU6050_I2C_ADDR, WHO_AM_I);
-    return WHO_AM_I_VAL == who_i_am;
-}
+// bool Mpu6050::CheckSensorPresence(void) const
+// {
+//     int who_i_am = i2c_handle_->ReadByte(MPU6050_I2C_ADDR, WHO_AM_I);
+//     return WHO_AM_I_VAL == who_i_am;
+// }
 
 
-int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis) const
+int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis)
 {
     std::vector<uint8_t> Acc_Bytes;
     int16_t acc = 0;
@@ -108,47 +110,47 @@ int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis) const
 
 void Mpu6050::SetRawAcceleration(Acc_Axis_T axis, int16_t acc)
 {
-    Raw_Accelerations_.at(axis) = acc;
+    sensorData_.rawAccelerations_.at(axis) = acc;
 }
 
 void Mpu6050::SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc)
 {
-    Physical_Accelerations_.at(axis) = acc;
+    sensorData_.physicalAccelerations_.at(axis) = acc;
 }
 
-void Mpu6050::CalculateSpiritAngles(void)
-{
-    int   angle = 0;
-    int   acc   = 0;
-    float acc_f    = 0.0;
-    float angle_f  = 0.0;
+// void Mpu6050::CalculateSpiritAngles(void)
+// {
+//     int   angle = 0;
+//     int   acc   = 0;
+//     float acc_f    = 0.0;
+//     float angle_f  = 0.0;
 
-    pthread_mutex_lock(&Angle_Lock);
+//     pthread_mutex_lock(&Angle_Lock);
 
-    for (auto &x : Spirit_Angles_)
-    {
-        Acc_Axis_T assigned_axis = Angle_Cfg.at(x.first);
-        acc = Physical_Accelerations_.at(assigned_axis);
-        if(ONE_G_TRESHOLD < abs(acc)){
-            angle = 0;
-        }
-        else{
-            acc_f = (float)acc;
-            angle_f = DEGREES_IN_RADIAN * (-asin(acc_f/ONE_G));
-            angle = std::round(angle_f);
-        }
-        x.second = angle;
-    }
+//     for (auto &x : Spirit_Angles_)
+//     {
+//         Acc_Axis_T assigned_axis = Angle_Cfg.at(x.first);
+//         acc = Physical_Accelerations_.at(assigned_axis);
+//         if(ONE_G_TRESHOLD < abs(acc)){
+//             angle = 0;
+//         }
+//         else{
+//             acc_f = (float)acc;
+//             angle_f = DEGREES_IN_RADIAN * (-asin(acc_f/ONE_G));
+//             angle = std::round(angle_f);
+//         }
+//         x.second = angle;
+//     }
 
-    pthread_mutex_unlock(&Angle_Lock);
-}
+//     pthread_mutex_unlock(&Angle_Lock);
+// }
 
 int32_t Mpu6050::GetSpiritAngle(Angle_Axis_T axis) const
 {
     int32_t angle = 0;
     
     pthread_mutex_lock(&Angle_Lock);
-    angle = Spirit_Angles_.at(axis);
+    angle = sensorData_.spiritAngles_.at(axis);
     pthread_mutex_unlock(&Angle_Lock);
     return angle;
 }
@@ -157,7 +159,7 @@ int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
 {
     int32_t acc = 0;
     pthread_mutex_lock(&Acc_Lock);
-    acc = Physical_Accelerations_.at(axis);
+    acc = sensorData_.physicalAccelerations_.at(axis);
     pthread_mutex_unlock(&Acc_Lock);
     return acc;
 }
@@ -167,17 +169,29 @@ bool Mpu6050::HasValidI2cInstance(void) const
     return nullptr != i2c_handle_;
 }
 
-void Mpu6050::ConvertAccelerations(void)
+// void Mpu6050::ConvertAccelerations(void)
+// {
+//     pthread_mutex_lock(&Acc_Lock);
+//     for(auto &x : Physical_Accelerations_)
+//     {
+//         int32_t raw_value = Raw_Accelerations_.at(x.first);
+//         x.second = raw_value * ACC_MAX_VAL * 1000 / INT16_T_MAX_VAL;
+//     }
+//     pthread_mutex_unlock(&Acc_Lock);
+// }
+
+// Mpu6050::~Mpu6050()
+// {
+// }
+
+void Mpu6050AngleConverter::calculateSpiritAngles(void)
 {
-    pthread_mutex_lock(&Acc_Lock);
-    for(auto &x : Physical_Accelerations_)
-    {
-        int32_t raw_value = Raw_Accelerations_.at(x.first);
-        x.second = raw_value * ACC_MAX_VAL * 1000 / INT16_T_MAX_VAL;
-    }
-    pthread_mutex_unlock(&Acc_Lock);
 }
 
-Mpu6050::~Mpu6050()
+void Mpu6050Sensor::readSensorData(void)
+{
+}
+
+void Mpu6050AccConverter::convertRawToPhysical(void)
 {
 }
