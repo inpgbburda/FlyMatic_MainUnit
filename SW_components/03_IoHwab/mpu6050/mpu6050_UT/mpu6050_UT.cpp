@@ -70,15 +70,17 @@ TEST(Mpu6050, ReadsAccelerationInXAxis)
 {
     const uint8_t Mpu6050_Accel_Xout_H = 0x3BU;
     std::vector<uint8_t> Minus_Ten_In_U2 = {0xFF,0xF6};
+    std::vector<uint8_t> Dummy_Val = {0xFF,0xF6};
 
     mock().expectOneCall("ReadBlockOfBytes")
         .withParameter("slave_addr", Mpu6050_I2c_Addr)
         .withParameter("start_reg_addr", Mpu6050_Accel_Xout_H)
         .withParameter("block_len", Acc_Size)
         .andReturnValue(&Minus_Ten_In_U2);
+    mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
     mpu6050->readAndProcessSensorData();
-    int16_t x_acc = mpu6050->GetPhysicalAcceleration(X);
+    int16_t x_acc = mpu6050->GetRawAcceleration(X);
 
     CHECK_EQUAL(x_acc, -10);
 }
@@ -87,15 +89,18 @@ TEST(Mpu6050, ReadsAccelerationInYAxis)
 {
     const uint8_t Mpu6050_Accel_Yout_H = 0x3DU;
     std::vector<uint8_t> Twenty_In_U2 = {0x00,0x14};
+    std::vector<uint8_t> Dummy_Val = {0xFF,0xF6};
 
     mock().expectOneCall("ReadBlockOfBytes")
         .withParameter("slave_addr", Mpu6050_I2c_Addr)
         .withParameter("start_reg_addr", Mpu6050_Accel_Yout_H)
         .withParameter("block_len", Acc_Size)
         .andReturnValue(&Twenty_In_U2);
+    mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
-    int16_t y_acc = mpu6050->ReadAccceleration(Y);
-
+    mpu6050->readAndProcessSensorData();
+    int16_t y_acc = mpu6050->GetRawAcceleration(Y);
+    
     CHECK_EQUAL(y_acc, 20);
 }
 
@@ -103,15 +108,18 @@ TEST(Mpu6050, ReadsAccelerationInZAxis)
 {
     const uint8_t Mpu6050_Accel_Zout_H = 0x3FU;
     std::vector<uint8_t> Minus_Thirty_In_U2 = {0xFF,0xE2};
+    std::vector<uint8_t> Dummy_Val = {0xFF,0xF6};
 
     mock().expectOneCall("ReadBlockOfBytes")
             .withParameter("slave_addr", Mpu6050_I2c_Addr)
             .withParameter("start_reg_addr", Mpu6050_Accel_Zout_H)
             .withParameter("block_len", Acc_Size)
             .ignoreOtherParameters()
-            .andReturnValue(&Minus_Thirty_In_U2);
+            .andReturnValue(&Minus_Thirty_In_U2);     
+    mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
+
     mpu6050->readAndProcessSensorData();
-    int16_t z_acc = mpu6050->ReadAccceleration(Z);
+    int16_t z_acc = mpu6050->GetRawAcceleration(Z);
 
     CHECK_EQUAL(z_acc, -30);
 }
@@ -120,14 +128,14 @@ TEST(Mpu6050, ReadsAccelerationInZAxis)
 * Below tests assume:
 *    physicalAcc = rawData * 2g / int16_t_MAX * 1000
 */
-
+std::vector<uint8_t> Random_Val = {0xFF,0xF6};
 TEST(Mpu6050, ConvertsPositiveRawReadingsToPhysicalAccelerationInXAxis)
 {
     const int Raw_Acceleration_X = 2000;
     const int Expected_Physical_Acceleration_X = 122;
 
     mpu6050->SetRawAcceleration(X, Raw_Acceleration_X);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->convertRawToPhysical();
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
 }
 
@@ -137,7 +145,7 @@ TEST(Mpu6050, ConvertsNegativeRawReadingsToPhysicalAccelerationInXAxis)
     const int Expected_Physical_Acceleration_X = -36;
 
     mpu6050->SetRawAcceleration(X, Raw_Acceleration_X);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->convertRawToPhysical();
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
 }
 
@@ -150,7 +158,7 @@ TEST(Mpu6050, ConvertsRawReadingsToPhysicalAccelerationInYAxisAndIgnoresChangesI
     mpu6050->SetRawAcceleration(Y, Raw_Acceleration_Y);
     mpu6050->SetRawAcceleration(X, Arbitrary_Raw_Acceleration);
 
-    mpu6050->readAndProcessSensorData();
+    mpu6050->convertRawToPhysical();
 
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Y), Expected_Physical_Acceleration_Y);
 }
@@ -161,7 +169,7 @@ TEST(Mpu6050, ConvertsMaxRawReadingsToPhysicalAccelerationInZAxis)
     const int Expected_Physical_Acceleration_Z = 2000;
 
     mpu6050->SetRawAcceleration(Z, Raw_Acceleration_Z);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->convertRawToPhysical();
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Z), Expected_Physical_Acceleration_Z);
 }
 
@@ -193,6 +201,7 @@ TEST(Mpu6050, ExecutesMainFunction)
         .withParameter("start_reg_addr", Mpu6050_Accel_Zout_H)
         .ignoreOtherParameters()
         .andReturnValue(&Minus_Thirty_In_U2);
+    // mock().ignoreOtherCalls();
 
     mpu6050->readAndProcessSensorData();
 
@@ -210,7 +219,7 @@ TEST(Mpu6050, CalculatesRollSpiritAngle)
     const int32_t Expected_Roll_Angle = 90;
 
     mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->calculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), Expected_Roll_Angle);
 }
 
@@ -220,7 +229,7 @@ TEST(Mpu6050, CalculatesSecondRollSpiritAngle)
     const int32_t Expected_Roll_Angle = -45;
 
     mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->calculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), Expected_Roll_Angle);
 }
 
@@ -230,7 +239,7 @@ TEST(Mpu6050, CalculatesPitchSpiritAngle)
     const int32_t Expected_Pitch_Angle = 0;
 
     mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->calculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(PITCH), Expected_Pitch_Angle);
 }
 
@@ -240,7 +249,7 @@ TEST(Mpu6050, CalculatesSecondPitchSpiritAngle)
     const int32_t Expected_Pitch_Angle = 30;
 
     mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->calculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(PITCH), Expected_Pitch_Angle);
 }
 
@@ -251,7 +260,7 @@ TEST(Mpu6050, CalculatesPitchSpiritAngleDuringPositveOversteering)
     const int32_t Expected_Pitch_Angle = 0;
 
     mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X_Out_Of_Range);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->calculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(PITCH), Expected_Pitch_Angle);
 }
 
@@ -261,7 +270,7 @@ TEST(Mpu6050, CalculatesPitchSpiritAngleDuringNegativeOversteering)
     const int32_t Expected_Pitch_Angle = 0;
 
     mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X_Out_Of_Range);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->calculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(PITCH), Expected_Pitch_Angle);
 }
 
@@ -271,7 +280,7 @@ TEST(Mpu6050, CalculatesRollSpiritAngleDuringPositiveOversteering)
     const int32_t Expected_Roll_Angle = 0;
 
     mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y_Out_Of_Range);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->calculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), Expected_Roll_Angle);
 }
 
@@ -281,6 +290,6 @@ TEST(Mpu6050, CalculatesRollSpiritAngleDuringNegativeeOversteering)
     const int32_t Expected_Roll_Angle = 0;
 
     mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y_Out_Of_Range);
-    mpu6050->readAndProcessSensorData();
+    mpu6050->calculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), Expected_Roll_Angle);
 }
