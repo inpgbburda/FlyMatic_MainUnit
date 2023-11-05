@@ -66,6 +66,7 @@ TEST(Mpu6050, CannotDetectPhysicalSensor)
     mpu6050->Start();
 }
 
+//TODO: Create a group of tests that test all the possible accelerations
 TEST(Mpu6050, ReadsAccelerationInXAxis)
 {
     const uint8_t Mpu6050_Accel_Xout_H = 0x3BU;

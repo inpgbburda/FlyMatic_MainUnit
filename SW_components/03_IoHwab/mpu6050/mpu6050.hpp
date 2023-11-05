@@ -71,25 +71,7 @@ private:
     Mpu6050AngleConverter angleConverter_;
 
 public:
-    Mpu6050(I2c* i2c_handle)
-        : i2c_handle_(i2c_handle), sensorData_(), sensor_(i2c_handle, sensorData_),
-          accConverter_(sensorData_), angleConverter_(sensorData_) 
-          {
-            sensorData_.rawAccelerations_={
-                {X, 0},
-                {Y, 0},
-                {Z, 0}
-            };
-            sensorData_.physicalAccelerations_={
-                {X, 0},
-                {Y, 0},
-                {Z, 0}
-            };
-            sensorData_.spiritAngles_={
-                {ROLL, 0},
-                {PITCH, 0}
-            };
-          };
+    Mpu6050(I2c* i2c_handle);
     void Init(void);
     void Start(void);
     bool HasValidI2cInstance(void) const;
@@ -97,16 +79,11 @@ public:
     int32_t GetSpiritAngle(Angle_Axis_T axis) const;
     int32_t GetPhysicalAcceleration(Acc_Axis_T axis) const;
     void readAndProcessSensorData(void);
-    
-    /* Read sensor data, update shared SensorData, and perform conversions and calculations */
-    void readSensorData(void);
-    void convertRawToPhysical(void);
-    void calculateSpiritAngles(void);
 
     /*UT interfaces:*/
     void SetRawAcceleration(Acc_Axis_T axis, int16_t acc);
     int16_t GetRawAcceleration (Acc_Axis_T axis) const;
-
-    // Other methods...
-
+    void readSensorData(void);
+    void convertRawToPhysical(void);
+    void calculateSpiritAngles(void);
 };
