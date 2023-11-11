@@ -131,5 +131,44 @@
             "isDefault": true
          }
       },
+      /*Unit tests*/
+        {
+            "type": "shell",
+            "label": "Build MPU6050 Unit Tests",
+            "command": "bash",
+            "args": ["-c", "make all 2>&1 | sed 's|/cygdrive/d/|D:/|g; s|${workspaceFolder}/|./|g'"],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT"
+            },
+            "problemMatcher": {
+                "owner": "external",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4
+                },
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Clean MPU6050 Unit Tests",
+            "command": "make clean",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT"
+            },
+        },
+        {
+            "type": "shell",
+            "label": "Run MPU6050 Unit Tests",
+            "command": "mpu6050_UT.exe",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT"
+            },
+        }
    ]
 }

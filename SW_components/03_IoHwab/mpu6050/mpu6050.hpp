@@ -10,7 +10,8 @@ typedef enum
     Y,
     Z,
     MAX_AXIS_NUMBER
-}Acc_Axis_T;
+}
+Acc_Axis_T;
 
 typedef enum
 {
@@ -27,19 +28,21 @@ public:
     std::map<Angle_Axis_T, int32_t> spiritAngles_;
 };
 
+
 class Mpu6050Sensor
 {
 private: 
     I2c* i2c_handle_;
     SensorData& data_to_fill_;
-    bool checkPresence(void) const;
+    bool CheckPresence(void) const;
     int16_t ReadAcceleration(Acc_Axis_T axis) const;
 
 public:
     Mpu6050Sensor(I2c* i2c_handle, SensorData& Data_): i2c_handle_(i2c_handle), data_to_fill_(Data_){};
-    void readSensorData(void);
+    void ReadSensorData(void);
     void Start(void);
 };
+
 
 class Mpu6050AccConverter
 {
@@ -48,8 +51,9 @@ private:
 
 public:
     Mpu6050AccConverter(SensorData& data): data_(data){};
-    void convertRawToPhysical(void);
+    void ConvertRawToPhysical(void);
 };
+
 
 class Mpu6050AngleConverter
 {
@@ -57,8 +61,9 @@ private:
     SensorData& data_;
 public:
     Mpu6050AngleConverter(SensorData& data): data_(data){};
-    void calculateSpiritAngles(void);
+    void CalculateSpiritAngles(void);
 };
+
 
 class Mpu6050 
 {
@@ -78,12 +83,14 @@ public:
     void SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc);
     int32_t GetSpiritAngle(Angle_Axis_T axis) const;
     int32_t GetPhysicalAcceleration(Acc_Axis_T axis) const;
-    void readAndProcessSensorData(void);
+    void ReadAndProcessSensorData(void);
 
     /*UT interfaces:*/
+#ifdef _UNIT_TEST
     void SetRawAcceleration(Acc_Axis_T axis, int16_t acc);
     int16_t GetRawAcceleration (Acc_Axis_T axis) const;
-    void readSensorData(void);
-    void convertRawToPhysical(void);
-    void calculateSpiritAngles(void);
+    void ReadSensorData(void);
+    void ConvertRawToPhysical(void);
+    void CalculateSpiritAngles(void);
+#endif /*_UNIT_TEST*/
 };
