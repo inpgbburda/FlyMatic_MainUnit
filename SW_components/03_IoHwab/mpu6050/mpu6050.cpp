@@ -201,6 +201,7 @@ void Mpu6050AccConverter::ConvertRawToPhysical(void)
 }
 
 /*UT interfaces:*/
+#ifdef _UNIT_TEST
 void Mpu6050::SetRawAcceleration(Acc_Axis_T axis, int16_t acc)
 {
     sensorData_.rawAccelerations_.at(axis) = acc;
@@ -230,3 +231,4 @@ void Mpu6050::CalculateSpiritAngles(void)
 {
     angleConverter_.CalculateSpiritAngles();
 }
+#endif /*_UNIT_TEST*/

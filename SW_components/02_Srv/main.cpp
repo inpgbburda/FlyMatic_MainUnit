@@ -11,16 +11,14 @@ extern std::vector<RT_Thread> Initial_Threads_G;
 extern Thread_Manager Manager_G;
 
 I2c i2c;
-Mpu6050 mpu6050;
+Mpu6050 mpu6050(&i2c);
 
 int main()
 {
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
 
-    PreventPagingToSwapArea();
     Init_Pwm();
     i2c.Init(DRV_1);
-    mpu6050.Init(&i2c);
 
     mpu6050.Start();
     
