@@ -36,7 +36,6 @@ TEST(Mpu6050, InitWithI2cInstance)
 
 TEST(Mpu6050, StartsProperly)
 {
-    const uint8_t Mpu6050_Who_Am_I = 0x75;
     const uint8_t Mpu6050_Who_Am_I_Val = 0x68;
     const uint8_t Mpu6050_Pwr_Mgmt_1 = 0x6B;
     const uint8_t Mpu6050_Pwr_Mgmt_1_Wake_Up = 0x00;
@@ -66,7 +65,6 @@ TEST(Mpu6050, CannotDetectPhysicalSensor)
     mpu6050->Start();
 }
 
-//TODO: Create a group of tests that test all the possible accelerations
 TEST(Mpu6050, ReadsAccelerationInXAxis)
 {
     const uint8_t Mpu6050_Accel_Xout_H = 0x3BU;
@@ -127,7 +125,7 @@ TEST(Mpu6050, ReadsAccelerationInZAxis)
 
 /*
 * Below tests assume:
-*    physicalAcc = rawData * 2g / int16_t_MAX * 1000
+*    physicalAcc = rawData * ACC_MAX_VAL[g] / int16_t_MAX * 1000
 */
 std::vector<uint8_t> Random_Val = {0xFF,0xF6};
 TEST(Mpu6050, ConvertsPositiveRawReadingsToPhysicalAccelerationInXAxis)

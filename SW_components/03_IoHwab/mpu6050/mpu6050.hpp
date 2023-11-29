@@ -1,9 +1,25 @@
+/**
+* File contains abstraction layer for MPU6050 sensor
+*
+*/
+
+/*
+|===================================================================================================================================|
+    File includes 
+|===================================================================================================================================|
+*/
 #pragma once
 
 #include <cstdint>
 #include <map>
 
 #include "i2c.hpp"
+
+/*
+|===================================================================================================================================|
+    Exported types declarations
+|===================================================================================================================================|
+*/
 typedef enum
 {
     X = 0,
@@ -21,13 +37,17 @@ typedef enum
 }
 Angle_Axis_T;
 
+/*
+|===================================================================================================================================|
+    Exported objects declarations
+|===================================================================================================================================|
+*/
 class SensorData {
 public:
-    std::map<Acc_Axis_T, int32_t> rawAccelerations_;
-    std::map<Acc_Axis_T, int32_t> physicalAccelerations_;
-    std::map<Angle_Axis_T, int32_t> spiritAngles_;
+    std::map<Acc_Axis_T, int32_t> raw_accelerations_;
+    std::map<Acc_Axis_T, int32_t> physical_accelerations_;
+    std::map<Angle_Axis_T, int32_t> spirit_angles_;
 };
-
 
 class Mpu6050Sensor
 {
@@ -43,7 +63,6 @@ public:
     void Start(void);
 };
 
-
 class Mpu6050AccConverter
 {
 private:
@@ -54,39 +73,43 @@ public:
     void ConvertRawToPhysical(void);
 };
 
-
 class Mpu6050AngleConverter
 {
 private:
     SensorData& data_;
+    int32_t CalculateAngle(int32_t acc) const;
 public:
     Mpu6050AngleConverter(SensorData& data): data_(data){};
     void CalculateSpiritAngles(void);
 };
 
 
-class Mpu6050 
+/**
+ * @brief Main class of MPU6050, to be used outside module.
+ * @param i2c_handle Pointer to the i2c-bus class.
+ */
+class Mpu6050
 {
 private:
     I2c* i2c_handle_;
-    SensorData sensorData_;
+    SensorData sensor_data_;
 
     Mpu6050Sensor sensor_;
-    Mpu6050AccConverter accConverter_;
-    Mpu6050AngleConverter angleConverter_;
+    Mpu6050AccConverter acc_converter_;
+    Mpu6050AngleConverter angle_converter_;
 
 public:
     Mpu6050(I2c* i2c_handle);
     void Init(void);
     void Start(void);
     bool HasValidI2cInstance(void) const;
-    void SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc);
     int32_t GetSpiritAngle(Angle_Axis_T axis) const;
     int32_t GetPhysicalAcceleration(Acc_Axis_T axis) const;
     void ReadAndProcessSensorData(void);
 
     /*UT interfaces:*/
 #ifdef _UNIT_TEST
+    void SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc);
     void SetRawAcceleration(Acc_Axis_T axis, int16_t acc);
     int16_t GetRawAcceleration (Acc_Axis_T axis) const;
     void ReadSensorData(void);
