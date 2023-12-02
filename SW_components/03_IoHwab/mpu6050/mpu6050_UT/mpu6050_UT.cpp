@@ -292,3 +292,34 @@ TEST(Mpu6050, CalculatesRollSpiritAngleDuringNegativeeOversteering)
     mpu6050->CalculateSpiritAngles();
     CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), Expected_Roll_Angle);
 }
+
+/**
+ * Filtering setting functionality - bandwidth of read acceleration configuration
+ */ 
+const uint8_t Mpu6050_Config_Addr = 0x1A;
+
+TEST(Mpu6050, SetsFilteringLevelWeak)
+{
+    const Filtering_Level_T level = LEVEL_1;
+    const uint8_t Mpu6050_Config_Dlpf_Cfg = 0x01;
+
+    mock().expectOneCall("WriteByte")
+    .withParameter("slave_addr", Mpu6050_I2c_Addr)
+    .withParameter("addr", Mpu6050_Config_Addr)
+    .withParameter("data", Mpu6050_Config_Dlpf_Cfg);
+
+    mpu6050->SetLowPassFilter(level);
+}
+
+TEST(Mpu6050, SetsFilteringLevelStrong)
+{
+    const Filtering_Level_T level = LEVEL_6;
+    const uint8_t Mpu6050_Config_Dlpf_Cfg= 0x06;
+
+    mock().expectOneCall("WriteByte")
+    .withParameter("slave_addr", Mpu6050_I2c_Addr)
+    .withParameter("addr", Mpu6050_Config_Addr)
+    .withParameter("data", Mpu6050_Config_Dlpf_Cfg);
+
+    mpu6050->SetLowPassFilter(level);
+}

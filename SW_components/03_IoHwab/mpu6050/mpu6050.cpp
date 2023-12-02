@@ -20,18 +20,21 @@
     Macro definitions
 |===================================================================================================================================|
 */
-#define MPU6050_I2C_ADDR 0x68U
+
+#define MPU6050_I2C_ADDR 0x68U  /*Sensor i2C slave address - vendor defined*/
+#define WHO_AM_I_VAL     0x68U  /*Read-only value kept in sensor, to check its identity - vendor defined*/
 
 /* MPU6050 hardware register adresses */
-#define WHO_AM_I 0x75U
-#define WHO_AM_I_VAL 0x68U
+#define WHO_AM_I_AD     0x75U
+#define CONFIG_AD       0x1AU
+#define PWR_MGMT_1_AD   0x6BU
+#define ACCEL_XOUT_H_AD 0x3BU
+#define ACCEL_YOUT_H_AD 0x3DU
+#define ACCEL_ZOUT_H_AD 0x3FU
 
-#define PWR_MGMT_1 0x6BU
+/*Configuration of sensor*/
 #define PWR_MGMT_1_WAKE_UP 0x00U
-
-#define ACCEL_XOUT_H 0x3BU
-#define ACCEL_YOUT_H 0x3DU
-#define ACCEL_ZOUT_H 0x3FU
+#define ACC_MAX_VAL 2               /*Maximum acceleration value that sensor can detect*/
 
 /* Auxiliary constants */
 #define ACC_H 0U
@@ -39,13 +42,33 @@
 #define ACC_SIZE 2U
 
 #define INT16_T_MAX_VAL 32767
-#define ACC_MAX_VAL 2
 #define ACC_SCALER 1000         /*Multiplication of acc value, to avoid small numbers*/
 
 /* Spirit angle calculation constants */
 #define DEGREES_IN_RADIAN   57.295779513f
 #define ONE_G_TRESHOLD      1000
 #define ONE_G               1000.0f
+
+/*
+|===================================================================================================================================|
+    Local types definitions 
+|===================================================================================================================================|
+*/
+/*MPU6050 register types definitions*/
+/*CONFIG*/
+typedef struct 
+{
+    uint8_t DLPF_CFG:3;
+    uint8_t EXT_SYNC_SET:3;
+    uint8_t RESRVED:2;
+}
+Config_Reg_Fields_T;
+
+union Config_Reg_T
+{
+    uint8_t byte;
+    Config_Reg_Fields_T fields;
+};
 
 /*
 |===================================================================================================================================|
@@ -59,9 +82,9 @@ static pthread_mutex_t Acc_Lock;
 
 static const std::map<Acc_Axis_T, uint8_t> Acc_Reg_Cfg
 {
-    {X, ACCEL_XOUT_H},
-    {Y, ACCEL_YOUT_H},
-    {Z, ACCEL_ZOUT_H},
+    {X, ACCEL_XOUT_H_AD},
+    {Y, ACCEL_YOUT_H_AD},
+    {Z, ACCEL_ZOUT_H_AD},
 };
 
 static const std::map<Angle_Axis_T, Acc_Axis_T> Angle_Cfg
@@ -166,6 +189,15 @@ void Mpu6050::ReadAndProcessSensorData(void)
     }
 }
 
+void Mpu6050::SetLowPassFilter(Filtering_Level_T level) const
+{
+    Config_Reg_T Config;
+    Config.byte = 0x00;
+    Config.fields.DLPF_CFG = uint8_t(level);
+
+    i2c_handle_->WriteByte(MPU6050_I2C_ADDR, CONFIG_AD, Config.byte);
+}
+
 /**
  * @brief Checks if a valid I2C instance is available.
  * @return True if a valid I2C instance is available, false otherwise.
@@ -193,7 +225,7 @@ void Mpu6050Sensor::ReadSensorData(void)
  */
 bool Mpu6050Sensor::CheckPresence(void) const
 {
-    int who_i_am = i2c_handle_->ReadByte(MPU6050_I2C_ADDR, WHO_AM_I);
+    int who_i_am = i2c_handle_->ReadByte(MPU6050_I2C_ADDR, WHO_AM_I_AD);
     return WHO_AM_I_VAL == who_i_am;
 }
 
@@ -225,7 +257,7 @@ void Mpu6050Sensor::Start(void)
     sensor_detected = CheckPresence();
     if(sensor_detected)
     {
-        i2c_handle_ -> WriteByte(MPU6050_I2C_ADDR, PWR_MGMT_1, PWR_MGMT_1_WAKE_UP);
+        i2c_handle_ -> WriteByte(MPU6050_I2C_ADDR, PWR_MGMT_1_AD, PWR_MGMT_1_WAKE_UP);
     }
 }
 

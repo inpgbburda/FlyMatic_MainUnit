@@ -22,6 +22,19 @@
 */
 typedef enum
 {
+    LEVEL_0 = 0,
+    LEVEL_1,
+    LEVEL_2,
+    LEVEL_3,
+    LEVEL_4,
+    LEVEL_5,
+    LEVEL_6,
+    MAX_LEVEL
+}
+Filtering_Level_T;
+
+typedef enum
+{
     X = 0,
     Y,
     Z,
@@ -106,6 +119,7 @@ public:
     int32_t GetSpiritAngle(Angle_Axis_T axis) const;
     int32_t GetPhysicalAcceleration(Acc_Axis_T axis) const;
     void ReadAndProcessSensorData(void);
+    void SetLowPassFilter(Filtering_Level_T level) const;
 
     /*UT interfaces:*/
 #ifdef _UNIT_TEST
