@@ -27,18 +27,11 @@ const uint8_t Mpu6050_Who_Am_I = 0x75;
 const uint8_t Mpu6050_I2c_Addr = 0x68;
 const uint8_t Acc_Size = 2U;
 
-TEST(Mpu6050, InitWithI2cInstance)
-{
-    mpu6050->Init();
-
-    CHECK(mpu6050->HasValidI2cInstance());
-}
-
-TEST(Mpu6050, StartsProperly)
+TEST(Mpu6050, InitsSensorWithConfiguration)
 {
     const uint8_t Mpu6050_Who_Am_I_Val = 0x68;
-    const uint8_t Mpu6050_Pwr_Mgmt_1 = 0x6B;
-    const uint8_t Mpu6050_Pwr_Mgmt_1_Wake_Up = 0x00;
+    const uint8_t Mpu6050_Config = 0x1A;
+    const uint8_t Mpu6050_Config_Level = 0x05;
 
     mock().expectOneCall("ReadByte")
         .withParameter("slave_addr", Mpu6050_I2c_Addr)
@@ -47,10 +40,10 @@ TEST(Mpu6050, StartsProperly)
 
     mock().expectOneCall("WriteByte")
         .withParameter("slave_addr", Mpu6050_I2c_Addr)
-        .withParameter("addr", Mpu6050_Pwr_Mgmt_1)
-        .withParameter("data", Mpu6050_Pwr_Mgmt_1_Wake_Up);
+        .withParameter("addr", Mpu6050_Config)
+        .withParameter("data", Mpu6050_Config_Level);
 
-    mpu6050->Start();
+    mpu6050->Init();
 }
 
 TEST(Mpu6050, CannotDetectPhysicalSensor)
@@ -62,8 +55,22 @@ TEST(Mpu6050, CannotDetectPhysicalSensor)
         .withParameter("addr", Mpu6050_Who_Am_I)
         .andReturnValue(Arbitrary_Incorrect_Value);
 
+    CHECK_THROWS(std::exception, mpu6050->Init());
+}
+
+TEST(Mpu6050, StartsProperly)
+{
+    const uint8_t Mpu6050_Pwr_Mgmt_1 = 0x6B;
+    const uint8_t Mpu6050_Pwr_Mgmt_1_Wake_Up = 0x00;
+
+    mock().expectOneCall("WriteByte")
+        .withParameter("slave_addr", Mpu6050_I2c_Addr)
+        .withParameter("addr", Mpu6050_Pwr_Mgmt_1)
+        .withParameter("data", Mpu6050_Pwr_Mgmt_1_Wake_Up);
+
     mpu6050->Start();
 }
+
 
 TEST(Mpu6050, ReadsAccelerationInXAxis)
 {

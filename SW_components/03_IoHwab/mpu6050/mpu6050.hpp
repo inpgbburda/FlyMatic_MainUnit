@@ -72,8 +72,10 @@ private:
 
 public:
     Mpu6050Sensor(I2c* i2c_handle, SensorData& Data_): i2c_handle_(i2c_handle), data_to_fill_(Data_){};
-    void ReadSensorData(void);
+    void Init(void) const;
     void Start(void);
+    void ReadSensorData(void);
+    void SetLowPassFilter(Filtering_Level_T level) const;
 };
 
 class Mpu6050AccConverter

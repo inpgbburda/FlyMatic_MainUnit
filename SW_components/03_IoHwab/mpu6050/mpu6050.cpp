@@ -35,6 +35,7 @@
 /*Configuration of sensor*/
 #define PWR_MGMT_1_WAKE_UP 0x00U
 #define ACC_MAX_VAL 2               /*Maximum acceleration value that sensor can detect*/
+#define FILTER_LEVEL_CFG LEVEL_5
 
 /* Auxiliary constants */
 #define ACC_H 0U
@@ -132,16 +133,18 @@ Mpu6050::Mpu6050(I2c *i2c_handle):
 };
 
 /**
- * @brief Initializes mutexes for angle and acceleration data.
+ * @brief Initializes the software module and loads the configuration
+ *        into physical sensor memory
  */
 void Mpu6050::Init(void)
 {
     pthread_mutex_init(&Angle_Lock, NULL);
     pthread_mutex_init(&Acc_Lock, NULL);
+    sensor_.Init();
 }
 
 /**
- * @brief Starts the sensor.
+ * @brief Starts the physical sensor.
  */
 void Mpu6050::Start(void)
 {
@@ -182,20 +185,19 @@ int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
  */
 void Mpu6050::ReadAndProcessSensorData(void)
 {
-     {
+    {
         sensor_.ReadSensorData();
         acc_converter_.ConvertRawToPhysical();
         angle_converter_.CalculateSpiritAngles();
     }
 }
 
+/**
+ * @brief Sets filtering configuration of physical sensor.
+ */
 void Mpu6050::SetLowPassFilter(Filtering_Level_T level) const
 {
-    Config_Reg_T Config;
-    Config.byte = 0x00;
-    Config.fields.DLPF_CFG = uint8_t(level);
-
-    i2c_handle_->WriteByte(MPU6050_I2C_ADDR, CONFIG_AD, Config.byte);
+    sensor_.SetLowPassFilter(level);
 }
 
 /**
@@ -207,7 +209,9 @@ bool Mpu6050::HasValidI2cInstance(void) const
     return nullptr != i2c_handle_;
 }
 
-
+/**
+ * @brief Reads all the new data from sensor.
+ */
 void Mpu6050Sensor::ReadSensorData(void)
 {
     int16_t raw_acc = 0;
@@ -217,6 +221,18 @@ void Mpu6050Sensor::ReadSensorData(void)
         raw_acc = ReadAcceleration(x.first);
         x.second = raw_acc;
     }
+}
+
+/**
+ * @brief Configures the filtering of accelerometer and gyroscope sampling.
+ */
+void Mpu6050Sensor::SetLowPassFilter(Filtering_Level_T level) const
+{
+    Config_Reg_T Config;
+    Config.byte = 0x00;
+    Config.fields.DLPF_CFG = uint8_t(level);
+
+    i2c_handle_->WriteByte(MPU6050_I2C_ADDR, CONFIG_AD, Config.byte);
 }
 
 /**
@@ -249,16 +265,27 @@ int16_t Mpu6050Sensor::ReadAcceleration(Acc_Axis_T axis) const
 }
 
 /**
- * @brief Starts the MPU6050 sensor after checking its presence.
+ * @brief Configure the MPU6050 sensor after checking its presence.
+ * @throws runtime_error if the sensor chip doesn't report himself properly
  */
-void Mpu6050Sensor::Start(void)
+void Mpu6050Sensor::Init(void) const
 {
     bool sensor_detected = false;
     sensor_detected = CheckPresence();
-    if(sensor_detected)
-    {
-        i2c_handle_ -> WriteByte(MPU6050_I2C_ADDR, PWR_MGMT_1_AD, PWR_MGMT_1_WAKE_UP);
+    if(sensor_detected){
+        SetLowPassFilter(FILTER_LEVEL_CFG);
     }
+    else{
+        throw std::runtime_error("Cannot detect sensor");
+    }
+}
+
+/**
+ * @brief Wakes the sensor up.
+ */
+void Mpu6050Sensor::Start(void)
+{
+    i2c_handle_ -> WriteByte(MPU6050_I2C_ADDR, PWR_MGMT_1_AD, PWR_MGMT_1_WAKE_UP);
 }
 
 /**
