@@ -16,7 +16,7 @@ include_directories(
 
 add_definitions ( -D_UNIT_TEST )
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -DCPPUTEST_MEM_LEAK_DETECTION_DISABLED")
 
 add_executable(${CMAKE_PROJECT_NAME}
     mpu6050_UT.cpp
@@ -29,3 +29,9 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/${CPPUTEST_RLV_PATH}/libs/libCppUTestExt.a
     ${CMAKE_CURRENT_SOURCE_DIR}/${CPPUTEST_RLV_PATH}/libs/libCppUTest.a
 )
+
+# Print size of linked binary file
+add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+    COMMAND size --format=berkeley --totals "${CMAKE_PROJECT_NAME}"
+    COMMENT "Invoking: GNU Print Size")
+

@@ -10,7 +10,7 @@
 
 #define FLIGHT_CTRL_RUNTIME_THR     MILI_TO_NANOSECONDS(20)
 #define FLIGHT_CTRL_DEADLINE_THR    MILI_TO_NANOSECONDS(20)
-#define FLIGHT_CTRL_PERIOD_THR      MILI_TO_NANOSECONDS(500)
+#define FLIGHT_CTRL_PERIOD_THR      MILI_TO_NANOSECONDS(100)
 
 RT_Thread thread_1 = RT_Thread(                         \
                                  SCHED_DEADLINE         \
