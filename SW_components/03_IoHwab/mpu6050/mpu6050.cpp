@@ -1,120 +1,386 @@
+/**
+* File contains abstraction layer for MPU6050 sensor
+*
+*/
+
+/*
+|===================================================================================================================================|
+    File includes 
+|===================================================================================================================================|
+*/
 #include "mpu6050.hpp"
 #include "i2c.hpp"
 
-#include <vector>
 #include <stdexcept>
+#include <math.h>
+#include <vector>
 
-#define MPU6050_I2R_ADDR 0x68U
+/*
+|===================================================================================================================================|
+    Macro definitions
+|===================================================================================================================================|
+*/
 
-#define WHO_AM_I 0x75U
-#define WHO_AM_I_VAL 0x68U
+#define MPU6050_I2C_ADDR 0x68U  /*Sensor i2C slave address - vendor defined*/
+#define WHO_AM_I_VAL     0x68U  /*Read-only value kept in sensor, to check its identity - vendor defined*/
 
-#define PWR_MGMT_1 0x6BU
+/* MPU6050 hardware register adresses */
+#define WHO_AM_I_AD     0x75U
+#define CONFIG_AD       0x1AU
+#define PWR_MGMT_1_AD   0x6BU
+#define ACCEL_XOUT_H_AD 0x3BU
+#define ACCEL_YOUT_H_AD 0x3DU
+#define ACCEL_ZOUT_H_AD 0x3FU
+
+/*Configuration of sensor*/
 #define PWR_MGMT_1_WAKE_UP 0x00U
+#define ACC_MAX_VAL 2               /*Maximum acceleration value that sensor can detect*/
+#define FILTER_LEVEL_CFG LEVEL_5
 
-#define ACCEL_XOUT_H 0x3BU
-#define ACCEL_YOUT_H 0x3DU
-#define ACCEL_ZOUT_H 0x3FU
-
+/* Auxiliary constants */
 #define ACC_H 0U
 #define ACC_L 1U
 #define ACC_SIZE 2U
 
 #define INT16_T_MAX_VAL 32767
-#define ACC_MAX_VAL 2
+#define ACC_SCALER 1000         /*Multiplication of acc value, to avoid small numbers*/
 
+/* Spirit angle calculation constants */
+#define DEGREES_IN_RADIAN   57.295779513f
+#define ONE_G_TRESHOLD      1000
+#define ONE_G               1000.0f
+
+/*
+|===================================================================================================================================|
+    Local types definitions 
+|===================================================================================================================================|
+*/
+/*MPU6050 register types definitions*/
+/*CONFIG*/
+typedef struct 
+{
+    uint8_t DLPF_CFG:3;
+    uint8_t EXT_SYNC_SET:3;
+    uint8_t RESRVED:2;
+}
+Config_Reg_Fields_T;
+
+union Config_Reg_T
+{
+    uint8_t byte;
+    Config_Reg_Fields_T fields;
+};
+
+/*
+|===================================================================================================================================|
+    Object allocations 
+|===================================================================================================================================|
+*/
 I2c i2c_bus;
 
-Mpu6050::Mpu6050():i2c_handle_(nullptr)
+static pthread_mutex_t Angle_Lock;
+static pthread_mutex_t Acc_Lock;
+
+static const std::map<Acc_Axis_T, uint8_t> Acc_Reg_Cfg
 {
+    {X, ACCEL_XOUT_H_AD},
+    {Y, ACCEL_YOUT_H_AD},
+    {Z, ACCEL_ZOUT_H_AD},
+};
+
+static const std::map<Angle_Axis_T, Acc_Axis_T> Angle_Cfg
+{
+    {ROLL , Y},
+    {PITCH, X}
+};
+
+/*
+|===================================================================================================================================|
+    Local function declarations
+|===================================================================================================================================|
+*/
+
+/*
+|===================================================================================================================================|
+    Function definitions
+|===================================================================================================================================|
+*/
+/**
+ * @brief Constructor for Mpu6050 class.
+ * @param i2c_handle I2C handle for communication.
+ */
+Mpu6050::Mpu6050(I2c *i2c_handle): 
+    i2c_handle_(i2c_handle), sensor_data_(), sensor_(i2c_handle, sensor_data_),
+    acc_converter_(sensor_data_), angle_converter_(sensor_data_) 
+{
+    sensor_data_.raw_accelerations_=
+    {
+        {X, 0},
+        {Y, 0},
+        {Z, 0}
+    };
+    sensor_data_.physical_accelerations_=
+    {
+        {X, 0},
+        {Y, 0},
+        {Z, 0}
+    };
+    sensor_data_.spirit_angles_=
+    {
+        {ROLL, 0},
+        {PITCH, 0}
+    };
+};
+
+/**
+ * @brief Initializes the software module and loads the configuration
+ *        into physical sensor memory
+ */
+void Mpu6050::Init(void)
+{
+    pthread_mutex_init(&Angle_Lock, NULL);
+    pthread_mutex_init(&Acc_Lock, NULL);
+    sensor_.Init();
 }
 
-void Mpu6050::Init(I2c* i2c_ptr)
-{
-    i2c_handle_ = i2c_ptr;
-}
-
+/**
+ * @brief Starts the physical sensor.
+ */
 void Mpu6050::Start(void)
 {
-    bool sensor_detected = CheckSensorPresence();
-    if(sensor_detected)
-    {
-        i2c_handle_ -> WriteByte(MPU6050_I2R_ADDR, PWR_MGMT_1, PWR_MGMT_1_WAKE_UP);
-    }
+    sensor_.Start();
 }
 
-void Mpu6050::MainFunc(void)
+/**
+ * @brief Gets the spirit angle for a specified axis.
+ * @param axis The axis for which to retrieve the spirit angle.
+ * @return The spirit angle in degrees.
+ */
+int32_t Mpu6050::GetSpiritAngle(Angle_Axis_T axis) const
 {
-    Acc_Axis_T axis = MAX_AXIS_NUMBER;
-    int16_t raw_acc = 0;
-
-    for(int i=0; i<MAX_AXIS_NUMBER; i++)
-    {
-        axis = static_cast<Acc_Axis_T>(i);
-        raw_acc = ReadAccceleration(axis);
-        SetRawAcceleration(axis, raw_acc);
-    }
-    ConvertReadings();
+    int32_t angle = 0;
+    
+    pthread_mutex_lock(&Angle_Lock);
+    angle = sensor_data_.spirit_angles_.at(axis);
+    pthread_mutex_unlock(&Angle_Lock);
+    return angle;
 }
 
-bool Mpu6050::CheckSensorPresence(void) const
+/**
+ * @brief Gets the physical acceleration for a specified axis.
+ * @param axis The axis for which to retrieve the physical acceleration.
+ * @return The physical acceleration in ACC_SCALER*[g].
+ */
+int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
 {
-    int who_i_am = i2c_handle_->ReadByte(MPU6050_I2R_ADDR, WHO_AM_I);
-    return WHO_AM_I_VAL == who_i_am;
-}
-
-int16_t Mpu6050::ReadAccceleration(Acc_Axis_T axis) const
-{
-    std::vector<uint8_t> Acc_Bytes;
-    int16_t acc = 0;
-    uint8_t start_reg = 0x00;
-
-    if(X == axis)
-    {
-        start_reg = ACCEL_XOUT_H;
-    }
-    else if(Y == axis)
-    {
-        start_reg = ACCEL_YOUT_H;
-    }
-    else if(Z == axis)
-    {
-        start_reg = ACCEL_ZOUT_H;
-    }
-    else
-    {
-    }
-
-    Acc_Bytes = i2c_handle_->ReadBlockOfBytes(MPU6050_I2R_ADDR, start_reg, ACC_SIZE);
-    acc = ((int16_t)(Acc_Bytes[ACC_H]) << 8) + (int16_t)Acc_Bytes[ACC_L];
-
+    int32_t acc = 0;
+    pthread_mutex_lock(&Acc_Lock);
+    acc = sensor_data_.physical_accelerations_.at(axis);
+    pthread_mutex_unlock(&Acc_Lock);
     return acc;
 }
 
-void Mpu6050::SetRawAcceleration(Acc_Axis_T axis, int16_t acc)
+/**
+ * @brief Reads sensor data, performs conversions, and calculates angles.
+ */
+void Mpu6050::ReadAndProcessSensorData(void)
 {
-    Raw_Accelerations_[axis] = acc;
+    {
+        sensor_.ReadSensorData();
+        acc_converter_.ConvertRawToPhysical();
+        angle_converter_.CalculateSpiritAngles();
+    }
 }
 
-int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
+/**
+ * @brief Sets filtering configuration of physical sensor.
+ */
+void Mpu6050::SetLowPassFilter(Filtering_Level_T level) const
 {
-    return Physical_Accelerations_[axis];
+    sensor_.SetLowPassFilter(level);
 }
 
+/**
+ * @brief Checks if a valid I2C instance is available.
+ * @return True if a valid I2C instance is available, false otherwise.
+ */
 bool Mpu6050::HasValidI2cInstance(void) const
 {
     return nullptr != i2c_handle_;
 }
 
-void Mpu6050::ConvertReadings(void)
+/**
+ * @brief Reads all the new data from sensor.
+ */
+void Mpu6050Sensor::ReadSensorData(void)
 {
-    for(int i=0; i<MAX_AXIS_NUMBER; i++)
+    int16_t raw_acc = 0;
+
+    for(auto &x : data_to_fill_.raw_accelerations_)
     {
-        int32_t raw_value = Raw_Accelerations_[i];
-        Physical_Accelerations_[i] = raw_value * ACC_MAX_VAL * 1000 / INT16_T_MAX_VAL;
+        raw_acc = ReadAcceleration(x.first);
+        x.second = raw_acc;
     }
 }
 
-Mpu6050::~Mpu6050()
+/**
+ * @brief Configures the filtering of accelerometer and gyroscope sampling.
+ */
+void Mpu6050Sensor::SetLowPassFilter(Filtering_Level_T level) const
 {
+    Config_Reg_T Config;
+    Config.byte = 0x00;
+    Config.fields.DLPF_CFG = uint8_t(level);
+
+    i2c_handle_->WriteByte(MPU6050_I2C_ADDR, CONFIG_AD, Config.byte);
 }
+
+/**
+ * @brief Checks the presence of the physical MPU6050 sensor on the i2c bus.
+ * @return True if the sensor is present, false otherwise.
+ */
+bool Mpu6050Sensor::CheckPresence(void) const
+{
+    int who_i_am = i2c_handle_->ReadByte(MPU6050_I2C_ADDR, WHO_AM_I_AD);
+    return WHO_AM_I_VAL == who_i_am;
+}
+
+/**
+ * @brief Reads raw acceleration data from a specified axis.
+ * @param axis The axis for which to read acceleration data.
+ * @return The raw acceleration data.
+ */
+int16_t Mpu6050Sensor::ReadAcceleration(Acc_Axis_T axis) const
+{
+    std::vector<uint8_t> Acc_Bytes;
+    int16_t acc = 0;
+    uint8_t start_reg = 0x00;
+
+    start_reg = Acc_Reg_Cfg.at(axis);
+    Acc_Bytes = i2c_handle_->ReadBlockOfBytes(MPU6050_I2C_ADDR, start_reg, ACC_SIZE);
+
+    acc = ((int16_t)(Acc_Bytes[ACC_H]) << 8) + (int16_t)Acc_Bytes[ACC_L];
+
+    return acc;
+}
+
+/**
+ * @brief Configure the MPU6050 sensor after checking its presence.
+ * @throws runtime_error if the sensor chip doesn't report himself properly
+ */
+void Mpu6050Sensor::Init(void) const
+{
+    bool sensor_detected = false;
+    sensor_detected = CheckPresence();
+    if(sensor_detected){
+        SetLowPassFilter(FILTER_LEVEL_CFG);
+    }
+    else{
+        throw std::runtime_error("Cannot detect sensor");
+    }
+}
+
+/**
+ * @brief Wakes the sensor up.
+ */
+void Mpu6050Sensor::Start(void)
+{
+    i2c_handle_ -> WriteByte(MPU6050_I2C_ADDR, PWR_MGMT_1_AD, PWR_MGMT_1_WAKE_UP);
+}
+
+/**
+ * @brief Converts raw acceleration values to physical units.
+ */
+void Mpu6050AccConverter::ConvertRawToPhysical(void)
+{
+    std::map<Acc_Axis_T, int32_t>& Raw_Accs = data_.raw_accelerations_;
+    std::map<Acc_Axis_T, int32_t>& Phys_Accs = data_.physical_accelerations_;
+    Acc_Axis_T axis;
+
+    pthread_mutex_lock(&Acc_Lock);
+    for(auto &x : Phys_Accs)
+    {
+        axis = x.first;
+        int32_t raw_value = Raw_Accs.at(axis);
+        x.second = raw_value * ACC_MAX_VAL * ACC_SCALER / INT16_T_MAX_VAL;
+    }
+    pthread_mutex_unlock(&Acc_Lock);
+}
+
+
+/**
+ * @brief Calculates spirit angles based on physical acceleration data.
+ */
+void Mpu6050AngleConverter::CalculateSpiritAngles(void)
+{
+    int32_t  angle = 0;
+    int32_t  acc   = 0;
+
+    pthread_mutex_lock(&Angle_Lock);
+
+    for (auto &x : data_.spirit_angles_)
+    {
+        Acc_Axis_T assigned_axis = Angle_Cfg.at(x.first);
+        acc = data_.physical_accelerations_.at(assigned_axis);
+        if(ONE_G_TRESHOLD >= abs(acc)){
+            angle = CalculateAngle(acc);
+        }
+        else{
+            angle = 0;
+        }
+        x.second = angle;
+    }
+
+    pthread_mutex_unlock(&Angle_Lock);
+}
+
+/**
+ * @brief Converts acceleration to angle.
+ * @param acc The signed value of acceleration.
+ * @return Corresponding angle.
+ */
+int32_t Mpu6050AngleConverter::CalculateAngle(int32_t acc) const
+{
+    int32_t angle = 0;
+    float acc_f    = 0.0;
+    float angle_f  = 0.0;
+
+    acc_f = (float)acc;
+    angle_f = DEGREES_IN_RADIAN * (-asin(acc_f/ONE_G));
+    angle = std::round(angle_f);
+
+    return angle;
+}
+
+/*UT interfaces:*/
+#ifdef _UNIT_TEST
+void Mpu6050::SetRawAcceleration(Acc_Axis_T axis, int16_t acc)
+{
+    sensor_data_.raw_accelerations_.at(axis) = acc;
+}
+
+int16_t Mpu6050::GetRawAcceleration(Acc_Axis_T axis) const
+{
+    return sensor_data_.raw_accelerations_.at(axis);
+}
+
+void Mpu6050::SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc)
+{
+    sensor_data_.physical_accelerations_.at(axis) = acc;
+}
+
+void Mpu6050::ReadSensorData(void)
+{
+    sensor_.ReadSensorData();
+}
+
+void Mpu6050::ConvertRawToPhysical(void)
+{
+    acc_converter_.ConvertRawToPhysical();
+}
+
+void Mpu6050::CalculateSpiritAngles(void)
+{
+    angle_converter_.CalculateSpiritAngles();
+}
+#endif /*_UNIT_TEST*/

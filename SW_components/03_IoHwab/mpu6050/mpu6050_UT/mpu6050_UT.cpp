@@ -8,11 +8,12 @@
 
 TEST_GROUP(Mpu6050)
 {
+    I2c i2c;
     Mpu6050* mpu6050;
 
     void setup()
     {
-        mpu6050 = new Mpu6050();
+        mpu6050 = new Mpu6050(&i2c);
     }
     void teardown()
     {
@@ -26,20 +27,11 @@ const uint8_t Mpu6050_Who_Am_I = 0x75;
 const uint8_t Mpu6050_I2c_Addr = 0x68;
 const uint8_t Acc_Size = 2U;
 
-TEST(Mpu6050, InitWithI2cInstance)
+TEST(Mpu6050, InitsSensorWithConfiguration)
 {
-    I2c i2c;
-    mpu6050->Init(&i2c);
-
-    CHECK(mpu6050->HasValidI2cInstance());
-}
-
-TEST(Mpu6050, StartsProperly)
-{
-    const uint8_t Mpu6050_Who_Am_I = 0x75;
     const uint8_t Mpu6050_Who_Am_I_Val = 0x68;
-    const uint8_t Mpu6050_Pwr_Mgmt_1 = 0x6B;
-    const uint8_t Mpu6050_Pwr_Mgmt_1_Wake_Up = 0x00;
+    const uint8_t Mpu6050_Config = 0x1A;
+    const uint8_t Mpu6050_Config_Level = 0x05;
 
     mock().expectOneCall("ReadByte")
         .withParameter("slave_addr", Mpu6050_I2c_Addr)
@@ -48,10 +40,10 @@ TEST(Mpu6050, StartsProperly)
 
     mock().expectOneCall("WriteByte")
         .withParameter("slave_addr", Mpu6050_I2c_Addr)
-        .withParameter("addr", Mpu6050_Pwr_Mgmt_1)
-        .withParameter("data", Mpu6050_Pwr_Mgmt_1_Wake_Up);
+        .withParameter("addr", Mpu6050_Config)
+        .withParameter("data", Mpu6050_Config_Level);
 
-    mpu6050->Start();
+    mpu6050->Init();
 }
 
 TEST(Mpu6050, CannotDetectPhysicalSensor)
@@ -63,21 +55,38 @@ TEST(Mpu6050, CannotDetectPhysicalSensor)
         .withParameter("addr", Mpu6050_Who_Am_I)
         .andReturnValue(Arbitrary_Incorrect_Value);
 
+    CHECK_THROWS(std::exception, mpu6050->Init());
+}
+
+TEST(Mpu6050, StartsProperly)
+{
+    const uint8_t Mpu6050_Pwr_Mgmt_1 = 0x6B;
+    const uint8_t Mpu6050_Pwr_Mgmt_1_Wake_Up = 0x00;
+
+    mock().expectOneCall("WriteByte")
+        .withParameter("slave_addr", Mpu6050_I2c_Addr)
+        .withParameter("addr", Mpu6050_Pwr_Mgmt_1)
+        .withParameter("data", Mpu6050_Pwr_Mgmt_1_Wake_Up);
+
     mpu6050->Start();
 }
+
 
 TEST(Mpu6050, ReadsAccelerationInXAxis)
 {
     const uint8_t Mpu6050_Accel_Xout_H = 0x3BU;
     std::vector<uint8_t> Minus_Ten_In_U2 = {0xFF,0xF6};
+    std::vector<uint8_t> Dummy_Val = {0xFF,0xF6};
 
     mock().expectOneCall("ReadBlockOfBytes")
         .withParameter("slave_addr", Mpu6050_I2c_Addr)
         .withParameter("start_reg_addr", Mpu6050_Accel_Xout_H)
         .withParameter("block_len", Acc_Size)
         .andReturnValue(&Minus_Ten_In_U2);
+    mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
-    int16_t x_acc = mpu6050->ReadAccceleration(X);
+    mpu6050->ReadAndProcessSensorData();
+    int16_t x_acc = mpu6050->GetRawAcceleration(X);
 
     CHECK_EQUAL(x_acc, -10);
 }
@@ -86,15 +95,18 @@ TEST(Mpu6050, ReadsAccelerationInYAxis)
 {
     const uint8_t Mpu6050_Accel_Yout_H = 0x3DU;
     std::vector<uint8_t> Twenty_In_U2 = {0x00,0x14};
+    std::vector<uint8_t> Dummy_Val = {0xFF,0xF6};
 
     mock().expectOneCall("ReadBlockOfBytes")
         .withParameter("slave_addr", Mpu6050_I2c_Addr)
         .withParameter("start_reg_addr", Mpu6050_Accel_Yout_H)
         .withParameter("block_len", Acc_Size)
         .andReturnValue(&Twenty_In_U2);
+    mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
-    int16_t y_acc = mpu6050->ReadAccceleration(Y);
-
+    mpu6050->ReadAndProcessSensorData();
+    int16_t y_acc = mpu6050->GetRawAcceleration(Y);
+    
     CHECK_EQUAL(y_acc, 20);
 }
 
@@ -102,31 +114,34 @@ TEST(Mpu6050, ReadsAccelerationInZAxis)
 {
     const uint8_t Mpu6050_Accel_Zout_H = 0x3FU;
     std::vector<uint8_t> Minus_Thirty_In_U2 = {0xFF,0xE2};
+    std::vector<uint8_t> Dummy_Val = {0xFF,0xF6};
 
     mock().expectOneCall("ReadBlockOfBytes")
             .withParameter("slave_addr", Mpu6050_I2c_Addr)
             .withParameter("start_reg_addr", Mpu6050_Accel_Zout_H)
             .withParameter("block_len", Acc_Size)
             .ignoreOtherParameters()
-            .andReturnValue(&Minus_Thirty_In_U2);
-        
-    int16_t z_acc = mpu6050->ReadAccceleration(Z);
+            .andReturnValue(&Minus_Thirty_In_U2);     
+    mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
+
+    mpu6050->ReadAndProcessSensorData();
+    int16_t z_acc = mpu6050->GetRawAcceleration(Z);
 
     CHECK_EQUAL(z_acc, -30);
 }
 
 /*
 * Below tests assume:
-*    physicalAcc = rawData * 2g / int16_t_MAX * 1000
+*    physicalAcc = rawData * ACC_MAX_VAL[g] / int16_t_MAX * 1000
 */
-
+std::vector<uint8_t> Random_Val = {0xFF,0xF6};
 TEST(Mpu6050, ConvertsPositiveRawReadingsToPhysicalAccelerationInXAxis)
 {
     const int Raw_Acceleration_X = 2000;
     const int Expected_Physical_Acceleration_X = 122;
 
     mpu6050->SetRawAcceleration(X, Raw_Acceleration_X);
-    mpu6050->ConvertReadings();
+    mpu6050->ConvertRawToPhysical();
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
 }
 
@@ -136,7 +151,7 @@ TEST(Mpu6050, ConvertsNegativeRawReadingsToPhysicalAccelerationInXAxis)
     const int Expected_Physical_Acceleration_X = -36;
 
     mpu6050->SetRawAcceleration(X, Raw_Acceleration_X);
-    mpu6050->ConvertReadings();
+    mpu6050->ConvertRawToPhysical();
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
 }
 
@@ -149,7 +164,7 @@ TEST(Mpu6050, ConvertsRawReadingsToPhysicalAccelerationInYAxisAndIgnoresChangesI
     mpu6050->SetRawAcceleration(Y, Raw_Acceleration_Y);
     mpu6050->SetRawAcceleration(X, Arbitrary_Raw_Acceleration);
 
-    mpu6050->ConvertReadings();
+    mpu6050->ConvertRawToPhysical();
 
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Y), Expected_Physical_Acceleration_Y);
 }
@@ -160,7 +175,7 @@ TEST(Mpu6050, ConvertsMaxRawReadingsToPhysicalAccelerationInZAxis)
     const int Expected_Physical_Acceleration_Z = 2000;
 
     mpu6050->SetRawAcceleration(Z, Raw_Acceleration_Z);
-    mpu6050->ConvertReadings();
+    mpu6050->ConvertRawToPhysical();
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Z), Expected_Physical_Acceleration_Z);
 }
 
@@ -192,10 +207,126 @@ TEST(Mpu6050, ExecutesMainFunction)
         .withParameter("start_reg_addr", Mpu6050_Accel_Zout_H)
         .ignoreOtherParameters()
         .andReturnValue(&Minus_Thirty_In_U2);
+    // mock().ignoreOtherCalls();
 
-    mpu6050->MainFunc();
+    mpu6050->ReadAndProcessSensorData();
 
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Y), Expected_Physical_Acceleration_Y);
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Z), Expected_Physical_Acceleration_Z);
+
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), -2);
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(PITCH), 0);
+}
+
+TEST(Mpu6050, CalculatesRollSpiritAngle)
+{
+    const int32_t Phys_Acc_Y = -1000;
+    const int32_t Expected_Roll_Angle = 90;
+
+    mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), Expected_Roll_Angle);
+}
+
+TEST(Mpu6050, CalculatesSecondRollSpiritAngle)
+{
+    const int32_t Phys_Acc_Y = 708;
+    const int32_t Expected_Roll_Angle = -45;
+
+    mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), Expected_Roll_Angle);
+}
+
+TEST(Mpu6050, CalculatesPitchSpiritAngle)
+{
+    const int32_t Phys_Acc_X = 0;
+    const int32_t Expected_Pitch_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(PITCH), Expected_Pitch_Angle);
+}
+
+TEST(Mpu6050, CalculatesSecondPitchSpiritAngle)
+{
+    const int32_t Phys_Acc_X = -500;
+    const int32_t Expected_Pitch_Angle = 30;
+
+    mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(PITCH), Expected_Pitch_Angle);
+}
+
+/*Spirit angles during too hight linear accelerations*/
+TEST(Mpu6050, CalculatesPitchSpiritAngleDuringPositveOversteering)
+{
+    const int32_t Phys_Acc_X_Out_Of_Range = 5000;
+    const int32_t Expected_Pitch_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X_Out_Of_Range);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(PITCH), Expected_Pitch_Angle);
+}
+
+TEST(Mpu6050, CalculatesPitchSpiritAngleDuringNegativeOversteering)
+{
+    const int32_t Phys_Acc_X_Out_Of_Range = -15000;
+    const int32_t Expected_Pitch_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(X, Phys_Acc_X_Out_Of_Range);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(PITCH), Expected_Pitch_Angle);
+}
+
+TEST(Mpu6050, CalculatesRollSpiritAngleDuringPositiveOversteering)
+{
+    const int32_t Phys_Acc_Y_Out_Of_Range = 1234;
+    const int32_t Expected_Roll_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y_Out_Of_Range);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), Expected_Roll_Angle);
+}
+
+TEST(Mpu6050, CalculatesRollSpiritAngleDuringNegativeeOversteering)
+{
+    const int32_t Phys_Acc_Y_Out_Of_Range = -1001;
+    const int32_t Expected_Roll_Angle = 0;
+
+    mpu6050->SetPhysicalAcceleration(Y, Phys_Acc_Y_Out_Of_Range);
+    mpu6050->CalculateSpiritAngles();
+    CHECK_EQUAL(mpu6050->GetSpiritAngle(ROLL), Expected_Roll_Angle);
+}
+
+/**
+ * Filtering setting functionality - bandwidth of read acceleration configuration
+ */ 
+const uint8_t Mpu6050_Config_Addr = 0x1A;
+
+TEST(Mpu6050, SetsFilteringLevelWeak)
+{
+    const Filtering_Level_T level = LEVEL_1;
+    const uint8_t Mpu6050_Config_Dlpf_Cfg = 0x01;
+
+    mock().expectOneCall("WriteByte")
+    .withParameter("slave_addr", Mpu6050_I2c_Addr)
+    .withParameter("addr", Mpu6050_Config_Addr)
+    .withParameter("data", Mpu6050_Config_Dlpf_Cfg);
+
+    mpu6050->SetLowPassFilter(level);
+}
+
+TEST(Mpu6050, SetsFilteringLevelStrong)
+{
+    const Filtering_Level_T level = LEVEL_6;
+    const uint8_t Mpu6050_Config_Dlpf_Cfg= 0x06;
+
+    mock().expectOneCall("WriteByte")
+    .withParameter("slave_addr", Mpu6050_I2c_Addr)
+    .withParameter("addr", Mpu6050_Config_Addr)
+    .withParameter("data", Mpu6050_Config_Dlpf_Cfg);
+
+    mpu6050->SetLowPassFilter(level);
 }
