@@ -49,10 +49,7 @@
             "cwd": "${workspaceFolder}/Builds"
          },
          "problemMatcher": {
-            "base": "$gcc",
-            "fileLocation": [
-               "${workspaceFolder}/Builds"
-            ]
+            "base": "$gcc"
          },
          "group": "build"
       },
@@ -65,10 +62,7 @@
             "cwd": "${workspaceFolder}/Builds"
          },
          "problemMatcher": {
-            "base": "$gcc",
-            "fileLocation": [
-               "${workspaceFolder}/Builds"
-            ]
+            "base": "$gcc"
          },
          "group": "build"
       },
@@ -99,9 +93,6 @@
          },
          "problemMatcher": {
             "base": "$gcc",
-            "fileLocation": [
-               "${workspaceFolder}/Testing/Builds"
-            ]
          },
       },
       {
@@ -132,25 +123,53 @@
          }
       },
       /*Unit tests*/
+      {
+        "type": "shell",
+        "label": "Build I2C Unit Tests",
+        "command": "bash",
+        "args": [
+            "-c",
+            "make all 2>&1 | sed 's|/cygdrive/d/|D:/|g; s|${workspaceFolder}/|./|g'"
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}/SW_components/04_Drv/i2c/i2c_UT/builds_UT/"
+        },
+        "problemMatcher": {
+            "base": "$gcc"
+        },
+    },
+    {
+        "type": "shell",
+        "label": "Clean I2C Unit Tests",
+        "command": "make clean",
+        "args": [],
+        "options": {
+            "cwd": "${workspaceFolder}/SW_components/04_Drv/i2c/i2c_UT/builds_UT/"
+        },
+    },
+    {
+        "type": "shell",
+        "label": "Run I2C Unit Tests",
+        "command": "I2C_UT.exe",
+        "args": [],
+        "options": {
+            "cwd": "${workspaceFolder}/SW_components/04_Drv/i2c/i2c_UT/builds_UT/"
+        },
+    },
         {
             "type": "shell",
             "label": "Build MPU6050 Unit Tests",
             "command": "bash",
-            "args": ["-c", "make all 2>&1 | sed 's|/cygdrive/d/|D:/|g; s|${workspaceFolder}/|./|g'"],
+            "args": [
+                "-c",
+                "make all 2>&1 | sed 's|/cygdrive/d/|D:/|g; s|${workspaceFolder}/|./|g'"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT"
             },
             "problemMatcher": {
-                "owner": "external",
-                "fileLocation": "absolute",
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "message": 4
-                },
-            }
+                "base": "$gcc"
+            },
         },
         {
             "type": "shell",
@@ -169,6 +188,53 @@
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT"
             },
+        },
+        {
+            "type": "shell",
+            "label": "Build Balancer Unit Tests",
+            "linux": "true",
+            "group": "test",
+            "command": "bash",
+            "args": [
+                "-c",
+                "make all 2>&1 | sed 's|/cygdrive/d/|D:/|g; s|${workspaceFolder}/|./|g'"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/03_IoHwab/flight_control/balancer_UT/builds_UT"
+            },
+            "problemMatcher": {
+                "base": "$gcc"
+            },
+        },
+        {
+            "type": "shell",
+            "label": "Clean Balancer Unit Tests",
+            "group": "test",
+            "command": "make clean",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/03_IoHwab/flight_control/balancer_UT/builds_UT"
+            },
+        },
+        {
+            "type": "shell",
+            "label": "Run Balancer Unit Tests",
+            "command": "balancer_UT.exe",
+            "group": "test",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/03_IoHwab/flight_control/balancer_UT/builds_UT"
+            },
+        },
+        {
+            "label": "Build all UTs",
+            "dependsOrder": "sequence",
+            "dependsOn": ["Build MPU6050 Unit Tests", "Build Balancer Unit Tests", "Build I2C Unit Tests"]
+        },
+        {
+            "label": "Run all UTs",
+            "dependsOrder": "sequence",
+            "dependsOn": ["Run MPU6050 Unit Tests", "Run Balancer Unit Tests", "Run I2C Unit Tests"]
         }
    ]
 }

@@ -2,12 +2,11 @@
 
 Mpu6050 mpu6050;
 
-int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
+void Mpu6050::ReadAndProcessSensorData(void)
 {
-    return 0;
 }
 
-void Mpu6050::MainFunc(void)
+int32_t Mpu6050::GetSpiritAngle(Angle_Axis_T axis)
 {
-
+    return 0;
 }
