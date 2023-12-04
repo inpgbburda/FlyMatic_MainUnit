@@ -125,7 +125,7 @@
       /*Unit tests*/
       {
         "type": "shell",
-        "label": "Build I2C Unit Tests",
+        "label": "Unit Tests - I2C - build",
         "command": "bash",
         "args": [
             "-c",
@@ -140,7 +140,7 @@
     },
     {
         "type": "shell",
-        "label": "Clean I2C Unit Tests",
+        "label": "Unit Tests - I2C - clean",
         "command": "make clean",
         "args": [],
         "options": {
@@ -149,7 +149,7 @@
     },
     {
         "type": "shell",
-        "label": "Run I2C Unit Tests",
+        "label": "Unit Tests - I2C - run",
         "command": "I2C_UT.exe",
         "args": [],
         "options": {
@@ -158,7 +158,7 @@
     },
         {
             "type": "shell",
-            "label": "Build MPU6050 Unit Tests",
+            "label": "Unit Tests - MPU6050 - build",
             "command": "bash",
             "args": [
                 "-c",
@@ -173,7 +173,7 @@
         },
         {
             "type": "shell",
-            "label": "Clean MPU6050 Unit Tests",
+            "label": "Unit Tests - MPU6050 - clean",
             "command": "make clean",
             "args": [],
             "options": {
@@ -182,7 +182,7 @@
         },
         {
             "type": "shell",
-            "label": "Run MPU6050 Unit Tests",
+            "label": "Unit Tests - MPU6050 - run",
             "command": "mpu6050_UT.exe",
             "args": [],
             "options": {
@@ -191,7 +191,7 @@
         },
         {
             "type": "shell",
-            "label": "Build Balancer Unit Tests",
+            "label": " Unit Tests - Balancer - build",
             "linux": "true",
             "group": "test",
             "command": "bash",
@@ -208,7 +208,7 @@
         },
         {
             "type": "shell",
-            "label": "Clean Balancer Unit Tests",
+            "label": "Unit Tests - Balancer - clean",
             "group": "test",
             "command": "make clean",
             "args": [],
@@ -218,7 +218,7 @@
         },
         {
             "type": "shell",
-            "label": "Run Balancer Unit Tests",
+            "label": "Unit Tests - Balancer - run",
             "command": "balancer_UT.exe",
             "group": "test",
             "args": [],
@@ -227,14 +227,14 @@
             },
         },
         {
-            "label": "Build all UTs",
+            "label": "Unit Tests - Build all UTs",
             "dependsOrder": "sequence",
-            "dependsOn": ["Build MPU6050 Unit Tests", "Build Balancer Unit Tests", "Build I2C Unit Tests"]
+            "dependsOn": ["Build MPU6050 Unit Tests", "Build Balancer Unit Tests", "Unit Tests - I2C - build"]
         },
         {
-            "label": "Run all UTs",
+            "label": "Unit Tests - Run all UTs",
             "dependsOrder": "sequence",
-            "dependsOn": ["Run MPU6050 Unit Tests", "Run Balancer Unit Tests", "Run I2C Unit Tests"]
+            "dependsOn": ["Unit Tests - MPU6050 - run", "Unit Tests - Balancer - run", "Unit Tests - I2C - run"]
         }
    ]
 }
