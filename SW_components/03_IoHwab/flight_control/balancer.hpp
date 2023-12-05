@@ -11,5 +11,5 @@ private:
 public:
     Balancer(/* args */);
     ~Balancer();
-    void Runable(void) const;
+    void ProcessControl(void) const;
 };

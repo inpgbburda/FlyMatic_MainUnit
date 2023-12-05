@@ -229,7 +229,7 @@
         {
             "label": "Unit Tests - Build all UTs",
             "dependsOrder": "sequence",
-            "dependsOn": ["Build MPU6050 Unit Tests", "Build Balancer Unit Tests", "Unit Tests - I2C - build"]
+            "dependsOn": ["Unit Tests - MPU6050 - build", "Unit Tests - Balancer - build", "Unit Tests - I2C - build"]
         },
         {
             "label": "Unit Tests - Run all UTs",

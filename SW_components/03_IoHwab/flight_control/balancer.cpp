@@ -61,6 +61,8 @@ Balancer::~Balancer()
 {
 }
 
-void Balancer::Runable(void) const
+void Balancer::ProcessControl(void) const
 {
+    Set_Pwm(CHAN_1, 25);
+    Set_Pwm(CHAN_2, 25);
 }
