@@ -28,5 +28,5 @@ RT_Thread thread_2 = RT_Thread(                             \
                                 ,CalculateFlightControls    \
                               );
 
-std::vector<RT_Thread> Initial_Threads_G = {thread_1, thread_2};
+std::vector<RT_Thread> Initial_Threads_G = {thread_2};
 Thread_Manager Manager_G = Thread_Manager();
