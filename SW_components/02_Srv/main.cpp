@@ -21,6 +21,7 @@ int main()
     i2c.Init(DRV_1);
 
     mpu6050.Start();
+    mpu6050.SetLowPassFilter(LEVEL_5);
     
     Manager_G.CollectThreads(Initial_Threads_G);
     Manager_G.RunAllThreads();

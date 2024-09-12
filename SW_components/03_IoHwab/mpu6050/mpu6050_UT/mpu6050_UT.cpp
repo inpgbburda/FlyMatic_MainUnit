@@ -83,6 +83,8 @@ TEST(Mpu6050, ReadsAccelerationInXAxis)
         .withParameter("start_reg_addr", Mpu6050_Accel_Xout_H)
         .withParameter("block_len", Acc_Size)
         .andReturnValue(&Minus_Ten_In_U2);
+        
+    /* Reading the rest of the axes */
     mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
     mpu6050->ReadAndProcessSensorData();
@@ -102,6 +104,8 @@ TEST(Mpu6050, ReadsAccelerationInYAxis)
         .withParameter("start_reg_addr", Mpu6050_Accel_Yout_H)
         .withParameter("block_len", Acc_Size)
         .andReturnValue(&Twenty_In_U2);
+
+    /* Reading the rest of axes */
     mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
     mpu6050->ReadAndProcessSensorData();
@@ -121,7 +125,9 @@ TEST(Mpu6050, ReadsAccelerationInZAxis)
             .withParameter("start_reg_addr", Mpu6050_Accel_Zout_H)
             .withParameter("block_len", Acc_Size)
             .ignoreOtherParameters()
-            .andReturnValue(&Minus_Thirty_In_U2);     
+            .andReturnValue(&Minus_Thirty_In_U2);
+
+    /* Reading the rest of axes */
     mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
     mpu6050->ReadAndProcessSensorData();
@@ -207,7 +213,6 @@ TEST(Mpu6050, ExecutesMainFunction)
         .withParameter("start_reg_addr", Mpu6050_Accel_Zout_H)
         .ignoreOtherParameters()
         .andReturnValue(&Minus_Thirty_In_U2);
-    // mock().ignoreOtherCalls();
 
     mpu6050->ReadAndProcessSensorData();
 
