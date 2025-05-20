@@ -1,24 +1,11 @@
 #include "Thread_Manager_Cfg.hpp"
-#include "pwm.hpp"
 #include "balancer.hpp"
 
 #define MILI_TO_NANOSECONDS(Mili_sec) (( Mili_sec * 1000000U ))
 
-#define PWM_GEN_RUNTIME_THR     MILI_TO_NANOSECONDS(20)
-#define PWM_GEN_DEADLINE_THR    MILI_TO_NANOSECONDS(20)
-#define PWM_GEN_PERIOD_THR      MILI_TO_NANOSECONDS(20)
-
 #define FLIGHT_CTRL_RUNTIME_THR     MILI_TO_NANOSECONDS(20)
 #define FLIGHT_CTRL_DEADLINE_THR    MILI_TO_NANOSECONDS(20)
 #define FLIGHT_CTRL_PERIOD_THR      MILI_TO_NANOSECONDS(100)
-
-RT_Thread thread_1 = RT_Thread(                         \
-                                 SCHED_DEADLINE         \
-                                ,PWM_GEN_RUNTIME_THR    \
-                                ,PWM_GEN_DEADLINE_THR   \
-                                ,PWM_GEN_PERIOD_THR     \
-                                ,DoPwm                  \
-                              );
 
 RT_Thread thread_2 = RT_Thread(                             \
                                  SCHED_DEADLINE             \

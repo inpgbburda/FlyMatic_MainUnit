@@ -9,7 +9,6 @@ set(SOURCES
     02_Srv/threads/Thread_Manager_Cfg.cpp
     03_IoHwab/mpu6050/mpu6050.cpp
     03_IoHwab/flight_control/balancer.cpp
-    04_Drv/pwm/pwm.cpp
     04_Drv/i2c/i2c.cpp
 )
 
@@ -17,7 +16,6 @@ set(HEADERS
     02_Srv/threads/
     03_IoHwab/mpu6050/
     03_IoHwab/flight_control/
-    04_Drv/pwm/
     04_Drv/i2c/
 )
 

@@ -3,7 +3,6 @@
 #include "Thread_Manager.hpp"
 #include "i2c.hpp"
 #include "i2c_cfg.hpp"
-#include "pwm.hpp"
 #include "balancer.hpp"
 #include "mpu6050.hpp"
 
@@ -17,7 +16,6 @@ int main()
 {
     std::cout << "Witam serdecznie w projekcie drona"<< std::endl;
 
-    Init_Pwm();
     i2c.Init(DRV_1);
 
     mpu6050.Start();
