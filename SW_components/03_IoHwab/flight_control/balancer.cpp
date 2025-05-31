@@ -25,7 +25,11 @@ void *CalculateFlightControls(void *data_ptr)
         fd = wiringPiSPISetup(CHANNEL, 500000);
 
         buffer[0] = 0x76;
-        wiringPiSPIDataRW(CHANNEL, buffer, 1);
+        buffer[1] = 0x75;
+        buffer[2] = 0x74;
+        buffer[3] = 0x73;
+
+        wiringPiSPIDataRW(CHANNEL, buffer, 4);
 
         mpu6050.ReadAndProcessSensorData();
         angle_x = mpu6050.GetSpiritAngle(ROLL);
