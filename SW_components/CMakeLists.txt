@@ -10,6 +10,7 @@ set(SOURCES
     03_IoHwab/mpu6050/mpu6050.cpp
     03_IoHwab/flight_control/balancer.cpp
     04_Drv/i2c/i2c.cpp
+    04_Drv/spi/spi.cpp
 )
 
 set(HEADERS
@@ -17,6 +18,7 @@ set(HEADERS
     03_IoHwab/mpu6050/
     03_IoHwab/flight_control/
     04_Drv/i2c/
+    04_Drv/spi/
 )
 
 option(_RASP "Compile for Raspbberry" OFF)
