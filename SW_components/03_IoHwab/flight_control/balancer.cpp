@@ -1,13 +1,14 @@
 #include "balancer.hpp"
 #include "Thread_Manager.hpp"
 #include "mpu6050.hpp"
+#include "spi.hpp"
 
-#include <wiringPiSPI.h>
-
-extern uint32_t Time_Calibration_G;
 extern Mpu6050 mpu6050;
 pthread_mutex_t Pwm_lock_G;
-static const int CHANNEL = 1;
+spi spi_bus;
+
+static const int SPI_CHANNEL = 1;
+static const int SPI_SPEED = 500000;
 
 void *CalculateFlightControls(void *data_ptr)
 {
@@ -16,20 +17,16 @@ void *CalculateFlightControls(void *data_ptr)
     SchedSetAttr((sched_attr_t*)data_ptr);
 
     int32_t angle_x = 0;
-    
+    spi_bus.Init(SPI_CHANNEL, SPI_SPEED);
+
     while(1)
     {
-        // Configure the interface.
-        // CHANNEL insicates chip select,
-        // 500000 indicates bus speed.
-        fd = wiringPiSPISetup(CHANNEL, 500000);
-
         buffer[0] = 0x76;
         buffer[1] = 0x75;
         buffer[2] = 0x74;
         buffer[3] = 0x73;
 
-        wiringPiSPIDataRW(CHANNEL, buffer, 4);
+        spi_bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
 
         mpu6050.ReadAndProcessSensorData();
         angle_x = mpu6050.GetSpiritAngle(ROLL);

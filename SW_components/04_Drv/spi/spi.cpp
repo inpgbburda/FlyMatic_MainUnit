@@ -5,9 +5,9 @@ spi::spi(/* args */)
 {
 }
 
-spi::Init(const int hw_spi)
+void spi::Init(const int hw_spi, int speed)
 {
-    wiringPiSPISetup(hw_spi, SPI_SPEED);
+    wiringPiSPISetup(hw_spi, speed);
 }
 
 void spi::ReadWriteData(const int channel, unsigned char *buffer, int length)
