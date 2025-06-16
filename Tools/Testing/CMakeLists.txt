@@ -12,7 +12,6 @@ add_definitions ( -D_UNIT_TEST )
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
 
 add_executable(tests 
-    test.cpp
     EventAddress_UT.cpp
 )
 
