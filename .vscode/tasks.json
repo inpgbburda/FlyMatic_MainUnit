@@ -2,6 +2,42 @@
    "version": "2.0.0",
    "tasks": [
       {
+         "label": "Build for RPi",
+         "type": "shell",
+         "command": "D:/Programy/ARM_toolchain/Cmake/bin/cmake",
+         "args": [
+         "--build",
+         "Builds",
+         "--target",
+         "DroneExec"
+         ],
+         "group": "build",
+         "problemMatcher": []
+      },
+      {
+         "label": "Deploy to Pi",
+         "type": "shell",
+         "command": "cmake",
+         "args": [
+         "--build",
+         "Builds",
+         "--target",
+         "deploy"
+         ],
+         "group": "build",
+         "dependsOn": "Build for RPi"
+      },
+      {
+         "label": "Run on Pi",
+         "type": "shell",
+         "command": "ssh",
+         "args": [
+         "pi@raspberrypi.local",
+         "cd /home/pi/my_app && ./DroneExec"
+         ],
+         "group": "test"
+      },
+      {
          "type": "shell",
          "label": "Generate CMake for RASP TYPE=Release",
          "command": "cmake -B ../Builds/ -D_RASP=ON -DCMAKE_BUILD_TYPE=Release",
