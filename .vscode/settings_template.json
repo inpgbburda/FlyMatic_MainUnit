@@ -1,4 +1,8 @@
 {
+    /* Toolchain paths to adjust here*/
+    "cmakePath": "D:/Programy/ARM_toolchain/Cmake/bin/cmake.exe",
+    /*End of editable fields*/
+
    "files.associations": {
     "array": "cpp",
     "atomic": "cpp",
