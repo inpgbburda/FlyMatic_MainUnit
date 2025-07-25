@@ -51,8 +51,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 set(EXEC_NAME "DroneExec")
 add_executable(${EXEC_NAME} ${SOURCES})
 
+
 if(_RASP)
-  find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
+  set(WIRINGPI_LIBRARIES "${CMAKE_SYSROOT}/usr/lib/libwiringPi.so")
   target_link_libraries(${EXEC_NAME}
     PRIVATE
       ${WIRINGPI_LIBRARIES}

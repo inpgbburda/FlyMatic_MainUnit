@@ -9,10 +9,14 @@
          "-S", "Sw_components",
          "-B", "Builds",
          "-G", "MinGW Makefiles",
-         "-DCMAKE_TOOLCHAIN_FILE=toolchain-rpi.cmake",
+         "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/Sw_components/toolchain-rpi.cmake",
+         "-DTOOLCHAIN_PATH=C:/Toolchains/SysGCC/bin",
          "-DCMAKE_BUILD_TYPE=Debug",
          "-D_RASP=ON"
          ],
+         "options": {
+             "cwd": "${workspaceFolder}"
+         },
          "group": {
          "kind": "build",
          "isDefault": true
@@ -22,7 +26,7 @@
       {
          "label": "Build for RPi",
          "type": "shell",
-         "command": "D:/Programy/ARM_toolchain/Cmake/bin/cmake",
+         "command": "${config:cmakePath}",
          "args": [
          "--build",
          "Builds",
@@ -78,19 +82,6 @@
          },
          "group": {
             "kind": "build",
-            "isDefault": true
-         }
-      },
-      {
-         "type": "shell",
-         "label": "Generate CMake for PC",
-         "command": "cmake -B ../Builds/ -D_RASP=OFF",
-         "args": [],
-         "options": {
-            "cwd": "${workspaceFolder}/SW_components"
-         },
-         "group": {
-            "kind": "test",
             "isDefault": true
          }
       },
