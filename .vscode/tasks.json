@@ -29,19 +29,6 @@
       },
       {
          "type": "shell",
-         "label": "Generate CMake for PC",
-         "command": "cmake -B ../Builds/ -D_RASP=OFF",
-         "args": [],
-         "options": {
-            "cwd": "${workspaceFolder}/SW_components"
-         },
-         "group": {
-            "kind": "test",
-            "isDefault": true
-         }
-      },
-      {
-         "type": "shell",
          "label": "Build",
          "command": "make",
          "args": [],
@@ -191,7 +178,7 @@
         },
         {
             "type": "shell",
-            "label": " Unit Tests - Balancer - build",
+            "label": "Unit Tests - Balancer - build",
             "linux": "true",
             "group": "test",
             "command": "bash",

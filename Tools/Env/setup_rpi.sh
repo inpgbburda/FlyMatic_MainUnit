@@ -35,7 +35,9 @@ cd ~
 rm -rf /tmp/WiringPi
 
 # Configure I²C
-echo "🚩 6. Enable I2C if not already enabled and later install"
+echo "🚩 6. Install the I2C and later enable if not already done"
+sudo apt-get install -y libi2c-dev i2c-tools
+
 if ! grep -q "^dtparam=i2c_arm=on" /boot/config.txt; then
     echo "🔧 Enabling I²C..."
     echo "dtparam=i2c_arm=on" | sudo tee -a /boot/config.txt
