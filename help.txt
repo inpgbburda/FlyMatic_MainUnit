@@ -1,7 +1,0 @@
-To run cmake generation:
-    $ cmake -B ../Builds/
-
-To generate Cmake for unit tests:
-
-    1) Open cli at ..UT directory
-    2) $ cmake -S . --preset=default
