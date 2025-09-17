@@ -4,8 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/02_Srv/threads/"
-                "${workspaceFolder}/03_IoHwab/flight_control/"
+                "${workspaceFolder}/02_Srv/threads/",
+                "${workspaceFolder}/03_IoHwab/flight_control/",
                 "${workspaceFolder}/04_Drv/i2c/"
             ],
             "defines": [

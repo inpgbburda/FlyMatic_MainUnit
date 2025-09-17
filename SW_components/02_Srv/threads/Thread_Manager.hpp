@@ -49,15 +49,10 @@ public:
 
     /** Creates Posix thread with prevoiusly set paramaters*/
     void Run(void);
-
     bool IsRun(void) {return exec_state_;}
-
     void AssignAffinity(void);
-
     void Join(void) { pthread_join(posix_instance_, NULL); }
-
     bool operator==(const RT_Thread& rt_thread)const;
-
     void DeInit(void);
 
    ~RT_Thread(){};
@@ -72,17 +67,12 @@ private:
 
 public:
     Thread_Manager(/* args */){};
-    
+
     void Init(void) {};
-    
     void AddThread(RT_Thread &thread) {};
-    
     std::vector<RT_Thread> const GetAllThreads(){ return collected_threads_; }
-
     void DeInit(void);
-
     void CollectThreads(std::vector<RT_Thread> &thread_list){ collected_threads_ = thread_list; }
-
     void RunAllThreads(void);
 
    ~Thread_Manager(){};

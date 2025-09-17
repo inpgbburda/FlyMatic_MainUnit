@@ -2,7 +2,6 @@
 
 #include "Thread_Manager.hpp"
 
-extern RT_Thread thread_1;
 extern RT_Thread thread_2;
 
 extern std::vector<RT_Thread> Initial_Threads_G;

@@ -6,9 +6,6 @@
 #include "balancer.hpp"
 #include "mpu6050.hpp"
 
-extern std::vector<RT_Thread> Initial_Threads_G;
-extern Thread_Manager Manager_G;
-
 I2c i2c;
 Mpu6050 mpu6050(&i2c);
 
