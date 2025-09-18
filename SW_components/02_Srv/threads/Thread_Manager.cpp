@@ -2,8 +2,6 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#include "Thread_Manager_Cfg.hpp"
-
 #define DEFAULT_PID         0U /* Apply the scheduling attributes to the current thread*/
 #define SCHED_FLAG_DEFAULT       0U /* No special options */
 #define SCHED_FLAG_RESET_ON_FORK 1U /* Reset the scheduling attributes to default on fork */

@@ -68,16 +68,11 @@ private:
 public:
     Thread_Manager(/* args */){};
 
-    void Init(void) {};
+    void Init(std::vector<RT_Thread> &thread_list){ collected_threads_ = thread_list; }
     void AddThread(RT_Thread &thread) {};
     std::vector<RT_Thread> const GetAllThreads(){ return collected_threads_; }
     void DeInit(void);
-    void CollectThreads(std::vector<RT_Thread> &thread_list){ collected_threads_ = thread_list; }
     void RunAllThreads(void);
 
    ~Thread_Manager(){};
 };
-
-
-extern std::vector<RT_Thread> Initial_Threads_G;
-extern Thread_Manager Manager_G;
