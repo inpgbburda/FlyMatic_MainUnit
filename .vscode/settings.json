@@ -86,6 +86,9 @@
     "locale": "cpp",
     "queue": "cpp",
     "stack": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "complex": "cpp",
+    "list": "cpp",
+    "typeindex": "cpp"
 }
 }

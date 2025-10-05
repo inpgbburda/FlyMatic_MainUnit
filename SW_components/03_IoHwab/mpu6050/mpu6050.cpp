@@ -15,6 +15,8 @@
 #include <math.h>
 #include <vector>
 #include <pthread.h>
+#include <boost/lockfree/queue.hpp>
+#include <iostream>
 
 /*
 |===================================================================================================================================|
@@ -94,6 +96,8 @@ static const std::map<Angle_Axis_T, Acc_Axis_T> Angle_Cfg
     {ROLL , Y},
     {PITCH, X}
 };
+
+boost::lockfree::queue<std::array<int16_t, 3>> q(128);   // capacity 128
 
 /*
 |===================================================================================================================================|
@@ -216,11 +220,14 @@ bool Mpu6050::HasValidI2cInstance(void) const
 void Mpu6050Sensor::ReadSensorData(void)
 {
     int16_t raw_acc = 0;
+    std::array<int16_t, 3> values;
 
-    for(auto &x : data_to_fill_.raw_accelerations_)
+    for(int i=0; i<MAX_AXIS_NUMBER; i++)
     {
-        raw_acc = ReadAcceleration(x.first);
-        x.second = raw_acc;
+        values[i] = ReadAcceleration((Acc_Axis_T)i);
+    }
+    // Tryn pushing acc to the lock-free queue
+    if (!q.push(values)) {
     }
 }
 
@@ -297,15 +304,21 @@ void Mpu6050AccConverter::ConvertRawToPhysical(void)
     std::map<Acc_Axis_T, int32_t>& Raw_Accs = data_.raw_accelerations_;
     std::map<Acc_Axis_T, int32_t>& Phys_Accs = data_.physical_accelerations_;
     Acc_Axis_T axis;
+    std::array<int16_t, 3> values;
 
-    pthread_mutex_lock(&Acc_Lock);
+    if (q.pop(values)) {
+    
+    }
+    Raw_Accs[X] = values[0];
+    Raw_Accs[Y] = values[1];
+    Raw_Accs[Z] = values[2];
+
     for(auto &x : Phys_Accs)
     {
         axis = x.first;
         int32_t raw_value = Raw_Accs.at(axis);
         x.second = raw_value * ACC_MAX_VAL * ACC_SCALER / INT16_T_MAX_VAL;
     }
-    pthread_mutex_unlock(&Acc_Lock);
 }
 
 

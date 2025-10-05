@@ -23,5 +23,5 @@ std::vector<RT_Thread> Initial_Threads = {Thr_Flight_Ctrl};
 
 std::vector<RT_Thread> GetInitialThreads()
 {
-    return GetInitialThreads();
+    return Initial_Threads;
 }

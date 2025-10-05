@@ -1,10 +1,10 @@
 {
     "configurations": [
         {
-            "type": "gdb",
+            "type": "cppdbg",
             "request": "launch",
             "name": "Launch-RPi_local",
-            "target": "${workspaceFolder}/Builds/DroneExec",
+            "program": "${workspaceFolder}/Builds/DroneExec",
             "cwd": "${workspaceRoot}",
             "valuesFormatting": "parseText"
         },
