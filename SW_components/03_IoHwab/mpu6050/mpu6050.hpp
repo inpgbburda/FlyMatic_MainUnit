@@ -120,7 +120,8 @@ public:
     bool HasValidI2cInstance(void) const;
     int32_t GetSpiritAngle(Angle_Axis_T axis) const;
     int32_t GetPhysicalAcceleration(Acc_Axis_T axis) const;
-    void ReadAndProcessSensorData(void);
+    void ReadSensorData(void);
+    void ProcessSensorData(void);
     void SetLowPassFilter(Filtering_Level_T level) const;
 
     /*UT interfaces:*/
@@ -128,7 +129,6 @@ public:
     void SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc);
     void SetRawAcceleration(Acc_Axis_T axis, int16_t acc);
     int16_t GetRawAcceleration (Acc_Axis_T axis) const;
-    void ReadSensorData(void);
     void ConvertRawToPhysical(void);
     void CalculateSpiritAngles(void);
 #endif /*_UNIT_TEST*/

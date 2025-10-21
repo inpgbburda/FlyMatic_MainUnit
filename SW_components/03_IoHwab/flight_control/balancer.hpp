@@ -9,6 +9,7 @@ typedef enum
 Motor_Id_T;
 
 void *CalculateFlightControls(void *data_ptr);
+void *ReadAccSensor(void *data_ptr);
 void *DoMainRoutine(void);
 
 class Balancer

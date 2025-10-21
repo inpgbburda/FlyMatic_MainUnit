@@ -8,6 +8,10 @@
 #define FLIGHT_CTRL_DEADLINE_THR    MILI_TO_NANOSECONDS(20)
 #define FLIGHT_CTRL_PERIOD_THR      MILI_TO_NANOSECONDS(100)
 
+#define MPU6050_READ_RUNTIME_THR     MILI_TO_NANOSECONDS(10)
+#define MPU6050_READ_DEADLINE_THR    MILI_TO_NANOSECONDS(10)
+#define MPU6050_READ_PERIOD_THR      MILI_TO_NANOSECONDS(50)
+
 /* The core of the tasks (threads) configuration */
 RT_Thread Thr_Flight_Ctrl = RT_Thread(                             \
                                  SCHED_DEADLINE             \
@@ -17,7 +21,16 @@ RT_Thread Thr_Flight_Ctrl = RT_Thread(                             \
                                 ,CalculateFlightControls    \
                               );
 
-std::vector<RT_Thread> Initial_Threads = {Thr_Flight_Ctrl};
+RT_Thread Thr_Mpu6050_Read = RT_Thread(                             \
+                                 SCHED_DEADLINE              \
+                                ,MPU6050_READ_RUNTIME_THR    \
+                                ,MPU6050_READ_DEADLINE_THR   \
+                                ,MPU6050_READ_PERIOD_THR     \
+                                ,ReadAccSensor               \
+                              );
+
+                              
+std::vector<RT_Thread> Initial_Threads = {Thr_Flight_Ctrl, Thr_Mpu6050_Read};
 
 /* End of tasks configuration*/
 

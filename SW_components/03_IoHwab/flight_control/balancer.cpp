@@ -58,12 +58,10 @@ void *CalculateFlightControls(void *data_ptr)
 {
     SchedSetAttr((sched_attr_t*)data_ptr);
     
-    int fd, result;
     int32_t angle_x = 0;
     int diff=0;
     static float prev_diff = 0;
     
-    sleep(5);
     spi_bus.Init(SPI_CHANNEL, SPI_SPEED);
 
     while(1)
@@ -72,7 +70,7 @@ void *CalculateFlightControls(void *data_ptr)
         int power_2;
         int control;
                 
-        mpu6050.ReadAndProcessSensorData();
+        mpu6050.ProcessSensorData();
         angle_x = mpu6050.GetSpiritAngle(ROLL);
 
         diff = 0 - angle_x;
@@ -90,6 +88,17 @@ void *CalculateFlightControls(void *data_ptr)
         spi_bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
         
         /*Inform scheduler that calculation is done*/
+        sched_yield();
+    }
+    return NULL;
+}
+
+void *ReadAccSensor(void *data_ptr)
+{
+    SchedSetAttr((sched_attr_t*)data_ptr);
+    while(1)
+    {
+        mpu6050.ReadSensorData();
         sched_yield();
     }
     return NULL;

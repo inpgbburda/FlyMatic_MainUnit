@@ -80,9 +80,8 @@ union Config_Reg_T
 |===================================================================================================================================|
 */
 I2c i2c_bus;
-
-static pthread_mutex_t Angle_Lock;
 static pthread_mutex_t Acc_Lock;
+
 
 static const std::map<Acc_Axis_T, uint8_t> Acc_Reg_Cfg
 {
@@ -96,8 +95,6 @@ static const std::map<Angle_Axis_T, Acc_Axis_T> Angle_Cfg
     {ROLL , Y},
     {PITCH, X}
 };
-
-boost::lockfree::queue<std::array<int16_t, 3>> q(128);   // capacity 128
 
 /*
 |===================================================================================================================================|
@@ -143,8 +140,11 @@ Mpu6050::Mpu6050(I2c *i2c_handle):
  */
 void Mpu6050::Init(void)
 {
-    pthread_mutex_init(&Angle_Lock, NULL);
-    pthread_mutex_init(&Acc_Lock, NULL);
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+    pthread_mutex_init(&Acc_Lock, &attr);
+
     sensor_.Init();
 }
 
@@ -157,6 +157,14 @@ void Mpu6050::Start(void)
 }
 
 /**
+ * @brief Reads all the new data from sensor.
+ */
+void Mpu6050::ReadSensorData(void)
+{
+    sensor_.ReadSensorData();
+}
+
+/**
  * @brief Gets the spirit angle for a specified axis.
  * @param axis The axis for which to retrieve the spirit angle.
  * @return The spirit angle in degrees.
@@ -165,9 +173,7 @@ int32_t Mpu6050::GetSpiritAngle(Angle_Axis_T axis) const
 {
     int32_t angle = 0;
     
-    pthread_mutex_lock(&Angle_Lock);
     angle = sensor_data_.spirit_angles_.at(axis);
-    pthread_mutex_unlock(&Angle_Lock);
     return angle;
 }
 
@@ -179,19 +185,16 @@ int32_t Mpu6050::GetSpiritAngle(Angle_Axis_T axis) const
 int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
 {
     int32_t acc = 0;
-    pthread_mutex_lock(&Acc_Lock);
     acc = sensor_data_.physical_accelerations_.at(axis);
-    pthread_mutex_unlock(&Acc_Lock);
     return acc;
 }
 
 /**
  * @brief Reads sensor data, performs conversions, and calculates angles.
  */
-void Mpu6050::ReadAndProcessSensorData(void)
+void Mpu6050::ProcessSensorData(void)
 {
     {
-        sensor_.ReadSensorData();
         acc_converter_.ConvertRawToPhysical();
         angle_converter_.CalculateSpiritAngles();
     }
@@ -214,21 +217,20 @@ bool Mpu6050::HasValidI2cInstance(void) const
     return nullptr != i2c_handle_;
 }
 
+/*-------------------------------------------------------------------------------------------------------------------------------- */
 /**
  * @brief Reads all the new data from sensor.
  */
 void Mpu6050Sensor::ReadSensorData(void)
 {
     int16_t raw_acc = 0;
-    std::array<int16_t, 3> values;
-
-    for(int i=0; i<MAX_AXIS_NUMBER; i++)
+    pthread_mutex_lock(&Acc_Lock);
+    for(auto &x : data_to_fill_.raw_accelerations_)
     {
-        values[i] = ReadAcceleration((Acc_Axis_T)i);
+        raw_acc = ReadAcceleration(x.first);
+        x.second = raw_acc;
     }
-    // Tryn pushing acc to the lock-free queue
-    if (!q.push(values)) {
-    }
+    pthread_mutex_unlock(&Acc_Lock);
 }
 
 /**
@@ -296,6 +298,7 @@ void Mpu6050Sensor::Start(void)
     i2c_handle_ -> WriteByte(MPU6050_I2C_ADDR, PWR_MGMT_1_AD, PWR_MGMT_1_WAKE_UP);
 }
 
+/*-------------------------------------------------------------------------------------------------------------------------------- */
 /**
  * @brief Converts raw acceleration values to physical units.
  */
@@ -304,24 +307,18 @@ void Mpu6050AccConverter::ConvertRawToPhysical(void)
     std::map<Acc_Axis_T, int32_t>& Raw_Accs = data_.raw_accelerations_;
     std::map<Acc_Axis_T, int32_t>& Phys_Accs = data_.physical_accelerations_;
     Acc_Axis_T axis;
-    std::array<int16_t, 3> values;
 
-    if (q.pop(values)) {
-    
-    }
-    Raw_Accs[X] = values[0];
-    Raw_Accs[Y] = values[1];
-    Raw_Accs[Z] = values[2];
-
+    pthread_mutex_lock(&Acc_Lock);
     for(auto &x : Phys_Accs)
     {
         axis = x.first;
         int32_t raw_value = Raw_Accs.at(axis);
         x.second = raw_value * ACC_MAX_VAL * ACC_SCALER / INT16_T_MAX_VAL;
     }
+    pthread_mutex_unlock(&Acc_Lock);
 }
 
-
+/*-------------------------------------------------------------------------------------------------------------------------------- */
 /**
  * @brief Calculates spirit angles based on physical acceleration data.
  */
@@ -329,8 +326,6 @@ void Mpu6050AngleConverter::CalculateSpiritAngles(void)
 {
     int32_t  angle = 0;
     int32_t  acc   = 0;
-
-    pthread_mutex_lock(&Angle_Lock);
 
     for (auto &x : data_.spirit_angles_)
     {
@@ -344,8 +339,6 @@ void Mpu6050AngleConverter::CalculateSpiritAngles(void)
         }
         x.second = angle;
     }
-
-    pthread_mutex_unlock(&Angle_Lock);
 }
 
 /**
@@ -381,11 +374,6 @@ int16_t Mpu6050::GetRawAcceleration(Acc_Axis_T axis) const
 void Mpu6050::SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc)
 {
     sensor_data_.physical_accelerations_.at(axis) = acc;
-}
-
-void Mpu6050::ReadSensorData(void)
-{
-    sensor_.ReadSensorData();
 }
 
 void Mpu6050::ConvertRawToPhysical(void)

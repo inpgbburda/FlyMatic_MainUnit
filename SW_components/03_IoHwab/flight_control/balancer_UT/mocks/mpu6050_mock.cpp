@@ -2,7 +2,7 @@
 
 Mpu6050 mpu6050;
 
-void Mpu6050::ReadAndProcessSensorData(void)
+void Mpu6050::ProcessSensorData(void)
 {
 }
 
