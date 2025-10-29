@@ -15,7 +15,6 @@
 #include <math.h>
 #include <vector>
 #include <pthread.h>
-#include <boost/lockfree/queue.hpp>
 #include <iostream>
 
 /*
@@ -142,7 +141,9 @@ void Mpu6050::Init(void)
 {
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
+    #ifndef _UNIT_TEST
     pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+    #endif
     pthread_mutex_init(&Acc_Lock, &attr);
 
     sensor_.Init();

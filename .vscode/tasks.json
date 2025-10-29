@@ -114,11 +114,7 @@
       {
         "type": "shell",
         "label": "Unit Tests - I2C - build",
-        "command": "bash",
-        "args": [
-            "-c",
-            "make all 2>&1 | sed 's|/cygdrive/d/|D:/|g; s|${workspaceFolder}/|./|g'"
-        ],
+        "command": "make all",
         "options": {
             "cwd": "${workspaceFolder}/SW_components/04_Drv/i2c/i2c_UT/builds_UT/"
         },
@@ -147,11 +143,7 @@
         {
             "type": "shell",
             "label": "Unit Tests - MPU6050 - build",
-            "command": "bash",
-            "args": [
-                "-c",
-                "make all 2>&1 | sed 's|/cygdrive/d/|D:/|g; s|${workspaceFolder}/|./|g'"
-            ],
+            "command": "make all",
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT"
             },
@@ -182,11 +174,7 @@
             "label": "Unit Tests - Balancer - build",
             "linux": "true",
             "group": "test",
-            "command": "bash",
-            "args": [
-                "-c",
-                "make all 2>&1 | sed 's|/cygdrive/d/|D:/|g; s|${workspaceFolder}/|./|g'"
-            ],
+            "command": "make all",
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/03_IoHwab/flight_control/balancer_UT/builds_UT"
             },
