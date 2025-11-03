@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <map>
+#include <pthread.h>
 
 #include "i2c.hpp"
 
@@ -57,9 +58,19 @@ Angle_Axis_T;
 */
 class SensorData {
 public:
+    pthread_mutex_t acc_lock_;
+
     std::map<Acc_Axis_T, int32_t> raw_accelerations_;
     std::map<Acc_Axis_T, int32_t> physical_accelerations_;
     std::map<Angle_Axis_T, int32_t> spirit_angles_;
+
+    SensorData(void);
+    ~SensorData(void);
+
+    /** Disallow copying/assignment because the object owns a mutex */
+    SensorData(const SensorData&) = delete;
+    SensorData& operator=(const SensorData&) = delete;
+
 };
 
 class Mpu6050Sensor

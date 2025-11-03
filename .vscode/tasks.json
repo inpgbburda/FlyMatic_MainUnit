@@ -3,7 +3,7 @@
    "tasks": [
       {
          "type": "shell",
-         "label": "Generate CMake for RASP TYPE=Release",
+         "label": "🍓 Generate CMake for RASP TYPE=Release",
          "command": "cmake -B ../Builds/ -D_RASP=ON -DCMAKE_BUILD_TYPE=Release",
          "args": [],
          "options": {
@@ -15,7 +15,7 @@
       },
       {
          "type": "shell",
-         "label": "Generate CMake for RASP TYPE=Debug",
+         "label": "🍓 Generate CMake for RASP TYPE=Debug",
          "command": "cmake -B ../Builds/ -D_RASP=ON -DCMAKE_BUILD_TYPE=Debug",
          "args": [],
          "options": {
@@ -27,7 +27,7 @@
       },
       {
          "type": "shell",
-         "label": "Build 🔨",
+         "label": "🍓 Build 🔨",
          "command": "make",
          "args": [],
          "options": {
@@ -43,7 +43,7 @@
       },
       {
          "type": "shell",
-         "label": "Clean",
+         "label": "🍓 Clean",
          "command": "make clean",
          "args": [],
          "options": {
@@ -99,7 +99,7 @@
 
       {
          "type": "shell",
-         "label": "Run App",
+         "label": " 🍓 Run App",
          "command": "sudo ./DroneExec",
          "args": [],
          "options": {
@@ -134,7 +134,7 @@
     {
         "type": "shell",
         "label": "Unit Tests - I2C - run",
-        "command": "I2C_UT.exe",
+        "command": "./I2C_UT.exe",
         "args": [],
         "options": {
             "cwd": "${workspaceFolder}/SW_components/04_Drv/i2c/i2c_UT/builds_UT/"
@@ -163,7 +163,7 @@
         {
             "type": "shell",
             "label": "Unit Tests - MPU6050 - run",
-            "command": "mpu6050_UT.exe",
+            "command": "./mpu6050_UT.exe",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT"
@@ -195,7 +195,7 @@
         {
             "type": "shell",
             "label": "Unit Tests - Balancer - run",
-            "command": "balancer_UT.exe",
+            "command": "./balancer_UT.exe",
             "group": "test",
             "args": [],
             "options": {

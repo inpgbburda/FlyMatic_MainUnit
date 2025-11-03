@@ -14,7 +14,6 @@
 #include <stdexcept>
 #include <math.h>
 #include <vector>
-#include <pthread.h>
 #include <iostream>
 
 /*
@@ -78,10 +77,6 @@ union Config_Reg_T
     Object allocations 
 |===================================================================================================================================|
 */
-I2c i2c_bus;
-static pthread_mutex_t Acc_Lock;
-
-
 static const std::map<Acc_Axis_T, uint8_t> Acc_Reg_Cfg
 {
     {X, ACCEL_XOUT_H_AD},
@@ -139,13 +134,6 @@ Mpu6050::Mpu6050(I2c *i2c_handle):
  */
 void Mpu6050::Init(void)
 {
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    #ifndef _UNIT_TEST
-    pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
-    #endif
-    pthread_mutex_init(&Acc_Lock, &attr);
-
     sensor_.Init();
 }
 
@@ -217,6 +205,28 @@ bool Mpu6050::HasValidI2cInstance(void) const
 {
     return nullptr != i2c_handle_;
 }
+/*-------------------------------------------------------------------------------------------------------------------------------- */
+/**
+ * @brief Constructor for SensorData class.
+ */
+SensorData::SensorData(void)
+{
+    pthread_mutexattr_t attr;
+
+    pthread_mutexattr_init(&attr);
+    #ifndef _UNIT_TEST
+    pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+    #endif
+    pthread_mutex_init(&acc_lock_, &attr);
+}
+
+/**
+ * @brief Destructor for SensorData class.
+ */
+SensorData::~SensorData(void)
+{
+    pthread_mutex_destroy(&acc_lock_);
+}
 
 /*-------------------------------------------------------------------------------------------------------------------------------- */
 /**
@@ -225,13 +235,13 @@ bool Mpu6050::HasValidI2cInstance(void) const
 void Mpu6050Sensor::ReadSensorData(void)
 {
     int16_t raw_acc = 0;
-    pthread_mutex_lock(&Acc_Lock);
+    pthread_mutex_lock(&(data_to_fill_.acc_lock_));
     for(auto &x : data_to_fill_.raw_accelerations_)
     {
         raw_acc = ReadAcceleration(x.first);
         x.second = raw_acc;
     }
-    pthread_mutex_unlock(&Acc_Lock);
+    pthread_mutex_unlock(&(data_to_fill_.acc_lock_));
 }
 
 /**
@@ -309,14 +319,14 @@ void Mpu6050AccConverter::ConvertRawToPhysical(void)
     std::map<Acc_Axis_T, int32_t>& Phys_Accs = data_.physical_accelerations_;
     Acc_Axis_T axis;
 
-    pthread_mutex_lock(&Acc_Lock);
+    pthread_mutex_lock(&(data_.acc_lock_));
     for(auto &x : Phys_Accs)
     {
         axis = x.first;
         int32_t raw_value = Raw_Accs.at(axis);
         x.second = raw_value * ACC_MAX_VAL * ACC_SCALER / INT16_T_MAX_VAL;
     }
-    pthread_mutex_unlock(&Acc_Lock);
+    pthread_mutex_unlock(&(data_.acc_lock_));
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------- */
