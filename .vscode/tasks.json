@@ -99,7 +99,7 @@
 
       {
          "type": "shell",
-         "label": " 🍓 Run App",
+         "label": "🍓 Run App",
          "command": "sudo ./DroneExec",
          "args": [],
          "options": {

@@ -14,7 +14,7 @@ Install it under `C:\cygwin64` and add it to system path.
 Before first compilation on RPI, run `Tools/Env/setup_rpi.sh` script. It will install and configure all needed libs and settings.
 
 To run cmake generation:
-    $ cmake -B ../Builds/
+    `$ cmake -B ../Builds/`
 
 To generate Cmake for unit tests:
 

@@ -22,8 +22,8 @@ add_executable(${CMAKE_PROJECT_NAME}
     balancer_UT.cpp
     run_all_tests.cpp
     mocks/mpu6050_mock.cpp
-    mocks/pwm_mock.cpp
     mocks/Thread_Manager_mock.cpp
+    mocks/spi_mock.cpp
     ../balancer.cpp
 )
 

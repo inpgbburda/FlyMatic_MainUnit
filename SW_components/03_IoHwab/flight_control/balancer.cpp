@@ -32,7 +32,7 @@
 |===================================================================================================================================|
 */
 extern Mpu6050 mpu6050;
-spi spi_bus;
+Spi spi_bus;
 
 const int base = 25;
 const float k = 0.03;
@@ -80,8 +80,8 @@ void *CalculateFlightControls(void *data_ptr)
         power_2 = base - control;
         std::cout << " roll angle X: " << angle_x <<"; Power 1 " << power_1 << "; Power 2 " << power_2 << std::endl;
         
-        buffer[0] = 0x76;
-        buffer[1] = 0x75;
+        buffer[0] = 0x76; /* Proppeller 1 */
+        buffer[1] = 0x75; /* Proppeller 2 */
         buffer[2] = 0x74;
         buffer[3] = 0x73;
         
@@ -139,7 +139,16 @@ Balancer::~Balancer()
 
 void Balancer::ProcessControl(void) const
 {
+    Spi spi;
+    uint8_t spi_buffer[] = {0x00, 0x00, 0x00, 0x00};
+    int32_t roll_angle = 0;
+
+    roll_angle = mpu6050.GetSpiritAngle(ROLL);
+    spi.ReadWriteData(SPI_CHANNEL, spi_buffer, sizeof(spi_buffer));
 }
 
+void Balancer::SetTargetAngle(int32_t angle)
+{
+}
 
 

@@ -21,6 +21,7 @@ public:
     Balancer(/* args */);
     void SetBaseThrust(int32_t thrust);
     int32_t GetCurrentThrust(Motor_Id_T channel) const;
-    ~Balancer();
+    void SetTargetAngle(int32_t angle);
     void ProcessControl(void) const;
+    ~Balancer();
 };

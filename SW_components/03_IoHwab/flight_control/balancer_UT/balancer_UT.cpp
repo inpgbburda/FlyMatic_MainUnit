@@ -2,7 +2,6 @@
 #include "CppUTestExt/MockSupport.h"
 
 #include "balancer.hpp"
-#include "pwm.hpp"
 
 /*
 *    Testing constant configuration
@@ -30,18 +29,23 @@ TEST_GROUP(Balancer)
         mock().clear();
     }
 };
-
-TEST(Balancer, CalculatesControlSignalForYaw)
+/* P=1, I=0, D=0 */
+TEST(Balancer, CalculatesControlSignalForRoll)
 {
-    mock().expectOneCall("Set_Pwm")
-        .withParameter("channel", CHAN_1)
-        .withParameter("pwm_percentage", 25);
+    uint8_t exp_spi_buffer[] = {0x00, 0x00, 0x00, 0x00};
 
-    mock().expectOneCall("Set_Pwm")
-        .withParameter("channel", CHAN_2)
-        .withParameter("pwm_percentage", 25);
+    mock().expectOneCall("GetSpiritAngle")
+        .ignoreOtherParameters()
+        .andReturnValue(0);
+    mock().expectOneCall("ReadWriteData")
+        .withParameter("channel", 1)
+        .withMemoryBufferParameter("buffer", exp_spi_buffer, sizeof(exp_spi_buffer))
+        .ignoreOtherParameters();
 
+    balancer->SetTargetAngle(10);
     balancer->ProcessControl();
+
+
 }
 
 TEST(Balancer, SetsBaseThrust)
