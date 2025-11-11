@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <map>
+#include <pthread.h>
 
 #include "i2c.hpp"
 
@@ -57,9 +58,19 @@ Angle_Axis_T;
 */
 class SensorData {
 public:
+    pthread_mutex_t acc_lock_;
+
     std::map<Acc_Axis_T, int32_t> raw_accelerations_;
     std::map<Acc_Axis_T, int32_t> physical_accelerations_;
     std::map<Angle_Axis_T, int32_t> spirit_angles_;
+
+    SensorData(void);
+    ~SensorData(void);
+
+    /** Disallow copying/assignment because the object owns a mutex */
+    SensorData(const SensorData&) = delete;
+    SensorData& operator=(const SensorData&) = delete;
+
 };
 
 class Mpu6050Sensor
@@ -120,7 +131,8 @@ public:
     bool HasValidI2cInstance(void) const;
     int32_t GetSpiritAngle(Angle_Axis_T axis) const;
     int32_t GetPhysicalAcceleration(Acc_Axis_T axis) const;
-    void ReadAndProcessSensorData(void);
+    void ReadSensorData(void);
+    void ProcessSensorData(void);
     void SetLowPassFilter(Filtering_Level_T level) const;
 
     /*UT interfaces:*/
@@ -128,7 +140,6 @@ public:
     void SetPhysicalAcceleration(Acc_Axis_T axis, int32_t acc);
     void SetRawAcceleration(Acc_Axis_T axis, int16_t acc);
     int16_t GetRawAcceleration (Acc_Axis_T axis) const;
-    void ReadSensorData(void);
     void ConvertRawToPhysical(void);
     void CalculateSpiritAngles(void);
 #endif /*_UNIT_TEST*/

@@ -87,7 +87,8 @@ TEST(Mpu6050, ReadsAccelerationInXAxis)
     /* Reading the rest of the axes */
     mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
-    mpu6050->ReadAndProcessSensorData();
+    mpu6050->ReadSensorData();
+    mpu6050->ProcessSensorData();
     int16_t x_acc = mpu6050->GetRawAcceleration(X);
 
     CHECK_EQUAL(x_acc, -10);
@@ -108,7 +109,8 @@ TEST(Mpu6050, ReadsAccelerationInYAxis)
     /* Reading the rest of axes */
     mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
-    mpu6050->ReadAndProcessSensorData();
+    mpu6050->ReadSensorData();
+    mpu6050->ProcessSensorData();
     int16_t y_acc = mpu6050->GetRawAcceleration(Y);
     
     CHECK_EQUAL(y_acc, 20);
@@ -130,7 +132,8 @@ TEST(Mpu6050, ReadsAccelerationInZAxis)
     /* Reading the rest of axes */
     mock().expectNCalls(2, "ReadBlockOfBytes").ignoreOtherParameters().andReturnValue(&Dummy_Val);
 
-    mpu6050->ReadAndProcessSensorData();
+    mpu6050->ReadSensorData();
+    mpu6050->ProcessSensorData();
     int16_t z_acc = mpu6050->GetRawAcceleration(Z);
 
     CHECK_EQUAL(z_acc, -30);
@@ -214,7 +217,8 @@ TEST(Mpu6050, ExecutesMainFunction)
         .ignoreOtherParameters()
         .andReturnValue(&Minus_Thirty_In_U2);
 
-    mpu6050->ReadAndProcessSensorData();
+    mpu6050->ReadSensorData();
+    mpu6050->ProcessSensorData();
 
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(X), Expected_Physical_Acceleration_X);
     CHECK_EQUAL(mpu6050->GetPhysicalAcceleration(Y), Expected_Physical_Acceleration_Y);

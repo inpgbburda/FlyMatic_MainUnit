@@ -86,6 +86,13 @@
     "locale": "cpp",
     "queue": "cpp",
     "stack": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "complex": "cpp",
+    "list": "cpp",
+    "typeindex": "cpp"
+},
+"terminal.integrated.defaultProfile.windows": "Cygwin",
+"terminal.integrated.automationProfile.windows": {
+"path": "C:/cygwin64/bin/bash.exe",
 }
 }

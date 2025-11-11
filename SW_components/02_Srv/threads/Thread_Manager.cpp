@@ -2,23 +2,28 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#include "Thread_Manager_Cfg.hpp"
+#define DEFAULT_PID         0U /* Apply the scheduling attributes to the current thread*/
+#define SCHED_FLAG_DEFAULT       0U /* No special options */
+#define SCHED_FLAG_RESET_ON_FORK 1U /* Reset the scheduling attributes to default on fork */
+#define SCHED_FLAG_RECLAIM       2U /* Allows reclaiming unused runtime in certain real-time scheduling policies */
 
-#define DEFAULT_PID 0U
-#define DEFAULT_FLAGS 0U
-
+/**
+ * SchedSetAttr
+ * @brief: Passes the scheduling configuration to the OS
+ * @param:attr_ptr - pointer to the structure with scheduling attributes
+ *
+ * @return: none
+ * 
+ */
 void SchedSetAttr(sched_attr_t *attr_ptr) 
 {
     int result = 0;
-    sched_attr_t attr_local;
-    memset(&attr_local, 0, sizeof(attr_local)); 
-    //TODO: change to shorter copying
-    attr_local.size = attr_ptr->size;
-    attr_local.sched_policy = attr_ptr->sched_policy ;
-    attr_local.sched_runtime = attr_ptr->sched_runtime;
-    attr_local.sched_deadline = attr_ptr->sched_deadline;
-    attr_local.sched_period = attr_ptr->sched_period;
-    result = syscall(__NR_sched_setattr, DEFAULT_PID, &attr_local, DEFAULT_FLAGS);
+    sched_attr_t attr_local = {};
+
+    memcpy(&attr_local, attr_ptr, sizeof(sched_attr_t));
+
+    /* Pass the scheduling configuration to the OS */
+    result = syscall(__NR_sched_setattr, DEFAULT_PID, &attr_local, SCHED_FLAG_DEFAULT);
     if(result < 0)
     {
         // throw std::runtime_error("sched_setattr failed to set the priorities");
@@ -53,6 +58,13 @@ RT_Thread::RT_Thread
     attr_.sched_period = period;
 }
 
+/**
+ * RT_Thread::Run
+ * @brief: Creates Posix thread with prevoiusly set paramaters and starts its execution
+ *
+ * @return: none
+ * 
+ */
 void RT_Thread::Run(void)
 {
     exec_state_ = true;
@@ -78,6 +90,14 @@ void RT_Thread::AssignAffinity(void)
     }
 }
 
+/**
+ * RT_Thread:: operator==
+ * @brief: Comparison operator for RT_Thread class
+ * @param:rt_thread - reference to the RT_Thread object to compare with
+ *
+ * @return: true if objects are equal, false otherwise
+ * 
+ */
 bool RT_Thread:: operator==(const RT_Thread& rt_thread) const
 {
     bool result;

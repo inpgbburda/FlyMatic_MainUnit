@@ -29,9 +29,3 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/${CPPUTEST_RLV_PATH}/libs/libCppUTestExt.a
     ${CMAKE_CURRENT_SOURCE_DIR}/${CPPUTEST_RLV_PATH}/libs/libCppUTest.a
 )
-
-# Print size of linked binary file
-add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
-    COMMAND size --format=berkeley --totals "${CMAKE_PROJECT_NAME}"
-    COMMENT "Invoking: GNU Print Size")
-

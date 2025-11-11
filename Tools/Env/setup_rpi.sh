@@ -34,26 +34,52 @@ cd /tmp/WiringPi
 cd ~
 rm -rf /tmp/WiringPi
 
+# ==========================================================
+# Detect correct config.txt path (depends on Raspberry Pi OS)
+# ==========================================================
+if [ -f "/boot/firmware/config.txt" ]; then
+    CONFIG_FILE="/boot/firmware/config.txt"
+elif [ -f "/boot/config.txt" ]; then
+    CONFIG_FILE="/boot/config.txt"
+else
+    echo "❌ Could not find config.txt (tried /boot/firmware/config.txt and /boot/config.txt)"
+    exit 1
+fi
+
+echo "🔧 Using config file: $CONFIG_FILE"
+
+NEED_REBOOT=0
+
 # Configure I²C
-echo "🚩 6. Install the I2C and later enable if not already done"
+echo "🚩 6. Install the I²C and enable if not already done"
 sudo apt-get install -y libi2c-dev i2c-tools
 
-if ! grep -q "^dtparam=i2c_arm=on" /boot/config.txt; then
+if ! grep -q "^dtparam=i2c_arm=on" "$CONFIG_FILE"; then
     echo "🔧 Enabling I²C..."
-    echo "dtparam=i2c_arm=on" | sudo tee -a /boot/config.txt
+    echo "dtparam=i2c_arm=on" | sudo tee -a "$CONFIG_FILE"
     echo "i2c-dev" | sudo tee -a /etc/modules > /dev/null
-    echo "✅ I²C enabled. A reboot is required for changes to take effect."
+    echo "✅ I²C enabled."
     NEED_REBOOT=1
 else
     echo "✅ I²C already enabled."
-    NEED_REBOOT=0
 fi
 
-# Ask for reboot at the very end (if needed)
+# Enable SPI (with 2 chip selects)
+if ! grep -q "^dtparam=spi=on" "$CONFIG_FILE"; then
+    echo "🔧 Enabling SPI..."
+    echo "dtparam=spi=on" | sudo tee -a "$CONFIG_FILE"
+    echo "dtoverlay=spi0-2cs" | sudo tee -a "$CONFIG_FILE"
+    echo "✅ SPI enabled."
+    NEED_REBOOT=1
+else
+    echo "✅ SPI already enabled."
+fi
+
+# Ask for reboot at the end
 if [ "$NEED_REBOOT" -eq 1 ]; then
     echo ""
-    echo "ℹ️ After reboot, your system will be fully ready (RT kernel + I²C + dev tools)."
-    read -p "Reboot now to apply I²C changes? (y/N): " yn
+    echo "ℹ️ A reboot is required for SPI/I²C changes to take effect."
+    read -p "Reboot now? (y/N): " yn
     case $yn in
         [Yy]* ) sudo reboot;;
         * ) echo "Please reboot manually later. Once you reboot, you're good to go!";;
