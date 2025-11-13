@@ -25,7 +25,6 @@
     Local types definitions 
 |===================================================================================================================================|
 */
-
 /*
 |===================================================================================================================================|
     Object allocations 
@@ -130,6 +129,7 @@ void Balancer::SetBaseThrust(int32_t thrust)
 
 int32_t Balancer::GetCurrentThrust(Motor_Id_T channel) const
 {
+
     return thrust_;
 }
 
@@ -140,15 +140,30 @@ Balancer::~Balancer()
 void Balancer::ProcessControl(void) const
 {
     Spi spi;
-    uint8_t spi_buffer[] = {0x00, 0x00, 0x00, 0x00};
+    uint8_t spi_buffer[MAX_MOTOR_NUM] = {0};
     int32_t roll_angle = 0;
+    int32_t u = 0;
+    int32_t error = 0;
+    int32_t thr_1 = 0;
+    int32_t thr_2 = 0;
+    const int32_t k = 1;
 
     roll_angle = mpu6050.GetSpiritAngle(ROLL);
+    error = target_angle_ - roll_angle;
+    u = k * error;
+
+    thr_1 = thrust_ + u;
+    thr_2 = thrust_ - u;
+
+    spi_buffer[MOTOR_1] = (thr_1 > 0) ? static_cast<uint8_t>(thr_1) : 0;
+    spi_buffer[MOTOR_2] = (thr_2 > 0) ? static_cast<uint8_t>(thr_2) : 0;
+    
     spi.ReadWriteData(SPI_CHANNEL, spi_buffer, sizeof(spi_buffer));
 }
 
 void Balancer::SetTargetAngle(int32_t angle)
 {
+    target_angle_ = angle;
 }
 
 

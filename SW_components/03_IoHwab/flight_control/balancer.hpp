@@ -3,8 +3,11 @@
 
 typedef enum
 {
-    MOTOR_1,
-    MOTOR_2
+    MOTOR_1 = 0,
+    MOTOR_2,
+    MOTOR_3,
+    MOTOR_4,
+    MAX_MOTOR_NUM
 }
 Motor_Id_T;
 
@@ -17,6 +20,7 @@ class Balancer
 private:
     /* data */
     int32_t thrust_ = 0;
+    int32_t target_angle_ = 0;
 public:
     Balancer(/* args */);
     void SetBaseThrust(int32_t thrust);

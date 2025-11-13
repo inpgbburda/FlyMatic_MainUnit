@@ -9,7 +9,7 @@
 
 const int32_t Inital_Base_Thrust = 0;
 const int32_t Base_Thrust = 25;
-
+static const int SPI_CHANNEL = 1;
 
 /*
 *    Test scenarios
@@ -29,24 +29,74 @@ TEST_GROUP(Balancer)
         mock().clear();
     }
 };
-/* P=1, I=0, D=0 */
-TEST(Balancer, CalculatesControlSignalForRoll)
+/** Kp=1, Ki=0, Kd=0 
+r - target angle
+y - current angle
+e = r - y
+e - error
+u - control signal
+u = Kp*e + Ki*∫e dt + Kd*de/dt
+thrust_motor_1 = base_thrust - u
+thrust_motor_2 = base_thrust + u
+*/
+
+TEST(Balancer, CalculatesControlSignalForUnderRoll)
 {
-    uint8_t exp_spi_buffer[] = {0x00, 0x00, 0x00, 0x00};
+    int32_t roll_angle = 0;
+    int32_t target_angle = 10;
+    uint8_t exp_spi_buffer[] = {10, 0, 0, 0};
 
     mock().expectOneCall("GetSpiritAngle")
         .ignoreOtherParameters()
-        .andReturnValue(0);
+        .andReturnValue(roll_angle);
     mock().expectOneCall("ReadWriteData")
-        .withParameter("channel", 1)
+        .withParameter("channel", SPI_CHANNEL)
         .withMemoryBufferParameter("buffer", exp_spi_buffer, sizeof(exp_spi_buffer))
         .ignoreOtherParameters();
 
-    balancer->SetTargetAngle(10);
+    balancer->SetTargetAngle(target_angle);
     balancer->ProcessControl();
-
-
 }
+
+TEST(Balancer, CalculatesControlSignalForOverRoll)
+{
+    int32_t roll_angle = 20;
+    int32_t target_angle = 10;
+    uint8_t exp_spi_buffer[] = {0, 10, 0, 0};
+
+    mock().expectOneCall("GetSpiritAngle")
+        .ignoreOtherParameters()
+        .andReturnValue(roll_angle);
+    mock().expectOneCall("ReadWriteData")
+        .withParameter("channel", SPI_CHANNEL)
+        .withMemoryBufferParameter("buffer", exp_spi_buffer, sizeof(exp_spi_buffer))
+        .ignoreOtherParameters();
+
+    balancer->SetTargetAngle(target_angle);
+    balancer->ProcessControl();
+}
+
+TEST(Balancer, CalculatesControlSignalForOverRollAndSetBaseThrust)
+{
+    int32_t roll_angle = 20;
+    int32_t target_angle = 10;
+    uint8_t exp_spi_buffer[] = {15, 35, 0, 0};
+
+    mock().expectOneCall("GetSpiritAngle")
+        .ignoreOtherParameters()
+        .andReturnValue(roll_angle);
+    mock().expectOneCall("ReadWriteData")
+        .withParameter("channel", SPI_CHANNEL)
+        .withMemoryBufferParameter("buffer", exp_spi_buffer, sizeof(exp_spi_buffer))
+        .ignoreOtherParameters();
+
+    balancer->SetTargetAngle(target_angle);
+    balancer -> SetBaseThrust(Base_Thrust);
+    balancer->ProcessControl();
+}
+
+/** Kp=0, Ki=1, Kd=0 
+*/
 
 TEST(Balancer, SetsBaseThrust)
 {
