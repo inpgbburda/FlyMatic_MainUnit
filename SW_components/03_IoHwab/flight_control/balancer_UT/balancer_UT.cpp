@@ -44,70 +44,91 @@ TEST(Balancer, CalculatesControlSignalForUnderRoll)
 {
     int32_t roll_angle = 0;
     int32_t target_angle = 10;
-    uint8_t exp_spi_buffer[] = {10, 0, 0, 0};
 
     mock().expectOneCall("GetSpiritAngle")
         .ignoreOtherParameters()
         .andReturnValue(roll_angle);
     mock().expectOneCall("ReadWriteData")
-        .withParameter("channel", SPI_CHANNEL)
-        .withMemoryBufferParameter("buffer", exp_spi_buffer, sizeof(exp_spi_buffer))
         .ignoreOtherParameters();
 
     balancer->SetTargetAngle(target_angle);
+    balancer->SetRegulatorConstants(1, 0);
     balancer->ProcessControl();
+
+    CHECK_EQUAL(10, balancer->GetCurrentThrust(MOTOR_1));
+    CHECK_EQUAL(0, balancer->GetCurrentThrust(MOTOR_2));
 }
 
 TEST(Balancer, CalculatesControlSignalForOverRoll)
 {
     int32_t roll_angle = 20;
     int32_t target_angle = 10;
-    uint8_t exp_spi_buffer[] = {0, 10, 0, 0};
 
     mock().expectOneCall("GetSpiritAngle")
         .ignoreOtherParameters()
         .andReturnValue(roll_angle);
     mock().expectOneCall("ReadWriteData")
-        .withParameter("channel", SPI_CHANNEL)
-        .withMemoryBufferParameter("buffer", exp_spi_buffer, sizeof(exp_spi_buffer))
         .ignoreOtherParameters();
 
     balancer->SetTargetAngle(target_angle);
+    balancer->SetRegulatorConstants(1, 0);
     balancer->ProcessControl();
+
+    CHECK_EQUAL(0,  balancer->GetCurrentThrust(MOTOR_1));
+    CHECK_EQUAL(10, balancer->GetCurrentThrust(MOTOR_2));
 }
 
 TEST(Balancer, CalculatesControlSignalForOverRollAndSetBaseThrust)
 {
     int32_t roll_angle = 20;
     int32_t target_angle = 10;
-    uint8_t exp_spi_buffer[] = {15, 35, 0, 0};
 
     mock().expectOneCall("GetSpiritAngle")
         .ignoreOtherParameters()
         .andReturnValue(roll_angle);
     mock().expectOneCall("ReadWriteData")
-        .withParameter("channel", SPI_CHANNEL)
-        .withMemoryBufferParameter("buffer", exp_spi_buffer, sizeof(exp_spi_buffer))
-        .ignoreOtherParameters();
+          .ignoreOtherParameters();
 
     balancer->SetTargetAngle(target_angle);
-    balancer -> SetBaseThrust(Base_Thrust);
+    balancer->SetRegulatorConstants(1, 0);
+    balancer->SetBaseThrust(Base_Thrust);
     balancer->ProcessControl();
+
+    CHECK_EQUAL(15, balancer->GetCurrentThrust(MOTOR_1));
+    CHECK_EQUAL(35, balancer->GetCurrentThrust(MOTOR_2));
+}
+
+TEST(Balancer, SetsBaseThrust)
+{
+    CHECK_EQUAL(Inital_Base_Thrust, balancer->GetCurrentThrust(MOTOR_1));
+    CHECK_EQUAL(Inital_Base_Thrust, balancer->GetCurrentThrust(MOTOR_2));
+
+    balancer -> SetBaseThrust(Base_Thrust);
+
+    CHECK_EQUAL(Base_Thrust, balancer->GetCurrentThrust(MOTOR_1));
+    CHECK_EQUAL(Base_Thrust, balancer->GetCurrentThrust(MOTOR_2));
 }
 
 /** Kp=0, Ki=1, Kd=0 
 */
-
-TEST(Balancer, SetsBaseThrust)
+TEST(Balancer, CalculatesControlSignalWithIntegralForOverRoll)
 {
-    int thrust_1 = balancer->GetCurrentThrust(MOTOR_1);
-    int thrust_2 = balancer->GetCurrentThrust(MOTOR_2);
+    int32_t target_angle = 0;
+    
+    mock().expectOneCall("GetSpiritAngle").ignoreOtherParameters().andReturnValue(10);
+    mock().expectOneCall("ReadWriteData").ignoreOtherParameters();
+    mock().expectOneCall("GetSpiritAngle").ignoreOtherParameters().andReturnValue(25);
+    mock().expectOneCall("ReadWriteData").ignoreOtherParameters();
 
-    CHECK_EQUAL(thrust_1, Inital_Base_Thrust);
-    CHECK_EQUAL(thrust_2, Inital_Base_Thrust);
+    balancer->SetTargetAngle(target_angle);
+    balancer->SetRegulatorConstants(0, 1);
 
-    balancer -> SetBaseThrust(Base_Thrust);
+    balancer->ProcessControl();
+    balancer->ProcessControl();
 
-    CHECK_EQUAL(balancer->GetCurrentThrust(MOTOR_1), Base_Thrust);
-    CHECK_EQUAL(balancer->GetCurrentThrust(MOTOR_2), Base_Thrust);
+    CHECK_EQUAL(0,  balancer->GetCurrentThrust(MOTOR_1));
+    CHECK_EQUAL(10+25, balancer->GetCurrentThrust(MOTOR_2));
 }
+
+// TODO: Test saturation SPI max value of 255
+// TODO: Use floats settings of PID

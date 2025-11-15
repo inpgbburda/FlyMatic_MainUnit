@@ -124,40 +124,54 @@ Balancer::Balancer(/* args */)
 
 void Balancer::SetBaseThrust(int32_t thrust)
 {
-    thrust_ = thrust;
+    base_thrust_ = thrust;
+    thrust_1_ = thrust;
+    thrust_2_ = thrust;
 }
 
 int32_t Balancer::GetCurrentThrust(Motor_Id_T channel) const
 {
+    int32_t thr = 0;
 
-    return thrust_;
+    if(MOTOR_1 == channel){
+        thr = thrust_1_;
+    }
+    else if(MOTOR_2 == channel){
+        thr = thrust_2_;
+    }
+    else{
+        thr = 0;
+    }
+    return thr;
 }
 
 Balancer::~Balancer()
 {
 }
 
-void Balancer::ProcessControl(void) const
+void Balancer::ProcessControl(void)
 {
     Spi spi;
     uint8_t spi_buffer[MAX_MOTOR_NUM] = {0};
+
     int32_t roll_angle = 0;
     int32_t u = 0;
     int32_t error = 0;
-    int32_t thr_1 = 0;
-    int32_t thr_2 = 0;
-    const int32_t k = 1;
 
     roll_angle = mpu6050.GetSpiritAngle(ROLL);
     error = target_angle_ - roll_angle;
-    u = k * error;
+    error_i_ = error + error_i_;
+    u =  kp_*error + ki_*error_i_;
 
-    thr_1 = thrust_ + u;
-    thr_2 = thrust_ - u;
+    thrust_1_ = base_thrust_ + u;
+    thrust_2_ = base_thrust_ - u;
 
-    spi_buffer[MOTOR_1] = (thr_1 > 0) ? static_cast<uint8_t>(thr_1) : 0;
-    spi_buffer[MOTOR_2] = (thr_2 > 0) ? static_cast<uint8_t>(thr_2) : 0;
+    thrust_1_ = (thrust_1_ > 0) ? thrust_1_ : 0;
+    thrust_2_ = (thrust_2_ > 0) ? thrust_2_ : 0;
     
+    spi_buffer[MOTOR_1] = static_cast<uint8_t>(thrust_1_);
+    spi_buffer[MOTOR_2] = static_cast<uint8_t>(thrust_2_);
+
     spi.ReadWriteData(SPI_CHANNEL, spi_buffer, sizeof(spi_buffer));
 }
 
@@ -166,4 +180,9 @@ void Balancer::SetTargetAngle(int32_t angle)
     target_angle_ = angle;
 }
 
+void Balancer::SetRegulatorConstants(int32_t kp, int32_t ki)
+{
+    kp_ = kp;
+    ki_ = ki;
+}
 
