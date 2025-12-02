@@ -35,9 +35,9 @@ extern Mpu6050 mpu6050;
 Spi Spi_Bus;
 
 const int base = 25;
-const float k = 0.03;
+const float k = 0.3;
 const float I = 0.02;
-const float target_angle = 0;
+const float target_angle = -20;
 
 static const int SPI_CHANNEL = 0;
 static const int SPI_SPEED = 500000;
@@ -57,14 +57,22 @@ static const int SPI_SPEED = 500000;
 void *CalculateFlightControls(void *data_ptr)
 {
     SchedSetAttr((sched_attr_t*)data_ptr);
+    uint8_t buffer[MAX_MOTOR_NUM] = {0};
+    std::cout << "Step 1" << std::endl;
+    buffer[0] = 0x0;
+    buffer[1] = 0x0;
+    buffer[2] = 0x0;
+    buffer[3] = 0x0;
+    Spi_Bus.Init(SPI_CHANNEL, SPI_SPEED);
+
+    Spi_Bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
     Balancer *balancer = new Balancer();
     
-    Spi_Bus.Init(SPI_CHANNEL, SPI_SPEED);
+    sleep(5);
     balancer->SetTargetAngle(target_angle);
     balancer->SetRegulatorConstants(k, I, 0);
-    balancer->SetBaseThrust(10);
+    balancer->SetBaseThrust(30);
 
-    balancer->ProcessControl();
     while(1)
     {
         balancer->ProcessControl();
@@ -87,16 +95,7 @@ void *ReadAccSensor(void *data_ptr)
 
 void *DoMainRoutine(void)
 {
-        std::cout << "Step 1" << std::endl;
-        buffer[0] = 0x0;
-        buffer[1] = 0x0;
-        buffer[2] = 0x0;
-        buffer[3] = 0x0;
-
-        Spi_Bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
-        sleep(3);
-
-        sleep(30);
+    sleep(60);
     return NULL;
 }
 
@@ -139,16 +138,20 @@ void Balancer::ProcessControl(void)
     float u = 0;
     float error = 0;
 
+    mpu6050.ProcessSensorData();
     roll_angle = mpu6050.GetSpiritAngle(ROLL);
     error = target_angle_ - (float)roll_angle;
     error_i_ = error + error_i_;
     u =  kp_*error + ki_*error_i_;
-
+    
+    
     thrust_1_ = base_thrust_ + std::round(u);
     thrust_2_ = base_thrust_ - std::round(u);
-
+    
     thrust_1_ = (thrust_1_ > 0) ? thrust_1_ : 0;
     thrust_2_ = (thrust_2_ > 0) ? thrust_2_ : 0;
+
+    std::cout << " roll angle X: " << roll_angle <<"; Power 1 " << thrust_1_ << "; Power 2 " << thrust_2_ << "; error " << error<< std::endl;
     
     spi_buffer[MOTOR_1] = static_cast<uint8_t>(thrust_1_);
     spi_buffer[MOTOR_2] = static_cast<uint8_t>(thrust_2_);
