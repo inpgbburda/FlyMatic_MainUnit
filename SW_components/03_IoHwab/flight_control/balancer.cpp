@@ -14,6 +14,7 @@
 #include "spi.hpp"
 
 #include <iostream>
+#include <cmath>
 /*
 |===================================================================================================================================|
     Macro definitions
@@ -31,15 +32,15 @@
 |===================================================================================================================================|
 */
 extern Mpu6050 mpu6050;
-Spi spi_bus;
+Spi Spi_Bus;
 
 const int base = 25;
 const float k = 0.03;
 const float I = 0.02;
+const float target_angle = 0;
 
-static const int SPI_CHANNEL = 1;
+static const int SPI_CHANNEL = 0;
 static const int SPI_SPEED = 500000;
-unsigned char buffer[100];
 
 /*
 |===================================================================================================================================|
@@ -56,36 +57,17 @@ unsigned char buffer[100];
 void *CalculateFlightControls(void *data_ptr)
 {
     SchedSetAttr((sched_attr_t*)data_ptr);
+    Balancer *balancer = new Balancer();
     
-    int32_t angle_x = 0;
-    int diff=0;
-    static float prev_diff = 0;
-    
-    spi_bus.Init(SPI_CHANNEL, SPI_SPEED);
+    Spi_Bus.Init(SPI_CHANNEL, SPI_SPEED);
+    balancer->SetTargetAngle(target_angle);
+    balancer->SetRegulatorConstants(k, I, 0);
+    balancer->SetBaseThrust(10);
 
+    balancer->ProcessControl();
     while(1)
     {
-        int power_1;
-        int power_2;
-        int control;
-                
-        mpu6050.ProcessSensorData();
-        angle_x = mpu6050.GetSpiritAngle(ROLL);
-
-        diff = 0 - angle_x;
-        prev_diff = prev_diff + (float)diff;
-        control  = int((float)diff*(-k) + prev_diff*(-I));
-        power_1 = base + control;
-        power_2 = base - control;
-        std::cout << " roll angle X: " << angle_x <<"; Power 1 " << power_1 << "; Power 2 " << power_2 << std::endl;
-        
-        buffer[0] = 0x76; /* Proppeller 1 */
-        buffer[1] = 0x75; /* Proppeller 2 */
-        buffer[2] = 0x74;
-        buffer[3] = 0x73;
-        
-        spi_bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
-        
+        balancer->ProcessControl();
         /*Inform scheduler that calculation is done*/
         sched_yield();
     }
@@ -111,7 +93,7 @@ void *DoMainRoutine(void)
         buffer[2] = 0x0;
         buffer[3] = 0x0;
 
-        spi_bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
+        Spi_Bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
         sleep(3);
 
         sleep(30);
@@ -151,20 +133,19 @@ Balancer::~Balancer()
 
 void Balancer::ProcessControl(void)
 {
-    Spi spi;
     uint8_t spi_buffer[MAX_MOTOR_NUM] = {0};
 
     int32_t roll_angle = 0;
-    int32_t u = 0;
-    int32_t error = 0;
+    float u = 0;
+    float error = 0;
 
     roll_angle = mpu6050.GetSpiritAngle(ROLL);
-    error = target_angle_ - roll_angle;
+    error = target_angle_ - (float)roll_angle;
     error_i_ = error + error_i_;
     u =  kp_*error + ki_*error_i_;
 
-    thrust_1_ = base_thrust_ + u;
-    thrust_2_ = base_thrust_ - u;
+    thrust_1_ = base_thrust_ + std::round(u);
+    thrust_2_ = base_thrust_ - std::round(u);
 
     thrust_1_ = (thrust_1_ > 0) ? thrust_1_ : 0;
     thrust_2_ = (thrust_2_ > 0) ? thrust_2_ : 0;
@@ -172,7 +153,7 @@ void Balancer::ProcessControl(void)
     spi_buffer[MOTOR_1] = static_cast<uint8_t>(thrust_1_);
     spi_buffer[MOTOR_2] = static_cast<uint8_t>(thrust_2_);
 
-    spi.ReadWriteData(SPI_CHANNEL, spi_buffer, sizeof(spi_buffer));
+    Spi_Bus.ReadWriteData(SPI_CHANNEL, spi_buffer, sizeof(spi_buffer));
 }
 
 void Balancer::SetTargetAngle(int32_t angle)
@@ -180,7 +161,7 @@ void Balancer::SetTargetAngle(int32_t angle)
     target_angle_ = angle;
 }
 
-void Balancer::SetRegulatorConstants(int32_t kp, int32_t ki)
+void Balancer::SetRegulatorConstants(float kp, float ki, float kd)
 {
     kp_ = kp;
     ki_ = ki;
