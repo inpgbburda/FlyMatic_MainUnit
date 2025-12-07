@@ -35,8 +35,8 @@ extern Mpu6050 mpu6050;
 Spi Spi_Bus;
 
 const int base = 25;
-const float k = 0.3;
-const float I = 0.02;
+const float k = 0.3f;
+const float I = 0.02f;
 const float target_angle = -20;
 
 static const int SPI_CHANNEL = 0;
@@ -103,16 +103,16 @@ Balancer::Balancer(/* args */)
 {
 }
 
-void Balancer::SetBaseThrust(int32_t thrust)
+void Balancer::SetBaseThrust(uint8_t thrust)
 {
     base_thrust_ = thrust;
     thrust_1_ = thrust;
     thrust_2_ = thrust;
 }
 
-int32_t Balancer::GetCurrentThrust(Motor_Id_T channel) const
+uint8_t Balancer::GetCurrentThrust(Motor_Id_T channel) const
 {
-    int32_t thr = 0;
+    uint8_t thr = 0;
 
     if(MOTOR_1 == channel){
         thr = thrust_1_;
@@ -135,26 +135,36 @@ void Balancer::ProcessControl(void)
     uint8_t spi_buffer[MAX_MOTOR_NUM] = {0};
 
     int32_t roll_angle = 0;
-    float u = 0;
-    float error = 0;
+    float u = 0.0f;
+    float error = 0.0f;
+    float error_d = 0.0f;
+    int32_t thrust_1 = 0;
+    int32_t thrust_2 = 0;
 
     mpu6050.ProcessSensorData();
     roll_angle = mpu6050.GetSpiritAngle(ROLL);
-    error = target_angle_ - (float)roll_angle;
-    error_i_ = error + error_i_;
-    u =  kp_*error + ki_*error_i_;
-    
-    
-    thrust_1_ = base_thrust_ + std::round(u);
-    thrust_2_ = base_thrust_ - std::round(u);
-    
-    thrust_1_ = (thrust_1_ > 0) ? thrust_1_ : 0;
-    thrust_2_ = (thrust_2_ > 0) ? thrust_2_ : 0;
 
-    std::cout << " roll angle X: " << roll_angle <<"; Power 1 " << thrust_1_ << "; Power 2 " << thrust_2_ << "; error " << error<< std::endl;
+    error = target_angle_ - static_cast<float>(roll_angle);
+    error_i_ = error + error_i_;
+    error_d = error - error_prev_;
+
+    u =  kp_*error + ki_*error_i_ + kd_*error_d;
+
+    float rounded_u = std::round(u);
+    int32_t temp_u = static_cast<int32_t>(rounded_u);
+
+    thrust_1 = static_cast<int32_t>(base_thrust_) + temp_u;
+    thrust_2 = static_cast<int32_t>(base_thrust_) - temp_u;
     
-    spi_buffer[MOTOR_1] = static_cast<uint8_t>(thrust_1_);
-    spi_buffer[MOTOR_2] = static_cast<uint8_t>(thrust_2_);
+    thrust_1_ = (thrust_1 > 0) ? static_cast<uint8_t>(thrust_1) : 0;
+    thrust_2_ = (thrust_2 > 0) ? static_cast<uint8_t>(thrust_2) : 0;
+
+#ifndef _UNIT_TEST
+    std::cout << " roll angle X: " << roll_angle <<"; Power 1 " << thrust_1_ << "; Power 2 " << thrust_2_ << "; error " << error<< std::endl;
+#endif
+
+    spi_buffer[MOTOR_1] = thrust_1_;
+    spi_buffer[MOTOR_2] = thrust_2_;
 
     Spi_Bus.ReadWriteData(SPI_CHANNEL, spi_buffer, sizeof(spi_buffer));
 }
@@ -168,5 +178,6 @@ void Balancer::SetRegulatorConstants(float kp, float ki, float kd)
 {
     kp_ = kp;
     ki_ = ki;
+    kd_ = kd;
 }
 

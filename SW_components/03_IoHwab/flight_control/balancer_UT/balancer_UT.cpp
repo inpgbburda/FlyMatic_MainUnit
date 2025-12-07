@@ -166,8 +166,7 @@ TEST(Balancer, CalculatesControlSignalWithDifferentialForOverRoll)
     balancer->ProcessControl();
     balancer->ProcessControl();
 
-    // TODO: Choose the right expected values to test kd properly
-    // CHECK_EQUAL(0, balancer->GetCurrentThrust(MOTOR_1));
-    // CHECK_EQUAL(2, balancer->GetCurrentThrust(MOTOR_2)); 
+    CHECK_EQUAL(0U, balancer->GetCurrentThrust(MOTOR_1));
+    CHECK_EQUAL(1U, balancer->GetCurrentThrust(MOTOR_2)); /* (10-5)*0.1 = 0.5 -round-> 1 */
 }
 // TODO: Test saturation SPI max value of 255

@@ -16,7 +16,7 @@ include_directories(
 
 add_definitions ( -D_UNIT_TEST )
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wno-float-conversion")
 
 add_executable(${CMAKE_PROJECT_NAME}
     balancer_UT.cpp
