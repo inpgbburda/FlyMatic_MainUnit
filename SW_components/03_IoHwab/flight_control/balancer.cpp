@@ -35,8 +35,9 @@ extern Mpu6050 mpu6050;
 Spi Spi_Bus;
 
 const int base = 25;
-const float k = 0.3f;
-const float I = 0.02f;
+const float k = 0.2f;
+const float I = 0.08f;
+const float D = 0.0f;
 const float target_angle = -20;
 
 static const int SPI_CHANNEL = 0;
@@ -54,23 +55,16 @@ static const int SPI_SPEED = 500000;
 |===================================================================================================================================|
 */
 
+Balancer *balancer = new Balancer(Spi_Bus);
+
 void *CalculateFlightControls(void *data_ptr)
 {
     SchedSetAttr((sched_attr_t*)data_ptr);
-    uint8_t buffer[MAX_MOTOR_NUM] = {0};
-    std::cout << "Step 1" << std::endl;
-    buffer[0] = 0x0;
-    buffer[1] = 0x0;
-    buffer[2] = 0x0;
-    buffer[3] = 0x0;
-    Spi_Bus.Init(SPI_CHANNEL, SPI_SPEED);
 
-    Spi_Bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
-    Balancer *balancer = new Balancer();
-    
+    std::cout << "Step 1" << std::endl;
+    balancer->Init();
     sleep(5);
-    balancer->SetTargetAngle(target_angle);
-    balancer->SetRegulatorConstants(k, I, 0);
+    balancer->SetRegulatorConstants(k, I, D);
     balancer->SetBaseThrust(30);
 
     while(1)
@@ -95,13 +89,33 @@ void *ReadAccSensor(void *data_ptr)
 
 void *DoMainRoutine(void)
 {
-    sleep(60);
+    balancer->SetTargetAngle(0);
+    sleep(10);
+    balancer->SetTargetAngle(20);
+    sleep(5);
+    balancer->SetTargetAngle(-20);
+    sleep(5);
+    balancer->SetTargetAngle(20);
+    sleep(5);
+    balancer->SetTargetAngle(-20);
+    sleep(5);
+    balancer->SetTargetAngle(0);
+    sleep(10);
     return NULL;
 }
 
-Balancer::Balancer(/* args */)
+Balancer::Balancer(Spi& spi) : spi_(spi)
 {
 }
+
+void Balancer::Init(void)
+{
+    uint8_t buffer[MAX_MOTOR_NUM] = {0};
+
+    Spi_Bus.Init(SPI_CHANNEL, SPI_SPEED);
+    Spi_Bus.ReadWriteData(SPI_CHANNEL, buffer, MAX_MOTOR_NUM);
+}
+
 
 void Balancer::SetBaseThrust(uint8_t thrust)
 {
@@ -126,9 +140,6 @@ uint8_t Balancer::GetCurrentThrust(Motor_Id_T channel) const
     return thr;
 }
 
-Balancer::~Balancer()
-{
-}
 
 void Balancer::ProcessControl(void)
 {
@@ -181,3 +192,6 @@ void Balancer::SetRegulatorConstants(float kp, float ki, float kd)
     kd_ = kd;
 }
 
+Balancer::~Balancer()
+{
+}

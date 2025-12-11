@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "spi.hpp"
 
 typedef enum
 {
@@ -18,6 +19,7 @@ void *DoMainRoutine(void);
 class Balancer
 {
 private:
+    Spi& spi_;
     /* data */
     uint32_t base_thrust_ = 0U;
     uint8_t thrust_1_ = 0U;
@@ -30,7 +32,8 @@ private:
     float error_prev_ = 0.0f;
     
 public:
-    Balancer(/* args */);
+    Balancer(Spi& spi);
+    void Init(void);
     void SetBaseThrust(uint8_t thrust);
     void SetRegulatorConstants(float kp, float ki, float kd);
     uint8_t GetCurrentThrust(Motor_Id_T channel) const;
