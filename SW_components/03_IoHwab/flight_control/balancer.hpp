@@ -12,14 +12,11 @@ typedef enum
 }
 Motor_Id_T;
 
-void *CalculateFlightControls(void *data_ptr);
-void *ReadAccSensor(void *data_ptr);
-void *DoMainRoutine(void);
-
 class Balancer
 {
 private:
     Spi& spi_;
+    int spi_channel_ = 0;
     /* data */
     uint32_t base_thrust_ = 0U;
     uint8_t thrust_1_ = 0U;
@@ -32,7 +29,7 @@ private:
     float error_prev_ = 0.0f;
     
 public:
-    Balancer(Spi& spi);
+    Balancer(Spi& spi, int spi_channel);
     void Init(void);
     void SetBaseThrust(uint8_t thrust);
     void SetRegulatorConstants(float kp, float ki, float kd);
@@ -41,3 +38,7 @@ public:
     void ProcessControl(void);
     ~Balancer();
 };
+
+void *CalculateFlightControls(void *data_ptr);
+void *ReadAccSensor(void *data_ptr);
+void *DoMainRoutine(Balancer& balancer);

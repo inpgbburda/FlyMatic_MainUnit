@@ -56,6 +56,14 @@ RT_Thread::RT_Thread
     attr_.sched_runtime = runtime;
     attr_.sched_deadline = deadline;
     attr_.sched_period = period;
+
+    start_payload_.attr_ptr = &attr_;
+    start_payload_.user_arg = nullptr;
+}
+
+void RT_Thread::SetUserArg(void* arg)
+{
+    start_payload_.user_arg = arg;
 }
 
 /**
@@ -68,7 +76,7 @@ RT_Thread::RT_Thread
 void RT_Thread::Run(void)
 {
     exec_state_ = true;
-    pthread_create(&posix_instance_, NULL, fun_ptr_, (void*)&attr_);
+    pthread_create(&posix_instance_, NULL, fun_ptr_, (void*)&start_payload_);
 }
 
 void RT_Thread::AssignAffinity(void)

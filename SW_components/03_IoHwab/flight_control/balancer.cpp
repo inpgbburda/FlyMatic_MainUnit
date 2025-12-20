@@ -32,16 +32,12 @@
 |===================================================================================================================================|
 */
 extern Mpu6050 mpu6050;
-Spi Spi_Bus;
 
 const int base = 25;
 const float k = 0.2f;
 const float I = 0.08f;
 const float D = 0.0f;
 const float target_angle = -20;
-
-static const int SPI_CHANNEL = 0;
-static const int SPI_SPEED = 500000;
 
 /*
 |===================================================================================================================================|
@@ -55,11 +51,12 @@ static const int SPI_SPEED = 500000;
 |===================================================================================================================================|
 */
 
-Balancer *balancer = new Balancer(Spi_Bus);
-
 void *CalculateFlightControls(void *data_ptr)
 {
-    SchedSetAttr((sched_attr_t*)data_ptr);
+    RT_Thread_StartPayload *payload = (RT_Thread_StartPayload*)data_ptr; /* just to be able to use fields*/
+
+    SchedSetAttr(payload->attr_ptr);
+    Balancer *balancer = (Balancer*)payload->user_arg;
 
     std::cout << "Step 1" << std::endl;
     balancer->Init();
@@ -78,7 +75,8 @@ void *CalculateFlightControls(void *data_ptr)
 
 void *ReadAccSensor(void *data_ptr)
 {
-    SchedSetAttr((sched_attr_t*)data_ptr);
+    RT_Thread_StartPayload *payload = (RT_Thread_StartPayload*)data_ptr; /* just to be able to use fields*/
+    SchedSetAttr(payload->attr_ptr);
     while(1)
     {
         mpu6050.ReadSensorData();
@@ -87,33 +85,31 @@ void *ReadAccSensor(void *data_ptr)
     return NULL;
 }
 
-void *DoMainRoutine(void)
+void *DoMainRoutine(Balancer& balancer)
 {
-    balancer->SetTargetAngle(0);
+    balancer.SetTargetAngle(0);
     sleep(10);
-    balancer->SetTargetAngle(20);
+    balancer.SetTargetAngle(20);
     sleep(5);
-    balancer->SetTargetAngle(-20);
+    balancer.SetTargetAngle(-20);
     sleep(5);
-    balancer->SetTargetAngle(20);
+    balancer.SetTargetAngle(20);
     sleep(5);
-    balancer->SetTargetAngle(-20);
+    balancer.SetTargetAngle(-20);
     sleep(5);
-    balancer->SetTargetAngle(0);
+    balancer.SetTargetAngle(0);
     sleep(10);
     return NULL;
 }
 
-Balancer::Balancer(Spi& spi) : spi_(spi)
+Balancer::Balancer(Spi& spi, int spi_channel) : spi_(spi), spi_channel_(spi_channel)
 {
 }
 
 void Balancer::Init(void)
 {
     uint8_t buffer[MAX_MOTOR_NUM] = {0};
-
-    Spi_Bus.Init(SPI_CHANNEL, SPI_SPEED);
-    Spi_Bus.ReadWriteData(SPI_CHANNEL, buffer, MAX_MOTOR_NUM);
+    spi_.ReadWriteData(spi_channel_, buffer, MAX_MOTOR_NUM);
 }
 
 
@@ -177,7 +173,7 @@ void Balancer::ProcessControl(void)
     spi_buffer[MOTOR_1] = thrust_1_;
     spi_buffer[MOTOR_2] = thrust_2_;
 
-    Spi_Bus.ReadWriteData(SPI_CHANNEL, spi_buffer, sizeof(spi_buffer));
+    spi_.ReadWriteData(spi_channel_, spi_buffer, sizeof(spi_buffer));
 }
 
 void Balancer::SetTargetAngle(int32_t angle)
