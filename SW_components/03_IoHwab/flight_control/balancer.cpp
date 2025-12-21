@@ -31,8 +31,6 @@
     Object allocations 
 |===================================================================================================================================|
 */
-extern Mpu6050 mpu6050;
-
 const int base = 25;
 const float k = 0.2f;
 const float I = 0.08f;
@@ -53,10 +51,10 @@ const float target_angle = -20;
 
 void *CalculateFlightControls(void *data_ptr)
 {
-    RT_Thread_StartPayload *payload = (RT_Thread_StartPayload*)data_ptr; /* just to be able to use fields*/
+    RT_Thread_StartPayload *payload = (RT_Thread_StartPayload*)data_ptr; 
 
     SchedSetAttr(payload->attr_ptr);
-    Balancer *balancer = (Balancer*)payload->user_arg;
+    Balancer* balancer = (Balancer*)(payload->user_arg);
 
     std::cout << "Step 1" << std::endl;
     balancer->Init();
@@ -75,11 +73,14 @@ void *CalculateFlightControls(void *data_ptr)
 
 void *ReadAccSensor(void *data_ptr)
 {
-    RT_Thread_StartPayload *payload = (RT_Thread_StartPayload*)data_ptr; /* just to be able to use fields*/
+    RT_Thread_StartPayload *payload = (RT_Thread_StartPayload*)data_ptr;
+    
     SchedSetAttr(payload->attr_ptr);
+    Mpu6050* mpu6050 = (Mpu6050*)(payload->user_arg);
+
     while(1)
     {
-        mpu6050.ReadSensorData();
+        mpu6050->ReadSensorData();
         sched_yield();
     }
     return NULL;
@@ -102,7 +103,8 @@ void *DoMainRoutine(Balancer& balancer)
     return NULL;
 }
 
-Balancer::Balancer(Spi& spi, int spi_channel) : spi_(spi), spi_channel_(spi_channel)
+Balancer::Balancer(Mpu6050& mpu6050, Spi& spi, int spi_channel):
+    mpu6050_(mpu6050), spi_(spi), spi_channel_(spi_channel)
 {
 }
 
@@ -148,8 +150,8 @@ void Balancer::ProcessControl(void)
     int32_t thrust_1 = 0;
     int32_t thrust_2 = 0;
 
-    mpu6050.ProcessSensorData();
-    roll_angle = mpu6050.GetSpiritAngle(ROLL);
+    mpu6050_.ProcessSensorData();
+    roll_angle = mpu6050_.GetSpiritAngle(ROLL);
 
     error = target_angle_ - static_cast<float>(roll_angle);
     error_i_ = error + error_i_;

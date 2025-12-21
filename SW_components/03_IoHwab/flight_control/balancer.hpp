@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "spi.hpp"
+#include "mpu6050.hpp"
 
 typedef enum
 {
@@ -15,6 +16,7 @@ Motor_Id_T;
 class Balancer
 {
 private:
+    Mpu6050& mpu6050_;
     Spi& spi_;
     int spi_channel_ = 0;
     /* data */
@@ -29,7 +31,7 @@ private:
     float error_prev_ = 0.0f;
     
 public:
-    Balancer(Spi& spi, int spi_channel);
+    Balancer(Mpu6050& mpu6050, Spi& spi, int spi_channel);
     void Init(void);
     void SetBaseThrust(uint8_t thrust);
     void SetRegulatorConstants(float kp, float ki, float kd);
