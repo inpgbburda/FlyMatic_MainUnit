@@ -17,10 +17,12 @@ static const int SPI_CHANNEL = 1;
 TEST_GROUP(Balancer)
 {
     Balancer* balancer;
+    Mpu6050 mpu6050_mock = Mpu6050();
+    Spi spi_mock = Spi();
 
     void setup()
     {
-        balancer = new Balancer();
+        balancer = new Balancer(mpu6050_mock, spi_mock, SPI_CHANNEL);
     }
     void teardown()
     {

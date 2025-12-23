@@ -142,6 +142,35 @@
     },
         {
             "type": "shell",
+            "label": "Unit Tests - Thread Manager - build",
+            "command": "make all",
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Thread_Manager_UT/builds_UT"
+            },
+            "problemMatcher": {
+                "base": "$gcc"
+            },
+        },
+        {
+            "type": "shell",
+            "label": "Unit Tests - Thread Manager - clean",
+            "command": "make clean",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Thread_Manager_UT/builds_UT"
+            },
+        },
+        {
+            "type": "shell",
+            "label": "Unit Tests - Thread Manager - run",
+            "command": "./Thread_Manager_UT.exe",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Thread_Manager_UT/builds_UT"
+            },
+        },
+        {
+            "type": "shell",
             "label": "Unit Tests - MPU6050 - build",
             "command": "make all",
             "options": {

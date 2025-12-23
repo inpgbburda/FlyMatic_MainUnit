@@ -2,20 +2,32 @@
 
 cmake_minimum_required(VERSION 3.18.1)
 project(Thread_Manager_UT)
-find_package(Catch2 3 REQUIRED)
 message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 
-# These tests can use the Catch2-provided main
+SET(CPPUTEST_RLV_PATH 
+    ../../../../Tools/Testing/cpp_utest
+)
 
-include_directories(../)
+include_directories(
+    ${CPPUTEST_RLV_PATH}/includes/
+    ../
+)
 
 add_definitions ( -D_UNIT_TEST )
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wno-float-conversion")
 
-add_executable(Thread_Manager_UT
+add_executable(${CMAKE_PROJECT_NAME}
     Thread_Manager_UT.cpp
+    run_all_tests.cpp
     ../Thread_Manager.cpp
 )
 
-target_link_libraries(Thread_Manager_UT PRIVATE Catch2::Catch2WithMain)
+# Enabe coverage flags
+target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -O0 -g --coverage)
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE --coverage)
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+    ${CMAKE_CURRENT_SOURCE_DIR}/${CPPUTEST_RLV_PATH}/libs/libCppUTestExt.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/${CPPUTEST_RLV_PATH}/libs/libCppUTest.a
+)

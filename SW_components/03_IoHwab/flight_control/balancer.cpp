@@ -51,10 +51,10 @@ const float target_angle = -20;
 
 void *CalculateFlightControls(void *data_ptr)
 {
-    RT_Thread_StartPayload *payload = (RT_Thread_StartPayload*)data_ptr; 
+    RT_Thread_StartPayload *payload = static_cast<RT_Thread_StartPayload*>(data_ptr); 
 
     SchedSetAttr(payload->attr_ptr);
-    Balancer* balancer = (Balancer*)(payload->user_arg);
+    Balancer* balancer = static_cast<Balancer*>(payload->user_arg);
 
     std::cout << "Step 1" << std::endl;
     balancer->Init();
@@ -73,10 +73,10 @@ void *CalculateFlightControls(void *data_ptr)
 
 void *ReadAccSensor(void *data_ptr)
 {
-    RT_Thread_StartPayload *payload = (RT_Thread_StartPayload*)data_ptr;
+    RT_Thread_StartPayload *payload = static_cast<RT_Thread_StartPayload*>(data_ptr);
     
     SchedSetAttr(payload->attr_ptr);
-    Mpu6050* mpu6050 = (Mpu6050*)(payload->user_arg);
+    Mpu6050* mpu6050 = static_cast<Mpu6050*>(payload->user_arg);
 
     while(1)
     {

@@ -1,6 +1,8 @@
 #include "Thread_Manager.hpp"
 #include <string.h>
+#ifndef _UNIT_TEST
 #include <sys/mman.h>
+#endif
 
 #define DEFAULT_PID         0U /* Apply the scheduling attributes to the current thread*/
 #define SCHED_FLAG_DEFAULT       0U /* No special options */
@@ -17,18 +19,19 @@
  */
 void SchedSetAttr(sched_attr_t *attr_ptr) 
 {
-    int result = 0;
     sched_attr_t attr_local = {};
-
     memcpy(&attr_local, attr_ptr, sizeof(sched_attr_t));
-
+#ifndef _UNIT_TEST
+    int result = 0;
     /* Pass the scheduling configuration to the OS */
     result = syscall(__NR_sched_setattr, DEFAULT_PID, &attr_local, SCHED_FLAG_DEFAULT);
     if(result < 0)
     {
-        // throw std::runtime_error("sched_setattr failed to set the priorities");
         std::cout << "sched_setattr failed to set the priorities"<< std::endl;
     }
+#else
+    (void)attr_local;
+#endif
 }
 
 /* Lock memory - prevent from paging to the swap area -
@@ -36,11 +39,13 @@ void SchedSetAttr(sched_attr_t *attr_ptr)
     */
 void PreventPagingToSwapArea(void)
 {
+    #ifndef _UNIT_TEST
     if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) 
     {
         printf("mlockall failed: %m\n");
         exit(-2);
     }
+    #endif
 }
 
 RT_Thread::RT_Thread
@@ -81,6 +86,7 @@ void RT_Thread::Run(void)
 
 void RT_Thread::AssignAffinity(void)
 {
+    #ifndef _UNIT_TEST
     int aff_result;
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
@@ -90,12 +96,13 @@ void RT_Thread::AssignAffinity(void)
         {
             CPU_SET(i, &cpuset);
         }
-    } 
-    aff_result = pthread_setaffinity_np(posix_instance_,sizeof(cpuset), &cpuset);
+    }
+    aff_result = pthread_setaffinity_np(posix_instance_, sizeof(cpuset), &cpuset);
     if (0 != aff_result)
     {
         std::cout << "Error- affinity problem" << std::endl;
     }
+    #endif
 }
 
 /**

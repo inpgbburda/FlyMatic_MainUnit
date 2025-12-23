@@ -2,8 +2,10 @@
 
 #include <pthread.h>
 #include <stdint.h>
+#ifndef _UNIT_TEST
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
 #include <unistd.h>           /* Definition of syscalls */
+#endif
 #include <iostream>
 #include <vector>
 
