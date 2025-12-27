@@ -90,9 +90,19 @@
     "complex": "cpp",
     "list": "cpp",
     "typeindex": "cpp"
-},
-"terminal.integrated.defaultProfile.windows": "Cygwin",
-"terminal.integrated.automationProfile.windows": {
-"path": "C:/cygwin64/bin/bash.exe",
-}
+    },
+    // Setting Cygwin as default terminal in VSCode Task Runner
+    "terminal.integrated.automationProfile.windows": {
+        "path": "D:\\Programy\\cygwin64\\cygwin64\\bin\\bash.exe",
+    },
+    // Setting Cygwin as available terminal profile in VSCode terminal dropdown (but not default)
+    "terminal.integrated.profiles.windows": {
+        "Cygwin": {
+            "path": "D:\\Programy\\cygwin64\\cygwin64\\bin\\bash.exe",
+            "args": [
+                "--login"
+            ],
+            "icon": "code"
+        }
+    }
 }

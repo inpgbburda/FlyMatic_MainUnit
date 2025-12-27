@@ -8,7 +8,8 @@ Needed to install on PC machine
     - make
     - gcc/g++  
 
-Install it under `C:\cygwin64` and add it to system path.
+Install it under `C:\cygwin64` and add it to system path.  
+The **VScode Tasks** are automatically configured to run under cygwin and the `Cygwin` terminal profile is created (adjust paths in `settings.json`).
 
 ## Commands
 Before first compilation on RPI, run `Tools/Env/setup_rpi.sh` script. It will install and configure all needed libs and settings.
