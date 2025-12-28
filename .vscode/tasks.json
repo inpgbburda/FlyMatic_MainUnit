@@ -232,6 +232,16 @@
             },
         },
         {
+            "type": "shell",
+            "label": "Unit Tests - Balancer - build, run and cover",
+            "command": "./test_and_coverage.sh",
+            "group": "test",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/03_IoHwab/flight_control/balancer_UT"
+            },
+        },
+        {
             "label": "Unit Tests - Build all UTs",
             "dependsOrder": "sequence",
             "dependsOn": ["Unit Tests - MPU6050 - build", "Unit Tests - Balancer - build", "Unit Tests - I2C - build"]

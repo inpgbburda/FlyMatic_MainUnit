@@ -6,7 +6,10 @@ Needed to install on PC machine
 - **cygwin** -> for UT buiding, with the following packs
     - cmake
     - make
-    - gcc/g++  
+    - gcc/g++
+    - gcov
+    - python3 
+    - pip3 -> gcovr 
 
 Install it under `C:\cygwin64` and add it to system path.  
 The **VScode Tasks** are automatically configured to run under cygwin and the `Cygwin` terminal profile is created (adjust paths in `settings.json`).
