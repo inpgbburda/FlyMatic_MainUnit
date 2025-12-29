@@ -56,6 +56,8 @@ public:
     (
         int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data)
     );
+    RT_Thread(const RT_Thread& other);
+    RT_Thread& operator=(const RT_Thread& other);
     void SetUserArg(void* arg);
     /** Creates Posix thread with prevoiusly set paramaters*/
     void Run(void);
@@ -82,6 +84,5 @@ public:
     std::vector<RT_Thread> const GetAllThreads(){ return collected_threads_; }
     void DeInit(void);
     void RunAllThreads(void);
-
-   ~Thread_Manager(){};
+    ~Thread_Manager();
 };

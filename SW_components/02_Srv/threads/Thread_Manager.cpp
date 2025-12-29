@@ -66,6 +66,37 @@ RT_Thread::RT_Thread
     start_payload_.user_arg = nullptr;
 }
 
+RT_Thread::RT_Thread(const RT_Thread& other)
+{
+    fun_ptr_ = other.fun_ptr_;
+    attr_ = other.attr_;
+    for(unsigned int i=0; i<THR_MNGR_RPI_CORE_NUMBER; ++i)
+    {
+        Cpu_Set_[i] = other.Cpu_Set_[i];
+    }
+    exec_state_ = other.exec_state_;
+    start_payload_.attr_ptr = &attr_;
+    start_payload_.user_arg = other.start_payload_.user_arg;
+    posix_instance_ = pthread_t{};
+}
+
+RT_Thread& RT_Thread::operator=(const RT_Thread& other)
+{
+    if(this == &other)
+        return *this;
+    fun_ptr_ = other.fun_ptr_;
+    attr_ = other.attr_;
+    for(unsigned int i=0; i<THR_MNGR_RPI_CORE_NUMBER; ++i)
+    {
+        Cpu_Set_[i] = other.Cpu_Set_[i];
+    }
+    exec_state_ = other.exec_state_;
+    start_payload_.attr_ptr = &attr_;
+    start_payload_.user_arg = other.start_payload_.user_arg;
+    posix_instance_ = pthread_t{};
+    return *this;
+}
+
 void RT_Thread::SetUserArg(void* arg)
 {
     start_payload_.user_arg = arg;
@@ -132,4 +163,17 @@ void Thread_Manager::RunAllThreads(void)
     {
         thread.Run();
     }
+}
+
+void Thread_Manager::DeInit(void)
+{
+    for (auto & thread : collected_threads_)
+    {
+        thread.Join();
+    }
+}
+
+Thread_Manager::~Thread_Manager()
+{
+    DeInit();
 }

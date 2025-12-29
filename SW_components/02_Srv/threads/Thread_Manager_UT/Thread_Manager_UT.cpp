@@ -1,6 +1,8 @@
 #include "Thread_Manager.hpp"
-#include <CppUTest/TestHarness.h>
 #include <vector>
+
+#include <CppUTest/TestHarness.h>
+#include <CppUTestExt/MockSupport.h>
 
 #define MOCK_SCHED_DEADLINE 6U
 

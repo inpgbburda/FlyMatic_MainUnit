@@ -1,7 +1,8 @@
+#include "balancer.hpp"
+
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
 
-#include "balancer.hpp"
 
 /*
 *    Testing constant configuration
