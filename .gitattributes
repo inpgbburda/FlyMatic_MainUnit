@@ -1,0 +1,2 @@
+# Enforce LF endings for bash scripts to avoid $'\r' errors under Cygwin/Git Bash
+*.sh text eol=lf
