@@ -25,6 +25,19 @@ sudo apt install -y build-essential cmake git pkg-config
 echo "🚩 4. Installing common development libraries..."
 sudo apt install -y libssl-dev libffi-dev
 
+echo "🚩 4b. Installing CppUTest (unit testing) ..."
+sudo apt install -y cpputest libcpputest-dev
+
+# Quick verification: headers and libraries present
+CPPUTEST_HDR="/usr/include/CppUTest/TestHarness.h"
+if [ -f "$CPPUTEST_HDR" ] && \
+   (ldconfig -p | grep -qE 'CppUTest(Ext)?' || find /usr/lib* -name 'libCppUTest*' -print -quit >/dev/null 2>&1); then
+    echo "✅ CppUTest detected (headers and libs available)."
+else
+    echo "⚠️ CppUTest installation verification failed: headers or libraries not found."
+    echo "   Try: sudo apt update && sudo apt install cpputest libcpputest-dev"
+fi
+
 echo "🚩 5. Installing WiringPi (GPIO library)..."
 # WiringPi is deprecated in official repos, but still usable
 # Install from maintained fork

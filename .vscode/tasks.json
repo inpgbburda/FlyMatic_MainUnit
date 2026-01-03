@@ -95,7 +95,10 @@
         "args": [],
         "options": {
             "cwd": "${workspaceFolder}/SW_components/04_Drv/i2c/i2c_UT/builds_UT/"
-        },
+            },
+            "linux": {
+                "command": "./I2C_UT"
+            }
     },
         {
             "type": "shell",
@@ -125,6 +128,9 @@
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Thread_Manager_UT/builds_UT"
             },
+            "linux": {
+                "command": "./Thread_Manager_UT"
+            }
         },
         {
             "type": "shell",
@@ -154,11 +160,13 @@
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT"
             },
+            "linux": {
+                "command": "./mpu6050_UT"
+            }
         },
         {
             "type": "shell",
             "label": "Unit Tests - Balancer - build",
-            "linux": "true",
             "group": "test",
             "command": "make all",
             "options": {
@@ -187,6 +195,9 @@
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/03_IoHwab/flight_control/balancer_UT/builds_UT"
             },
+            "linux": {
+                "command": "./balancer_UT"
+            }
         },
         {
             "type": "shell",
