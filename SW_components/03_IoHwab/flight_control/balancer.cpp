@@ -110,7 +110,7 @@ Balancer::Balancer(Mpu6050& mpu6050, Spi& spi, int spi_channel):
 
 void Balancer::Init(void)
 {
-    uint8_t buffer[MAX_MOTOR_NUM] = {0};
+    uint8_t buffer[MAX_MOTOR_NUM] = {0U};
     spi_.ReadWriteData(spi_channel_, buffer, MAX_MOTOR_NUM);
 }
 

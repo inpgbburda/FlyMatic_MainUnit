@@ -32,6 +32,19 @@ TEST_GROUP(Balancer)
         mock().clear();
     }
 };
+
+TEST(Balancer, InitializesCorrectly)
+{
+    uint8_t init_buffer[MAX_MOTOR_NUM] = {0U};
+
+    mock().expectOneCall("ReadWriteData")
+        .withParameter("channel", SPI_CHANNEL)
+        .withMemoryBufferParameter("buffer", init_buffer, MAX_MOTOR_NUM)
+        .withParameter("length", MAX_MOTOR_NUM);
+
+    balancer->Init();
+}
+
 /** Kp=1, Ki=0, Kd=0 
 r - target angle
 y - current angle
