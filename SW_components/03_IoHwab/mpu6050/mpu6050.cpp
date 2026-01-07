@@ -183,10 +183,8 @@ int32_t Mpu6050::GetPhysicalAcceleration(Acc_Axis_T axis) const
  */
 void Mpu6050::ProcessSensorData(void)
 {
-    {
-        acc_converter_.ConvertRawToPhysical();
-        angle_converter_.CalculateSpiritAngles();
-    }
+    acc_converter_.ConvertRawToPhysical();
+    angle_converter_.CalculateSpiritAngles();
 }
 
 /**

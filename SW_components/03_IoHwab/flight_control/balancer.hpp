@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <atomic>
 #include "spi.hpp"
 #include "mpu6050.hpp"
 
@@ -18,12 +19,12 @@ class Balancer
 private:
     Mpu6050& mpu6050_;
     Spi& spi_;
-    int spi_channel_ = 0;
+    const int spi_channel_ = 0;
     /* data */
     uint32_t base_thrust_ = 0U;
     uint8_t thrust_1_ = 0U;
     uint8_t thrust_2_ = 0U;
-    int32_t target_angle_ = 0;
+    std::atomic<int32_t> target_angle_{0};
     float kp_ = 0.0f;
     float ki_ = 0.0f;
     float kd_ = 0.0f;
@@ -38,7 +39,13 @@ public:
     uint8_t GetCurrentThrust(Motor_Id_T channel) const;
     void SetTargetAngle(int32_t angle);
     void ProcessControl(void);
+
     ~Balancer();
+    /* Prevent copying and moving */ 
+    Balancer(const Balancer&) = delete;
+    Balancer& operator=(const Balancer&) = delete;
+    Balancer(Balancer&&) = delete;
+    Balancer& operator=(Balancer&&) = delete;
 };
 
 void *CalculateFlightControls(void *data_ptr);

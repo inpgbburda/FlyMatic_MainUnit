@@ -31,11 +31,11 @@
     Object allocations 
 |===================================================================================================================================|
 */
-const int base = 25;
+
+
 const float k = 0.2f;
 const float I = 0.08f;
 const float D = 0.0f;
-const float target_angle = -20;
 
 /*
 |===================================================================================================================================|
@@ -114,7 +114,6 @@ void Balancer::Init(void)
     spi_.ReadWriteData(spi_channel_, buffer, MAX_MOTOR_NUM);
 }
 
-
 void Balancer::SetBaseThrust(uint8_t thrust)
 {
     base_thrust_ = thrust;
@@ -138,32 +137,26 @@ uint8_t Balancer::GetCurrentThrust(Motor_Id_T channel) const
     return thr;
 }
 
-
 void Balancer::ProcessControl(void)
 {
     uint8_t spi_buffer[MAX_MOTOR_NUM] = {0};
 
-    int32_t roll_angle = 0;
-    float u = 0.0f;
-    float error = 0.0f;
-    float error_d = 0.0f;
-    int32_t thrust_1 = 0;
-    int32_t thrust_2 = 0;
-
     mpu6050_.ProcessSensorData();
-    roll_angle = mpu6050_.GetSpiritAngle(ROLL);
+    int32_t roll_angle = mpu6050_.GetSpiritAngle(ROLL);
+    int32_t target_angle = target_angle_.load(std::memory_order_relaxed);
 
-    error = target_angle_ - static_cast<float>(roll_angle);
+    float error = target_angle - static_cast<float>(roll_angle);
     error_i_ = error + error_i_;
-    error_d = error - error_prev_;
+    float error_d = error - error_prev_;
+    error_prev_ = error;
 
-    u =  kp_*error + ki_*error_i_ + kd_*error_d;
+    float u =  kp_*error + ki_*error_i_ + kd_*error_d;
 
     float rounded_u = std::round(u);
     int32_t temp_u = static_cast<int32_t>(rounded_u);
 
-    thrust_1 = static_cast<int32_t>(base_thrust_) + temp_u;
-    thrust_2 = static_cast<int32_t>(base_thrust_) - temp_u;
+    int32_t thrust_1 = static_cast<int32_t>(base_thrust_) + temp_u;
+    int32_t thrust_2 = static_cast<int32_t>(base_thrust_) - temp_u;
     
     thrust_1_ = (thrust_1 > 0) ? static_cast<uint8_t>(thrust_1) : 0;
     thrust_2_ = (thrust_2 > 0) ? static_cast<uint8_t>(thrust_2) : 0;
@@ -180,7 +173,7 @@ void Balancer::ProcessControl(void)
 
 void Balancer::SetTargetAngle(int32_t angle)
 {
-    target_angle_ = angle;
+    target_angle_.store(angle, std::memory_order_relaxed);
 }
 
 void Balancer::SetRegulatorConstants(float kp, float ki, float kd)
