@@ -34,7 +34,7 @@ std::vector<RT_Thread> Initial_Threads = {Thr_Flight_Ctrl, Thr_Mpu6050_Read};
 
 /* End of tasks configuration*/
 
-std::vector<RT_Thread> GetInitialThreads()
+std::vector<RT_Thread> GetInitialThreadsCfg()
 {
     return Initial_Threads;
 }

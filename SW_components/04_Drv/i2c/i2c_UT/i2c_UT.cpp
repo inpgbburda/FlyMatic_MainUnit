@@ -1,7 +1,8 @@
-#include "CppUTest/TestHarness.h"
-#include "CppUTestExt/MockSupport.h"
 #include "i2c.hpp"
 #include <vector>
+/* include cpputest libs later, to avoid macro collisions*/
+#include "CppUTest/TestHarness.h"
+#include "CppUTestExt/MockSupport.h"
 
 TEST_GROUP(I2c)
 {

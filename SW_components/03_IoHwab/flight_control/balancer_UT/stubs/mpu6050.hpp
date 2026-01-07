@@ -15,4 +15,5 @@ class Mpu6050
 public:
     void ProcessSensorData(void);
     int32_t GetSpiritAngle(Angle_Axis_T axis);
+    void ReadSensorData(void);
 };

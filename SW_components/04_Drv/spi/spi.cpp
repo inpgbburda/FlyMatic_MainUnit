@@ -1,20 +1,20 @@
 #include "spi.hpp"
 #include <wiringPiSPI.h>
 
-spi::spi(/* args */)
+Spi::Spi(/* args */)
 {
 }
 
-void spi::Init(const int hw_spi, int speed)
+void Spi::Init(const int hw_spi, int speed)
 {
     wiringPiSPISetup(hw_spi, speed);
 }
 
-void spi::ReadWriteData(const int channel, unsigned char *buffer, int length)
+void Spi::ReadWriteData(const int channel, unsigned char *buffer, int length)
 {
     wiringPiSPIDataRW(channel, buffer, length);
 }
 
-spi::~spi()
+Spi::~Spi()
 {
 }

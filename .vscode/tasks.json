@@ -56,50 +56,7 @@
       },
       {
          "type": "shell",
-         "label": "Generate CMake tests",
-         "command": "cmake -B Builds/",
-         "args": [],
-         "options": {
-            "cwd": "${workspaceFolder}/Testing"
-         },
-         "group": {
-            "kind": "test",
-            "isDefault": true
-         }
-      },
-      {
-         "type": "shell",
-         "label": "Build tests",
-         "command": "make",
-         "args": [],
-         "options": {
-            "cwd": "${workspaceFolder}/Testing/Builds"
-         },
-         "group": {
-            "kind": "test",
-            "isDefault": true
-         },
-         "problemMatcher": {
-            "base": "$gcc",
-         },
-      },
-      {
-         "type": "shell",
-         "label": "Run tests",
-         "command": "./tests",
-         "args": [],
-         "options": {
-            "cwd": "${workspaceFolder}/Testing/Builds"
-         },
-         "group": {
-            "kind": "test",
-            "isDefault": true
-         }
-      },
-
-      {
-         "type": "shell",
-         "label": " 🍓 Run App",
+         "label": "🍓 Run App",
          "command": "sudo ./DroneExec",
          "args": [],
          "options": {
@@ -138,8 +95,43 @@
         "args": [],
         "options": {
             "cwd": "${workspaceFolder}/SW_components/04_Drv/i2c/i2c_UT/builds_UT/"
-        },
+            },
+            "linux": {
+                "command": "./I2C_UT"
+            }
     },
+        {
+            "type": "shell",
+            "label": "Unit Tests - Thread Manager - build",
+            "command": "make all",
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Thread_Manager_UT/builds_UT"
+            },
+            "problemMatcher": {
+                "base": "$gcc"
+            },
+        },
+        {
+            "type": "shell",
+            "label": "Unit Tests - Thread Manager - clean",
+            "command": "make clean",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Thread_Manager_UT/builds_UT"
+            },
+        },
+        {
+            "type": "shell",
+            "label": "Unit Tests - Thread Manager - run",
+            "command": "./Thread_Manager_UT.exe",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Thread_Manager_UT/builds_UT"
+            },
+            "linux": {
+                "command": "./Thread_Manager_UT"
+            }
+        },
         {
             "type": "shell",
             "label": "Unit Tests - MPU6050 - build",
@@ -168,11 +160,13 @@
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/03_IoHwab/mpu6050/mpu6050_UT/builds_UT"
             },
+            "linux": {
+                "command": "./mpu6050_UT"
+            }
         },
         {
             "type": "shell",
             "label": "Unit Tests - Balancer - build",
-            "linux": "true",
             "group": "test",
             "command": "make all",
             "options": {
@@ -201,6 +195,9 @@
             "options": {
                 "cwd": "${workspaceFolder}/SW_components/03_IoHwab/flight_control/balancer_UT/builds_UT"
             },
+            "linux": {
+                "command": "./balancer_UT"
+            }
         },
         {
             "label": "Unit Tests - Build all UTs",

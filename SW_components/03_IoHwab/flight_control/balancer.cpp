@@ -14,6 +14,7 @@
 #include "spi.hpp"
 
 #include <iostream>
+#include <cmath>
 /*
 |===================================================================================================================================|
     Macro definitions
@@ -25,22 +26,16 @@
     Local types definitions 
 |===================================================================================================================================|
 */
-
 /*
 |===================================================================================================================================|
     Object allocations 
 |===================================================================================================================================|
 */
-extern Mpu6050 mpu6050;
-spi spi_bus;
 
-const int base = 25;
-const float k = 0.03;
-const float I = 0.02;
 
-static const int SPI_CHANNEL = 1;
-static const int SPI_SPEED = 500000;
-unsigned char buffer[100];
+const float k = 0.2f;
+const float I = 0.08f;
+const float D = 0.0f;
 
 /*
 |===================================================================================================================================|
@@ -56,37 +51,20 @@ unsigned char buffer[100];
 
 void *CalculateFlightControls(void *data_ptr)
 {
-    SchedSetAttr((sched_attr_t*)data_ptr);
-    
-    int32_t angle_x = 0;
-    int diff=0;
-    static float prev_diff = 0;
-    
-    spi_bus.Init(SPI_CHANNEL, SPI_SPEED);
+    RT_Thread_StartPayload *payload = static_cast<RT_Thread_StartPayload*>(data_ptr); 
+
+    SchedSetAttr(payload->attr_ptr);
+    Balancer* balancer = static_cast<Balancer*>(payload->user_arg);
+
+    std::cout << "Step 1" << std::endl;
+    balancer->Init();
+    sleep(5);
+    balancer->SetRegulatorConstants(k, I, D);
+    balancer->SetBaseThrust(30);
 
     while(1)
     {
-        int power_1;
-        int power_2;
-        int control;
-                
-        mpu6050.ProcessSensorData();
-        angle_x = mpu6050.GetSpiritAngle(ROLL);
-
-        diff = 0 - angle_x;
-        prev_diff = prev_diff + (float)diff;
-        control  = int((float)diff*(-k) + prev_diff*(-I));
-        power_1 = base + control;
-        power_2 = base - control;
-        std::cout << " roll angle X: " << angle_x <<"; Power 1 " << power_1 << "; Power 2 " << power_2 << std::endl;
-        
-        buffer[0] = 0x76;
-        buffer[1] = 0x75;
-        buffer[2] = 0x74;
-        buffer[3] = 0x73;
-        
-        spi_bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
-        
+        balancer->ProcessControl();
         /*Inform scheduler that calculation is done*/
         sched_yield();
     }
@@ -95,51 +73,116 @@ void *CalculateFlightControls(void *data_ptr)
 
 void *ReadAccSensor(void *data_ptr)
 {
-    SchedSetAttr((sched_attr_t*)data_ptr);
+    RT_Thread_StartPayload *payload = static_cast<RT_Thread_StartPayload*>(data_ptr);
+    
+    SchedSetAttr(payload->attr_ptr);
+    Mpu6050* mpu6050 = static_cast<Mpu6050*>(payload->user_arg);
+
     while(1)
     {
-        mpu6050.ReadSensorData();
+        mpu6050->ReadSensorData();
         sched_yield();
     }
     return NULL;
 }
 
-void *DoMainRoutine(void)
+void *DoMainRoutine(Balancer& balancer)
 {
-        std::cout << "Step 1" << std::endl;
-        buffer[0] = 0x0;
-        buffer[1] = 0x0;
-        buffer[2] = 0x0;
-        buffer[3] = 0x0;
-
-        spi_bus.ReadWriteData(SPI_CHANNEL, buffer, 4);
-        sleep(3);
-
-        sleep(30);
+    balancer.SetTargetAngle(0);
+    sleep(10);
+    balancer.SetTargetAngle(20);
+    sleep(5);
+    balancer.SetTargetAngle(-20);
+    sleep(5);
+    balancer.SetTargetAngle(20);
+    sleep(5);
+    balancer.SetTargetAngle(-20);
+    sleep(5);
+    balancer.SetTargetAngle(0);
+    sleep(10);
     return NULL;
 }
 
-Balancer::Balancer(/* args */)
+Balancer::Balancer(Mpu6050& mpu6050, Spi& spi, int spi_channel):
+    mpu6050_(mpu6050), spi_(spi), spi_channel_(spi_channel)
 {
 }
 
-void Balancer::SetBaseThrust(int32_t thrust)
+void Balancer::Init(void)
 {
-    thrust_ = thrust;
+    uint8_t buffer[MAX_MOTOR_NUM] = {0U};
+    spi_.ReadWriteData(spi_channel_, buffer, MAX_MOTOR_NUM);
 }
 
-int32_t Balancer::GetCurrentThrust(Motor_Id_T channel) const
+void Balancer::SetBaseThrust(uint8_t thrust)
 {
-    return thrust_;
+    base_thrust_ = thrust;
+    thrust_1_ = thrust;
+    thrust_2_ = thrust;
+}
+
+uint8_t Balancer::GetCurrentThrust(Motor_Id_T channel) const
+{
+    uint8_t thr = 0;
+
+    if(MOTOR_1 == channel){
+        thr = thrust_1_;
+    }
+    else if(MOTOR_2 == channel){
+        thr = thrust_2_;
+    }
+    else{
+        thr = 0;
+    }
+    return thr;
+}
+
+void Balancer::ProcessControl(void)
+{
+    uint8_t spi_buffer[MAX_MOTOR_NUM] = {0};
+
+    mpu6050_.ProcessSensorData();
+    int32_t roll_angle = mpu6050_.GetSpiritAngle(ROLL);
+    int32_t target_angle = target_angle_.load(std::memory_order_relaxed);
+
+    float error = target_angle - static_cast<float>(roll_angle);
+    error_i_ = error + error_i_;
+    float error_d = error - error_prev_;
+    error_prev_ = error;
+
+    float u =  kp_*error + ki_*error_i_ + kd_*error_d;
+
+    float rounded_u = std::round(u);
+    int32_t temp_u = static_cast<int32_t>(rounded_u);
+
+    int32_t thrust_1 = static_cast<int32_t>(base_thrust_) + temp_u;
+    int32_t thrust_2 = static_cast<int32_t>(base_thrust_) - temp_u;
+    
+    thrust_1_ = (thrust_1 > 0) ? static_cast<uint8_t>(thrust_1) : 0;
+    thrust_2_ = (thrust_2 > 0) ? static_cast<uint8_t>(thrust_2) : 0;
+
+#ifndef _UNIT_TEST
+    std::cout << " roll angle X: " << roll_angle <<"; Power 1 " << thrust_1_ << "; Power 2 " << thrust_2_ << "; error " << error<< std::endl;
+#endif
+
+    spi_buffer[MOTOR_1] = thrust_1_;
+    spi_buffer[MOTOR_2] = thrust_2_;
+
+    spi_.ReadWriteData(spi_channel_, spi_buffer, sizeof(spi_buffer));
+}
+
+void Balancer::SetTargetAngle(int32_t angle)
+{
+    target_angle_.store(angle, std::memory_order_relaxed);
+}
+
+void Balancer::SetRegulatorConstants(float kp, float ki, float kd)
+{
+    kp_ = kp;
+    ki_ = ki;
+    kd_ = kd;
 }
 
 Balancer::~Balancer()
 {
 }
-
-void Balancer::ProcessControl(void) const
-{
-}
-
-
-

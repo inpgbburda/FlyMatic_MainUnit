@@ -2,8 +2,10 @@
 
 #include <pthread.h>
 #include <stdint.h>
+#ifndef _UNIT_TEST
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
 #include <unistd.h>           /* Definition of syscalls */
+#endif
 #include <iostream>
 #include <vector>
 
@@ -27,6 +29,13 @@ typedef struct
 }
 sched_attr_t;
 
+typedef struct
+{
+    sched_attr_t* attr_ptr; // Thread scheduling attributes
+    void* user_arg;    // User argument passed to thread function
+}
+RT_Thread_StartPayload;
+
 void SchedSetAttr(sched_attr_t *attr_ptr);
 void PreventPagingToSwapArea(void);
 
@@ -40,20 +49,22 @@ private:
     sched_attr_t attr_;
     bool Cpu_Set_[THR_MNGR_RPI_CORE_NUMBER];
     bool exec_state_;
+    RT_Thread_StartPayload start_payload_;
 
 public:
     RT_Thread
     (
         int scheduler_type, int runtime, int deadline, int period, void* (*fun_ptr)(void *data)
     );
-
+    RT_Thread(const RT_Thread& other);
+    RT_Thread& operator=(const RT_Thread& other);
+    void SetUserArg(void* arg);
     /** Creates Posix thread with prevoiusly set paramaters*/
     void Run(void);
     bool IsRun(void) {return exec_state_;}
     void AssignAffinity(void);
     void Join(void) { pthread_join(posix_instance_, NULL); }
     bool operator==(const RT_Thread& rt_thread)const;
-    void DeInit(void);
 
    ~RT_Thread(){};
 };
@@ -73,6 +84,5 @@ public:
     std::vector<RT_Thread> const GetAllThreads(){ return collected_threads_; }
     void DeInit(void);
     void RunAllThreads(void);
-
-   ~Thread_Manager(){};
+    ~Thread_Manager();
 };

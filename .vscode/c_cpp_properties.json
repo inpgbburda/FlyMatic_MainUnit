@@ -1,22 +1,24 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/02_Srv/threads/",
-                "${workspaceFolder}/03_IoHwab/flight_control/",
-                "${workspaceFolder}/04_Drv/i2c/"
+                "${workspaceFolder}/SW_components/02_Srv/threads",
+                "${workspaceFolder}/SW_components/03_IoHwab/flight_control",
+                "${workspaceFolder}/SW_components/03_IoHwab/mpu6050",
+                "${workspaceFolder}/SW_components/04_Drv/i2c",
+                "${workspaceFolder}/SW_components/04_Drv/spi"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "C:\\cygwin64\\bin\\gcc.exe",
+            "compilerPath": "/usr/bin/g++",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "linux-gcc-arm"
         }
     ],
     "version": 4
