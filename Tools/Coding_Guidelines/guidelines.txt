@@ -1,0 +1,33 @@
+C++ Formatting and Naming Guidelines (FlyMatic)
+
+Files and sections
+- Header guards: use #pragma once.
+- File names: lower_snake_case for .hpp and .cpp; header/source names match (e.g., mpu6050.hpp / mpu6050.cpp).
+
+Includes
+- Order: module header, then module dependencies, then standard headers.
+- Avoid unused includes.
+
+Naming
+- Classes, structs: PascalCase (SensorData, Mpu6050Sensor).
+- Enums: typedef enum { ... } PascalCaseName_T; suffix _T required (Filtering_Level_T, Acc_Axis_T).
+- Enum values: ALL_CAPS (LEVEL_0..LEVEL_6, X/Y/Z, ROLL/PITCH).
+- Methods and Functions: PascalCase (Init, Start, ReadSensorData).
+- Data members: trailing underscore (i2c_handle_, sensor_data_).
+- Global objects: UpperCamelCase words separated by underscores (I2c_Bus).
+- File-scope static objects: UpperCamelCase with underscores (e.g., Acc_Reg_Cfg, Angle_Cfg).
+- Local variables and parameters: lower_snake_case (raw_acc, start_reg, angle_f).
+    - arrays folows this rule too
+- Macros and constants: ALL_CAPS_WITH_UNDERSCORES (MPU6050_I2C_ADDR, WHO_AM_I_AD, ACC_SCALER).
+- Register names: ALL_CAPS with suffixes (_AD for addresses, _SIZE for lengths).
+
+Formatting
+- Indentation: 4 spaces.
+- 'for', 'while' loop
+    for(;;){
+        //code
+    }
+- Brace style: opening brace on same line for functions/classes/methods.
+- Access specifiers aligned (public:, private:, protected:).
+- Comment banners exactly as in templates.
+- Doxygen tags allowed for brief/params/returns (documentation formatting).
