@@ -3,7 +3,7 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
 
-Mpu6050 mpu6050;
+Mpu6050 Mpu6050_Inst;
 
 void Mpu6050::ProcessSensorData(void)
 {

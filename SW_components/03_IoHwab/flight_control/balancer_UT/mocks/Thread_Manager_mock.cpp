@@ -1,6 +1,6 @@
 #include "Thread_Manager.hpp"
 
-void SchedSetAttr(sched_attr_t *attr_ptr)
+void SchedSetAttr(SchedAttr_T *attr_ptr)
 {
 
 }

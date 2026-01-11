@@ -1,13 +1,36 @@
+/**
+* Manages real-time threads creation and scheduling
+*
+*/
+
+/*
+|===================================================================================================================================|
+    File includes 
+|===================================================================================================================================|
+*/
+
 #include "Thread_Manager.hpp"
 #include <string.h>
 #ifndef _UNIT_TEST
 #include <sys/mman.h>
 #endif
 
+/*
+|===================================================================================================================================|
+    Macro definitions
+|===================================================================================================================================|
+*/
+
 #define DEFAULT_PID         0U /* Apply the scheduling attributes to the current thread*/
 #define SCHED_FLAG_DEFAULT       0U /* No special options */
 #define SCHED_FLAG_RESET_ON_FORK 1U /* Reset the scheduling attributes to default on fork */
 #define SCHED_FLAG_RECLAIM       2U /* Allows reclaiming unused runtime in certain real-time scheduling policies */
+
+/*
+|===================================================================================================================================|
+    Function definitions
+|===================================================================================================================================|
+*/
 
 /**
  * SchedSetAttr
@@ -17,10 +40,10 @@
  * @return: none
  * 
  */
-void SchedSetAttr(sched_attr_t *attr_ptr) 
+void SchedSetAttr(SchedAttr_T *attr_ptr) 
 {
-    sched_attr_t attr_local = {};
-    memcpy(&attr_local, attr_ptr, sizeof(sched_attr_t));
+    SchedAttr_T attr_local = {};
+    memcpy(&attr_local, attr_ptr, sizeof(SchedAttr_T));
 #ifndef _UNIT_TEST
     int result = 0;
     /* Pass the scheduling configuration to the OS */
@@ -72,7 +95,7 @@ RT_Thread::RT_Thread(const RT_Thread& other)
     attr_ = other.attr_;
     for(unsigned int i=0; i<THR_MNGR_RPI_CORE_NUMBER; ++i)
     {
-        Cpu_Set_[i] = other.Cpu_Set_[i];
+        cpu_set_[i] = other.cpu_set_[i];
     }
     exec_state_ = other.exec_state_;
     start_payload_.attr_ptr = &attr_;
@@ -88,7 +111,7 @@ RT_Thread& RT_Thread::operator=(const RT_Thread& other)
     attr_ = other.attr_;
     for(unsigned int i=0; i<THR_MNGR_RPI_CORE_NUMBER; ++i)
     {
-        Cpu_Set_[i] = other.Cpu_Set_[i];
+        cpu_set_[i] = other.cpu_set_[i];
     }
     exec_state_ = other.exec_state_;
     start_payload_.attr_ptr = &attr_;
@@ -123,7 +146,7 @@ void RT_Thread::AssignAffinity(void)
     CPU_ZERO(&cpuset);
     for(unsigned int i=0; i<THR_MNGR_RPI_CORE_NUMBER; i++)
     {
-        if(Cpu_Set_[i])
+        if(cpu_set_[i])
         {
             CPU_SET(i, &cpuset);
         }
