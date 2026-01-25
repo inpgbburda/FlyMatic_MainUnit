@@ -1,5 +1,5 @@
 /**
-* File contains 
+* File contains implementation of balancing control algorithm
 *
 */
 
@@ -27,12 +27,11 @@
 |===================================================================================================================================|
 */
 /*
+
 |===================================================================================================================================|
     Object allocations 
 |===================================================================================================================================|
 */
-
-
 const float k = 0.2f;
 const float I = 0.08f;
 const float D = 0.0f;
@@ -62,8 +61,7 @@ void *CalculateFlightControls(void *data_ptr)
     balancer->SetRegulatorConstants(k, I, D);
     balancer->SetBaseThrust(30);
 
-    while(1)
-    {
+    while(1){
         balancer->ProcessControl();
         /*Inform scheduler that calculation is done*/
         sched_yield();
@@ -78,8 +76,7 @@ void *ReadAccSensor(void *data_ptr)
     SchedSetAttr(payload->attr_ptr);
     Mpu6050* mpu6050 = static_cast<Mpu6050*>(payload->user_arg);
 
-    while(1)
-    {
+    while(1){
         mpu6050->ReadSensorData();
         sched_yield();
     }

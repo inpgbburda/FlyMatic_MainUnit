@@ -1,20 +1,39 @@
 #pragma once
 
+/**
+* Manages real-time threads creation and scheduling
+*
+*/
+
+/*
+|===================================================================================================================================|
+    File includes 
+|===================================================================================================================================|
+*/
+
 #include <pthread.h>
 #include <stdint.h>
 #ifndef _UNIT_TEST
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
 #include <unistd.h>           /* Definition of syscalls */
 #endif
-#include <iostream>
 #include <vector>
-
+/*
+|===================================================================================================================================|
+    Macro definitions
+|===================================================================================================================================|
+*/
 #define THR_MNGR_RPI_CORE_NUMBER 4U
 #define SCHED_US_MULTP 10U /* To obtain 1 us timestamp, it's required by scheduler API to pass value 10*/
 
 #define handle_error_en(en, msg) \
-    do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
+/*
+|===================================================================================================================================|
+    Exported types declarations
+|===================================================================================================================================|
+*/
 
 typedef struct
 {
@@ -27,16 +46,16 @@ typedef struct
     uint64_t sched_deadline;
     uint64_t sched_period;
 }
-sched_attr_t;
+SchedAttr_T;
 
 typedef struct
 {
-    sched_attr_t* attr_ptr; // Thread scheduling attributes
+    SchedAttr_T* attr_ptr; // Thread scheduling attributes
     void* user_arg;    // User argument passed to thread function
 }
 RT_Thread_StartPayload;
 
-void SchedSetAttr(sched_attr_t *attr_ptr);
+void SchedSetAttr(SchedAttr_T *attr_ptr);
 void PreventPagingToSwapArea(void);
 
 class RT_Thread
@@ -46,8 +65,8 @@ private:
     /* data */
     pthread_t posix_instance_;
     void* (*fun_ptr_)(void *data);
-    sched_attr_t attr_;
-    bool Cpu_Set_[THR_MNGR_RPI_CORE_NUMBER];
+    SchedAttr_T attr_;
+    bool cpu_set_[THR_MNGR_RPI_CORE_NUMBER];
     bool exec_state_;
     RT_Thread_StartPayload start_payload_;
 

@@ -234,8 +234,7 @@ void Mpu6050Sensor::ReadSensorData(void)
 {
     int16_t raw_acc = 0;
     pthread_mutex_lock(&(data_to_fill_.acc_lock_));
-    for(auto &x : data_to_fill_.raw_accelerations_)
-    {
+    for(auto &x : data_to_fill_.raw_accelerations_) {
         raw_acc = ReadAcceleration(x.first);
         x.second = raw_acc;
     }
@@ -318,8 +317,7 @@ void Mpu6050AccConverter::ConvertRawToPhysical(void)
     Acc_Axis_T axis;
 
     pthread_mutex_lock(&(data_.acc_lock_));
-    for(auto &x : Phys_Accs)
-    {
+    for(auto &x : Phys_Accs) {
         axis = x.first;
         int32_t raw_value = Raw_Accs.at(axis);
         x.second = raw_value * ACC_MAX_VAL * ACC_SCALER / INT16_T_MAX_VAL;
@@ -336,8 +334,7 @@ void Mpu6050AngleConverter::CalculateSpiritAngles(void)
     int32_t  angle = 0;
     int32_t  acc   = 0;
 
-    for (auto &x : data_.spirit_angles_)
-    {
+    for (auto &x : data_.spirit_angles_) {
         Acc_Axis_T assigned_axis = Angle_Cfg.at(x.first);
         acc = data_.physical_accelerations_.at(assigned_axis);
         if(ONE_G_TRESHOLD >= abs(acc)){

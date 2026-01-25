@@ -56,7 +56,8 @@ Angle_Axis_T;
     Exported objects declarations
 |===================================================================================================================================|
 */
-class SensorData {
+class SensorData
+{
 public:
     pthread_mutex_t acc_lock_;
 
