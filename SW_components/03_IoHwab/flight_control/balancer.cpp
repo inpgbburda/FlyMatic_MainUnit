@@ -20,6 +20,7 @@
     Macro definitions
 |===================================================================================================================================|
 */
+#define SLOW_SHUTDOWN_STEP_DELAY_US 200000U
 
 /*
 |===================================================================================================================================|
@@ -32,9 +33,9 @@
     Object allocations 
 |===================================================================================================================================|
 */
-const float k = 0.2f;
-const float I = 0.08f;
-const float D = 0.0f;
+const float k = 0.12f;
+const float I = 0.1f;
+const float D = 0.25f;
 
 /*
 |===================================================================================================================================|
@@ -50,10 +51,11 @@ const float D = 0.0f;
 
 void *CalculateFlightControls(void *data_ptr)
 {
-    RT_Thread_StartPayload *payload = static_cast<RT_Thread_StartPayload*>(data_ptr); 
+    RT_Thread_StartPayload_T *payload = static_cast<RT_Thread_StartPayload_T*>(data_ptr); 
 
     SchedSetAttr(payload->attr_ptr);
-    Balancer* balancer = static_cast<Balancer*>(payload->user_arg);
+    FlightCtrlArgs_T* payload_arg = static_cast<FlightCtrlArgs_T*>(payload->user_arg);
+    Balancer* balancer = static_cast<Balancer*>(payload_arg->balancer);
 
     std::cout << "Step 1" << std::endl;
     balancer->Init();
@@ -61,7 +63,7 @@ void *CalculateFlightControls(void *data_ptr)
     balancer->SetRegulatorConstants(k, I, D);
     balancer->SetBaseThrust(30);
 
-    while(1){
+    while(!(*payload_arg->stop).load(std::memory_order_relaxed)){
         balancer->ProcessControl();
         /*Inform scheduler that calculation is done*/
         sched_yield();
@@ -71,12 +73,13 @@ void *CalculateFlightControls(void *data_ptr)
 
 void *ReadAccSensor(void *data_ptr)
 {
-    RT_Thread_StartPayload *payload = static_cast<RT_Thread_StartPayload*>(data_ptr);
+    RT_Thread_StartPayload_T *payload = static_cast<RT_Thread_StartPayload_T*>(data_ptr);
     
     SchedSetAttr(payload->attr_ptr);
-    Mpu6050* mpu6050 = static_cast<Mpu6050*>(payload->user_arg);
+    ReadAccSensorArgs_T* payload_arg = static_cast<ReadAccSensorArgs_T*>(payload->user_arg);
+    Mpu6050* mpu6050 = static_cast<Mpu6050*>(payload_arg->mpu6050);
 
-    while(1){
+    while(!(*payload_arg->stop).load(std::memory_order_relaxed)){
         mpu6050->ReadSensorData();
         sched_yield();
     }
@@ -87,16 +90,35 @@ void *DoMainRoutine(Balancer& balancer)
 {
     balancer.SetTargetAngle(0);
     sleep(10);
-    balancer.SetTargetAngle(20);
+    balancer.SetTargetAngle(15);
     sleep(5);
-    balancer.SetTargetAngle(-20);
+    balancer.SetTargetAngle(-15);
     sleep(5);
-    balancer.SetTargetAngle(20);
+    balancer.SetTargetAngle(15);
     sleep(5);
-    balancer.SetTargetAngle(-20);
+    balancer.SetTargetAngle(-15);
     sleep(5);
     balancer.SetTargetAngle(0);
-    sleep(10);
+    sleep(3);
+
+    //Perform slow shutdown of motors
+    balancer.SetBaseThrust(25);
+    usleep(SLOW_SHUTDOWN_STEP_DELAY_US);
+
+    balancer.SetBaseThrust(20);
+    usleep(SLOW_SHUTDOWN_STEP_DELAY_US);
+
+    balancer.SetBaseThrust(15);
+    usleep(SLOW_SHUTDOWN_STEP_DELAY_US);
+    
+    balancer.SetBaseThrust(10);
+    usleep(SLOW_SHUTDOWN_STEP_DELAY_US);
+    balancer.SetBaseThrust(5);
+
+    usleep(SLOW_SHUTDOWN_STEP_DELAY_US);
+    balancer.SetBaseThrust(0);
+    sleep(0.5);
+
     return NULL;
 }
 

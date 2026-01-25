@@ -29,7 +29,6 @@ typedef enum
 }
 Motor_Id_T;
 
-
 class Balancer
 {
 private:
@@ -63,6 +62,19 @@ public:
     Balancer(Balancer&&) = delete;
     Balancer& operator=(Balancer&&) = delete;
 };
+
+/* Packages of objects passed into threads */
+typedef struct
+{
+    Balancer* balancer;
+    std::atomic<bool>* stop;
+}FlightCtrlArgs_T;
+
+typedef struct
+{
+    Mpu6050* mpu6050;
+    std::atomic<bool>* stop;
+}ReadAccSensorArgs_T;
 
 /*
 |===================================================================================================================================|

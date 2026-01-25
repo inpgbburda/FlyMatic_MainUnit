@@ -53,7 +53,7 @@ typedef struct
     SchedAttr_T* attr_ptr; // Thread scheduling attributes
     void* user_arg;    // User argument passed to thread function
 }
-RT_Thread_StartPayload;
+RT_Thread_StartPayload_T;
 
 void SchedSetAttr(SchedAttr_T *attr_ptr);
 void PreventPagingToSwapArea(void);
@@ -68,7 +68,7 @@ private:
     SchedAttr_T attr_;
     bool cpu_set_[THR_MNGR_RPI_CORE_NUMBER];
     bool exec_state_;
-    RT_Thread_StartPayload start_payload_;
+    RT_Thread_StartPayload_T start_payload_;
 
 public:
     RT_Thread

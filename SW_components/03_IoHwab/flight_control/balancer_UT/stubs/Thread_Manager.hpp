@@ -21,7 +21,7 @@ typedef struct
     SchedAttr_T* attr_ptr; /*Thread scheduling attributes*/
     void* user_arg;         /*User argument passed to thread function*/
 }
-RT_Thread_StartPayload;
+RT_Thread_StartPayload_T;
 
 void SchedSetAttr(SchedAttr_T *attr_ptr);
 void PreventPagingToSwapArea(void);
