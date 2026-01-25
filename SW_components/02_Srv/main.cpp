@@ -9,16 +9,15 @@
 |===================================================================================================================================|
 */
 
-#include <iostream>
-
 #include "Thread_Manager.hpp"
 #include "i2c.hpp"
 #include "spi.hpp"
-#include "i2c_cfg.hpp"
 #include "mpu6050.hpp"
 #include "balancer.hpp"
 
 #include "Thread_Manager_Cfg.hpp"
+
+#include <iostream>
 
 /*
 |===================================================================================================================================|

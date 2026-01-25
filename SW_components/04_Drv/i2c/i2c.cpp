@@ -9,9 +9,11 @@
 |===================================================================================================================================|
 */
 
+#include "i2c.hpp"
+
 extern "C" {
-  #include <linux/i2c-dev.h>
-  #include <i2c/smbus.h>
+    #include <linux/i2c-dev.h>
+    #include <i2c/smbus.h>
 }
 
 #include <fcntl.h>    /* For O_RDWR */
@@ -24,8 +26,6 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdexcept>
-#include "i2c_cfg.hpp"
-#include "i2c.hpp"
 
 /*
 |===================================================================================================================================|
@@ -89,9 +89,9 @@ int I2c::ReadByte(uint8_t slave_addr, uint8_t addr)
 std::vector<uint8_t> I2c::ReadBlockOfBytes(uint8_t slave_addr, uint8_t start_reg_addr, uint8_t block_len)
 {
     SetSlaveAddr(slave_addr);
-    std::vector<uint8_t> Block(block_len);
-    i2c_smbus_read_i2c_block_data(linux_driver_, start_reg_addr, block_len, Block.data());
-    return Block;
+    std::vector<uint8_t> block(block_len);
+    i2c_smbus_read_i2c_block_data(linux_driver_, start_reg_addr, block_len, block.data());
+    return block;
 }
 
 I2c::~I2c()

@@ -17,7 +17,6 @@
 #include <sys/syscall.h>      /* Definition of SYS_* constants */
 #include <unistd.h>           /* Definition of syscalls */
 #endif
-#include <iostream>
 #include <vector>
 /*
 |===================================================================================================================================|

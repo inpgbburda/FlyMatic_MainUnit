@@ -23,11 +23,13 @@ Naming
 
 Formatting
 - Indentation: 4 spaces.
-- 'for', 'while' loop
-    for(;;){
-        //code
-    }
-- Brace style: opening brace on same line for functions/classes/methods.
+- Brace style: opening brace on the new line for functions/classes/methods.
+  exception: 
+    - 'for', 'while' loop and 'ifs' have opening brackets in the same line
+        for(;;){
+            //code
+        }
+    - short methods in the header, which are more readible in single line
 - Access specifiers aligned (public:, private:, protected:).
 - Comment banners exactly as in templates.
 - Doxygen tags allowed for brief/params/returns (documentation formatting).
