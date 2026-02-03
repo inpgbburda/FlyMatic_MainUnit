@@ -49,13 +49,9 @@ const float D = 0.25f;
 |===================================================================================================================================|
 */
 
-void *CalculateFlightControls(void *data_ptr)
+void *CalculateFlightControlsLoop(SchedAttr_T* /*attr*/, FlightCtrlArgs_T* args)
 {
-    RT_Thread_StartPayload_T *payload = static_cast<RT_Thread_StartPayload_T*>(data_ptr); 
-
-    SchedSetAttr(payload->attr_ptr);
-    FlightCtrlArgs_T* payload_arg = static_cast<FlightCtrlArgs_T*>(payload->user_arg);
-    Balancer* balancer = static_cast<Balancer*>(payload_arg->balancer);
+    auto* balancer = static_cast<Balancer*>(args->balancer);
 
     std::cout << "Step 1" << std::endl;
     balancer->Init();
@@ -63,7 +59,7 @@ void *CalculateFlightControls(void *data_ptr)
     balancer->SetRegulatorConstants(k, I, D);
     balancer->SetBaseThrust(30);
 
-    while(!(*payload_arg->stop).load(std::memory_order_relaxed)){
+    while(!args->stop->load(std::memory_order_relaxed)){
         balancer->ProcessControl();
         /*Inform scheduler that calculation is done*/
         sched_yield();
@@ -71,15 +67,11 @@ void *CalculateFlightControls(void *data_ptr)
     return NULL;
 }
 
-void *ReadAccSensor(void *data_ptr)
+void *ReadAccSensorLoop(SchedAttr_T* /*attr*/, ReadAccSensorArgs_T* args)
 {
-    RT_Thread_StartPayload_T *payload = static_cast<RT_Thread_StartPayload_T*>(data_ptr);
-    
-    SchedSetAttr(payload->attr_ptr);
-    ReadAccSensorArgs_T* payload_arg = static_cast<ReadAccSensorArgs_T*>(payload->user_arg);
-    Mpu6050* mpu6050 = static_cast<Mpu6050*>(payload_arg->mpu6050);
+    auto* mpu6050 = static_cast<Mpu6050*>(args->mpu6050);
 
-    while(!(*payload_arg->stop).load(std::memory_order_relaxed)){
+    while(!args->stop->load(std::memory_order_relaxed)){
         mpu6050->ReadSensorData();
         sched_yield();
     }
@@ -101,7 +93,7 @@ void *DoMainRoutine(Balancer& balancer)
     balancer.SetTargetAngle(0);
     sleep(3);
 
-    //Perform slow shutdown of motors
+    /* Perform slow shutdown of motors */
     balancer.SetBaseThrust(25);
     usleep(SLOW_SHUTDOWN_STEP_DELAY_US);
 
@@ -181,7 +173,11 @@ void Balancer::ProcessControl(void)
     thrust_2_ = (thrust_2 > 0) ? static_cast<uint8_t>(thrust_2) : 0;
 
 #ifndef _UNIT_TEST
-    std::cout << " roll angle X: " << roll_angle <<"; Power 1 " << thrust_1_ << "; Power 2 " << thrust_2_ << "; error " << error<< std::endl;
+        std::cout << " roll angle X: " << roll_angle
+        << "; Power 1 " << static_cast<int>(thrust_1_)
+        << "; Power 2 " << static_cast<int>(thrust_2_)
+        << "; error "   << error
+        << std::endl;
 #endif
 
     spi_buffer[MOTOR_1] = thrust_1_;

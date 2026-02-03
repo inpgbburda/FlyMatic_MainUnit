@@ -13,7 +13,8 @@
 #include <atomic>
 #include "spi.hpp"
 #include "mpu6050.hpp"
-   
+#include "Thread_Manager.hpp"
+
 /*
 |===================================================================================================================================|
     Exported types declarations
@@ -87,6 +88,6 @@ typedef struct
     Exported Function declarations
 |===================================================================================================================================|
 */
-void *CalculateFlightControls(void *data_ptr);
-void *ReadAccSensor(void *data_ptr);
+void *CalculateFlightControlsLoop(SchedAttr_T* /*attr*/, FlightCtrlArgs_T* args);
+void *ReadAccSensorLoop(SchedAttr_T* /*attr*/, ReadAccSensorArgs_T* args);
 void *DoMainRoutine(Balancer& balancer);

@@ -22,7 +22,7 @@
 |===================================================================================================================================|
 */
 
-#define DEFAULT_PID         0U /* Apply the scheduling attributes to the current thread*/
+#define DEFAULT_PID              0U /* Apply the scheduling attributes to the current thread*/
 #define SCHED_FLAG_DEFAULT       0U /* No special options */
 #define SCHED_FLAG_RESET_ON_FORK 1U /* Reset the scheduling attributes to default on fork */
 #define SCHED_FLAG_RECLAIM       2U /* Allows reclaiming unused runtime in certain real-time scheduling policies */
@@ -78,14 +78,15 @@ RT_Thread::RT_Thread
     fun_ptr_ = fun_ptr;
     exec_state_ = false;
 
+    /* Pack the scheduling attributes and expose their pointer */
     attr_.size = sizeof(attr_);
     attr_.sched_policy = scheduler_type;
     attr_.sched_runtime = runtime;
     attr_.sched_deadline = deadline;
     attr_.sched_period = period;
-
     start_payload_.attr_ptr = &attr_;
-    start_payload_.user_arg = nullptr;
+
+    start_payload_.user_arg = nullptr; /* Pointer to user data, can be set by SetUserArg() */
 }
 
 RT_Thread::RT_Thread(const RT_Thread& other)
@@ -117,17 +118,26 @@ RT_Thread& RT_Thread::operator=(const RT_Thread& other)
     return *this;
 }
 
-void RT_Thread::SetUserArg(void* arg)
+/**
+ * @brief: Passes the pointer to the user argument, which will be passed to the thread function upon its start.
+ * It can be then used during thread execution.
+ *
+ * @return: none
+ */
+void RT_Thread::SetUserArg(void* arg_ptr)
 {
-    start_payload_.user_arg = arg;
+    start_payload_.user_arg = arg_ptr;
 }
 
 /**
  * RT_Thread::Run
- * @brief: Creates Posix thread with prevoiusly set paramaters and starts its execution
+ * @brief: Creates and starts Posix thread with prevoiusly set paramaters.
+ * User argument set by SetUserArg() and thread parameters are passed by single pointer to the thread function.
+ * 
+ * The scheduling attribues are set inside the thread function, 
+ * because the standard Posix thread creation API does not allow setting EDF policy.
  *
  * @return: none
- * 
  */
 void RT_Thread::Run(void)
 {
@@ -135,6 +145,11 @@ void RT_Thread::Run(void)
     pthread_create(&posix_instance_, NULL, fun_ptr_, (void*)&start_payload_);
 }
 
+/**
+ * @brief: Tie given thread into specified CPU cores.
+ * 
+ * @return: none
+ */
 void RT_Thread::AssignAffinity(void)
 {
     #ifndef _UNIT_TEST
