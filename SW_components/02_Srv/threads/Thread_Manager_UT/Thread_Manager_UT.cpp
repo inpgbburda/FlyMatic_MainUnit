@@ -10,7 +10,7 @@ static SchedAttr_T mock_thread_attr;
 
 static void *MockFunctionThread(void *data_ptr)
 {
-    RT_Thread_StartPayload* payload = (RT_Thread_StartPayload*)data_ptr;
+    RT_Thread_StartPayload_T* payload = (RT_Thread_StartPayload_T*)data_ptr;
     SchedAttr_T* attr = payload->attr_ptr;
     mock_thread_attr.size = attr->size;
     mock_thread_attr.sched_policy = attr->sched_policy;

@@ -48,12 +48,17 @@ typedef struct
 }
 SchedAttr_T;
 
+/* Structure which holds the payload for starting a real-time thread.
+* Will be passed as a single pointer to the thread function,
+* which will unpack it and use the contained data to set up the thread's scheduling attributes
+* and access user arguments. 
+*/
 typedef struct
 {
-    SchedAttr_T* attr_ptr; // Thread scheduling attributes
-    void* user_arg;    // User argument passed to thread function
+    SchedAttr_T* attr_ptr;  /* Thread scheduling attributes */
+    void* user_arg;         /* User argument passed to thread function */
 }
-RT_Thread_StartPayload;
+RT_Thread_StartPayload_T;
 
 void SchedSetAttr(SchedAttr_T *attr_ptr);
 void PreventPagingToSwapArea(void);
@@ -68,7 +73,7 @@ private:
     SchedAttr_T attr_;
     bool cpu_set_[THR_MNGR_RPI_CORE_NUMBER];
     bool exec_state_;
-    RT_Thread_StartPayload start_payload_;
+    RT_Thread_StartPayload_T start_payload_;
 
 public:
     RT_Thread
@@ -78,11 +83,10 @@ public:
     RT_Thread(const RT_Thread& other);
     RT_Thread& operator=(const RT_Thread& other);
     void SetUserArg(void* arg);
-    /** Creates Posix thread with prevoiusly set paramaters*/
     void Run(void);
     bool IsRun(void) {return exec_state_;}
     void AssignAffinity(void);
-    void Join(void) { pthread_join(posix_instance_, NULL); }
+    void Join(void) { pthread_join(posix_instance_, nullptr); }
     bool operator==(const RT_Thread& rt_thread)const;
 
    ~RT_Thread(){};
@@ -105,3 +109,35 @@ public:
     void RunAllThreads(void);
     ~Thread_Manager();
 };
+
+/* Alias for typed thread entry functions: 
+*  eg. void* FooThread(SchedAttr_T*, FooArgs_T*) the instantiaion must have
+*  - first argument of type SchedAttr_T*
+*  - second argument of type T* 
+*
+*/
+
+template <typename T>
+using TypedEntry = void* (*)(SchedAttr_T*, T*);
+
+
+/* F is: void* F(SchedAttr_T*, T*)
+* Template of function which will call the F() function the right object type 
+*/
+
+template <typename T, TypedEntry<T> F> /*Template parameter list */
+
+inline void* ThreadFunctionTempl(void* data_ptr) {
+
+    void* result = nullptr;
+
+    /* Set the scheduling attributes for this thread */
+    auto payload = static_cast<RT_Thread_StartPayload_T*>(data_ptr);
+    SchedSetAttr(payload->attr_ptr);
+
+    /* Call the actual thread function with proper argument types */
+    result = F(payload->attr_ptr, static_cast<T*>(payload->user_arg));
+    
+    /* Return the result of the thread function */
+    return result;
+}

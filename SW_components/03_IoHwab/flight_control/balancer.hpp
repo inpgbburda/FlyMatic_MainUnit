@@ -13,7 +13,8 @@
 #include <atomic>
 #include "spi.hpp"
 #include "mpu6050.hpp"
-   
+#include "Thread_Manager.hpp"
+
 /*
 |===================================================================================================================================|
     Exported types declarations
@@ -28,7 +29,6 @@ typedef enum
     MAX_MOTOR_NUM
 }
 Motor_Id_T;
-
 
 class Balancer
 {
@@ -64,6 +64,19 @@ public:
     Balancer& operator=(Balancer&&) = delete;
 };
 
+/* Packages of objects passed into threads */
+typedef struct
+{
+    Balancer* balancer;
+    std::atomic<bool>* stop;
+}FlightCtrlArgs_T;
+
+typedef struct
+{
+    Mpu6050* mpu6050;
+    std::atomic<bool>* stop;
+}ReadAccSensorArgs_T;
+
 /*
 |===================================================================================================================================|
     Exported objects declarations
@@ -75,6 +88,6 @@ public:
     Exported Function declarations
 |===================================================================================================================================|
 */
-void *CalculateFlightControls(void *data_ptr);
-void *ReadAccSensor(void *data_ptr);
+void *CalculateFlightControlsLoop(SchedAttr_T* /*attr*/, FlightCtrlArgs_T* args);
+void *ReadAccSensorLoop(SchedAttr_T* /*attr*/, ReadAccSensorArgs_T* args);
 void *DoMainRoutine(Balancer& balancer);
