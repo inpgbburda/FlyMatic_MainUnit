@@ -131,10 +131,10 @@ void RT_Thread::SetUserArg(void* arg_ptr)
 
 /**
  * RT_Thread::Run
- * @brief: Creates and starts Posix thread with prevoiusly set paramaters.
+ * @brief: Creates and starts Posix thread with previously set parameters.
  * User argument set by SetUserArg() and thread parameters are passed by single pointer to the thread function.
  * 
- * The scheduling attribues are set inside the thread function, 
+ * The scheduling attributes are set inside the thread function, 
  * because the standard Posix thread creation API does not allow setting EDF policy.
  *
  * @return: none
@@ -142,7 +142,7 @@ void RT_Thread::SetUserArg(void* arg_ptr)
 void RT_Thread::Run(void)
 {
     exec_state_ = true;
-    pthread_create(&posix_instance_, NULL, fun_ptr_, (void*)&start_payload_);
+    pthread_create(&posix_instance_, nullptr, fun_ptr_, (void*)&start_payload_);
 }
 
 /**

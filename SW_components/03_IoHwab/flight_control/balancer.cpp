@@ -15,6 +15,8 @@
 
 #include <iostream>
 #include <cmath>
+#include <unistd.h> /* For sleep() and usleep() functions - UT will use mocks */
+
 /*
 |===================================================================================================================================|
     Macro definitions
@@ -64,7 +66,7 @@ void *CalculateFlightControlsLoop(SchedAttr_T* /*attr*/, FlightCtrlArgs_T* args)
         /*Inform scheduler that calculation is done*/
         sched_yield();
     }
-    return NULL;
+    return nullptr;
 }
 
 void *ReadAccSensorLoop(SchedAttr_T* /*attr*/, ReadAccSensorArgs_T* args)
@@ -75,7 +77,7 @@ void *ReadAccSensorLoop(SchedAttr_T* /*attr*/, ReadAccSensorArgs_T* args)
         mpu6050->ReadSensorData();
         sched_yield();
     }
-    return NULL;
+    return nullptr;
 }
 
 void *DoMainRoutine(Balancer& balancer)
@@ -105,13 +107,14 @@ void *DoMainRoutine(Balancer& balancer)
     
     balancer.SetBaseThrust(10);
     usleep(SLOW_SHUTDOWN_STEP_DELAY_US);
+
     balancer.SetBaseThrust(5);
-
     usleep(SLOW_SHUTDOWN_STEP_DELAY_US);
+    
     balancer.SetBaseThrust(0);
-    sleep(0.5);
+    usleep(SLOW_SHUTDOWN_STEP_DELAY_US);
 
-    return NULL;
+    return nullptr;
 }
 
 Balancer::Balancer(Mpu6050& mpu6050, Spi& spi, int spi_channel):
