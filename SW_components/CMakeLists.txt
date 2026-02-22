@@ -6,6 +6,7 @@ message("Used Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 set(SOURCES
     02_Srv/main.cpp
     02_Srv/threads/Thread_Manager.cpp
+    02_Srv/threads/Monotonic_Sleep.cpp
     02_Srv/config/os_cfg/Thread_Manager_Cfg.cpp
     03_IoHwab/mpu6050/mpu6050.cpp
     03_IoHwab/flight_control/balancer.cpp
