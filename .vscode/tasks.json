@@ -134,6 +134,38 @@
         },
         {
             "type": "shell",
+            "label": "Unit Tests - Monotonic Sleep - build",
+            "command": "make all",
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Monotonic_Sleep_UT/builds_UT"
+            },
+            "problemMatcher": {
+                "base": "$gcc"
+            },
+        },
+        {
+            "type": "shell",
+            "label": "Unit Tests - Monotonic Sleep - clean",
+            "command": "make clean",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Monotonic_Sleep_UT/builds_UT"
+            },
+        },
+        {
+            "type": "shell",
+            "label": "Unit Tests - Monotonic Sleep - run",
+            "command": "./Monotonic_Sleep_UT.exe",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/SW_components/02_Srv/threads/Monotonic_Sleep_UT/builds_UT"
+            },
+            "linux": {
+                "command": "./Monotonic_Sleep_UT"
+            }
+        },
+        {
+            "type": "shell",
             "label": "Unit Tests - MPU6050 - build",
             "command": "make all",
             "options": {
@@ -202,12 +234,12 @@
         {
             "label": "Unit Tests - Build all UTs",
             "dependsOrder": "sequence",
-            "dependsOn": ["Unit Tests - MPU6050 - build", "Unit Tests - Balancer - build", "Unit Tests - I2C - build"]
+            "dependsOn": ["Unit Tests - MPU6050 - build", "Unit Tests - Balancer - build", "Unit Tests - I2C - build", "Unit Tests - Monotonic Sleep - build"]
         },
         {
             "label": "Unit Tests - Run all UTs",
             "dependsOrder": "sequence",
-            "dependsOn": ["Unit Tests - MPU6050 - run", "Unit Tests - Balancer - run", "Unit Tests - I2C - run"]
+            "dependsOn": ["Unit Tests - MPU6050 - run", "Unit Tests - Balancer - run", "Unit Tests - I2C - run", "Unit Tests - Monotonic Sleep - run"]
         }
    ]
 }

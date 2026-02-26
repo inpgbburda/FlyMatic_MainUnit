@@ -52,10 +52,12 @@ int SleepMonotonicRawMs(uint64_t time_ms)
 static uint64_t GetClockNowNs(clockid_t clock_id)
 {
     timespec ts{};
-    if (clock_gettime(clock_id, &ts) != 0) {
+
+    int result = clock_gettime(clock_id, &ts);
+
+    if (result != 0) { /* If clock_gettime fails, return 0 */
         return 0ULL;
     }
-
     return static_cast<uint64_t>(ts.tv_sec) * NSEC_PER_SEC + static_cast<uint64_t>(ts.tv_nsec);
 }
 
