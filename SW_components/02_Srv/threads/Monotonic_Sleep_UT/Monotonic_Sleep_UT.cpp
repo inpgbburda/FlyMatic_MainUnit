@@ -79,3 +79,18 @@ TEST(MonotonicSleep, SleepsMsInterrupted)
 
     CHECK_EQUAL(0, SleepMonotonicRawMs(wait_time_ms));
 }
+
+TEST(MonotonicSleep, SleepsFailsToGetCurrentTime)
+{
+    int arbitrary_wait_time_ms = 1;
+    int fake_errno = EFAULT;
+
+    mock().expectOneCall("clock_gettime")
+            .andReturnValue(-1) /* Simulate failure to read current time */
+            .withOutputParameterReturning("errno_out", &fake_errno, sizeof(fake_errno))
+            .ignoreOtherParameters();
+    
+    int result = SleepMonotonicRawMs(arbitrary_wait_time_ms);
+
+    CHECK_EQUAL(EFAULT, result);
+}

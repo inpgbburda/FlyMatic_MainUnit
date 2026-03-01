@@ -11,7 +11,7 @@ static constexpr uint64_t NSEC_PER_MSEC = 1000000ULL;
 
 static constexpr clockid_t SLEEP_CLOCK = CLOCK_MONOTONIC;
 
-static uint64_t GetMonotonicClockNowNs(void);
+static int GetMonotonicClockNowNs(uint64_t* ns);
 static int SleepUntilNsWithMonotonicClock(uint64_t wakeup_time_ns);
 
 /**
@@ -24,7 +24,12 @@ static int SleepUntilNsWithMonotonicClock(uint64_t wakeup_time_ns);
  */
 int SleepMonotonicRawUs(uint64_t time_us)
 {
-    uint64_t wakeup_time_ns = GetMonotonicClockNowNs() + (time_us * NSEC_PER_USEC);
+    uint64_t wakeup_time_ns = 0;
+    int result = GetMonotonicClockNowNs(&wakeup_time_ns);
+    if (0 != result) {
+        return result;
+    }
+    wakeup_time_ns += (time_us * NSEC_PER_USEC);
     return SleepUntilNsWithMonotonicClock(wakeup_time_ns);
 }
 
@@ -38,7 +43,12 @@ int SleepMonotonicRawUs(uint64_t time_us)
  */
 int SleepMonotonicRawMs(uint64_t time_ms)
 {
-    uint64_t wakeup_time_ns = GetMonotonicClockNowNs() + (time_ms * NSEC_PER_MSEC);
+    uint64_t wakeup_time_ns = 0;
+    int result = GetMonotonicClockNowNs(&wakeup_time_ns);
+    if (0 != result) {
+        return result;
+    }
+    wakeup_time_ns += (time_ms * NSEC_PER_MSEC);
     return SleepUntilNsWithMonotonicClock(wakeup_time_ns);
 }
 
@@ -49,16 +59,17 @@ int SleepMonotonicRawMs(uint64_t time_ms)
  * @return: current time in nanoseconds, 0 on read error
  * 
  */
-static uint64_t GetMonotonicClockNowNs(void)
+static int GetMonotonicClockNowNs(uint64_t* ns)
 {
     timespec ts{};
 
     int result = clock_gettime(SLEEP_CLOCK, &ts);
-
-    if (result != 0) { /* If clock_gettime fails, return current time as 0 */
-        return 0ULL;
+    if (0 != result) { /* If clock_gettime fails, return current time as 0 */
+        int saved = errno;
+        return saved;
     }
-    return static_cast<uint64_t>(ts.tv_sec) * NSEC_PER_SEC + static_cast<uint64_t>(ts.tv_nsec);
+    *ns = static_cast<uint64_t>(ts.tv_sec * NSEC_PER_SEC + ts.tv_nsec);
+    return 0;
 }
 
 /**
