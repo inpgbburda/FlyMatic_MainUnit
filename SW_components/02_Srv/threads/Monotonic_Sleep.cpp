@@ -4,6 +4,7 @@
 #include <time.h>
 
 #define REMAINING_TIME_UNUSED nullptr
+#define MAX_SLEEP_TIME_US 999999U
 
 static constexpr uint64_t NSEC_PER_SEC = 1000000000ULL;
 static constexpr uint64_t NSEC_PER_USEC = 1000ULL;
@@ -15,40 +16,50 @@ static int GetMonotonicClockNowNs(uint64_t* ns);
 static int SleepUntilNsWithMonotonicClock(uint64_t wakeup_time_ns);
 
 /**
- * SleepMonotonicRawUs
+ * SleepMonotonicUs
  * @brief: Sleeps for relative duration in microseconds using monotonic clock
  * @param:time_us - relative sleep duration in microseconds
  *
  * @return: 0 on success, POSIX error code on failure
  * 
  */
-int SleepMonotonicRawUs(uint64_t time_us)
+int SleepMonotonicUs(uint32_t time_us)
 {
     uint64_t wakeup_time_ns = 0;
+
+    if(MAX_SLEEP_TIME_US < time_us) { /* If requested sleep time exceeds 100 ms, return overflow error */
+        return EINVAL;
+    }
     int result = GetMonotonicClockNowNs(&wakeup_time_ns);
     if (0 != result) {
         return result;
     }
-    wakeup_time_ns += (time_us * NSEC_PER_USEC);
+    if(UINT64_MAX - wakeup_time_ns < (static_cast<uint64_t>(time_us) * NSEC_PER_USEC)) { /* Check for potential overflow */
+        return EOVERFLOW;
+    }
+    wakeup_time_ns += (static_cast<uint64_t>(time_us) * NSEC_PER_USEC);
     return SleepUntilNsWithMonotonicClock(wakeup_time_ns);
 }
 
 /**
- * SleepMonotonicRawMs
+ * SleepMonotonicMs
  * @brief: Sleeps for relative duration in milliseconds using monotonic clock
  * @param:time_ms - relative sleep duration in milliseconds
  *
  * @return: 0 on success, POSIX error code on failure
  * 
  */
-int SleepMonotonicRawMs(uint64_t time_ms)
+int SleepMonotonicMs(uint32_t time_ms)
 {
     uint64_t wakeup_time_ns = 0;
+
     int result = GetMonotonicClockNowNs(&wakeup_time_ns);
     if (0 != result) {
         return result;
     }
-    wakeup_time_ns += (time_ms * NSEC_PER_MSEC);
+
+    wakeup_time_ns += (static_cast<uint64_t>(time_ms) * NSEC_PER_MSEC);
+    
     return SleepUntilNsWithMonotonicClock(wakeup_time_ns);
 }
 

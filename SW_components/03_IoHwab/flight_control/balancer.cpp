@@ -57,7 +57,7 @@ void *CalculateFlightControlsLoop(SchedAttr_T* /*attr*/, FlightCtrlArgs_T* args)
 
     std::cout << "Step 1" << std::endl;
     balancer->Init();
-    SleepMonotonicRawMs(5000U);
+    SleepMonotonicMs(5000U);
     balancer->SetRegulatorConstants(k, I, D);
     balancer->SetBaseThrust(30);
 
@@ -83,36 +83,36 @@ void *ReadAccSensorLoop(SchedAttr_T* /*attr*/, ReadAccSensorArgs_T* args)
 void *DoMainRoutine(Balancer& balancer)
 {
     balancer.SetTargetAngle(0);
-    SleepMonotonicRawMs(10000U);
+    SleepMonotonicMs(10000U);
     balancer.SetTargetAngle(15);
-    SleepMonotonicRawMs(5000U);
+    SleepMonotonicMs(5000U);
     balancer.SetTargetAngle(-15);
-    SleepMonotonicRawMs(5000U);
+    SleepMonotonicMs(5000U);
     balancer.SetTargetAngle(15);
-    SleepMonotonicRawMs(5000U);
+    SleepMonotonicMs(5000U);
     balancer.SetTargetAngle(-15);
-    SleepMonotonicRawMs(5000U);
+    SleepMonotonicMs(5000U);
     balancer.SetTargetAngle(0);
-    SleepMonotonicRawMs(3000U);
+    SleepMonotonicMs(3000U);
 
     /* Perform slow shutdown of motors */
     balancer.SetBaseThrust(25);
-    SleepMonotonicRawUs(SLOW_SHUTDOWN_STEP_DELAY_US);
+    SleepMonotonicUs(SLOW_SHUTDOWN_STEP_DELAY_US);
 
     balancer.SetBaseThrust(20);
-    SleepMonotonicRawUs(SLOW_SHUTDOWN_STEP_DELAY_US);
+    SleepMonotonicUs(SLOW_SHUTDOWN_STEP_DELAY_US);
 
     balancer.SetBaseThrust(15);
-    SleepMonotonicRawUs(SLOW_SHUTDOWN_STEP_DELAY_US);
+    SleepMonotonicUs(SLOW_SHUTDOWN_STEP_DELAY_US);
     
     balancer.SetBaseThrust(10);
-    SleepMonotonicRawUs(SLOW_SHUTDOWN_STEP_DELAY_US);
+    SleepMonotonicUs(SLOW_SHUTDOWN_STEP_DELAY_US);
 
     balancer.SetBaseThrust(5);
-    SleepMonotonicRawUs(SLOW_SHUTDOWN_STEP_DELAY_US);
+    SleepMonotonicUs(SLOW_SHUTDOWN_STEP_DELAY_US);
     
     balancer.SetBaseThrust(0);
-    SleepMonotonicRawUs(SLOW_SHUTDOWN_STEP_DELAY_US);
+    SleepMonotonicUs(SLOW_SHUTDOWN_STEP_DELAY_US);
 
     return nullptr;
 }
